@@ -1,0 +1,22 @@
+company:
+  id: ~
+  company: {type: varchar(255)}
+  description: {type: varchar(255)}
+  userData:
+    username: {type:varchar(255)}
+    password: {type: varchar(255)}
+    email: {type: varchar(255), required: false}
+  created_at: ~
+  updated_at: ~
+
+branch:
+  id: ~
+  branch: {type: varchar(255)}
+  company_id: {type: integer, foreignTable: company, foreignReference: id, onDelete: cascade}
+  address: {type: varchar(255)}
+  visible: {type: boolean}
+  state: {type: integer}
+  created_at: ~
+  updated_at: ~
+
+

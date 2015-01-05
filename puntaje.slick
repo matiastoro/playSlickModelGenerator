@@ -1,0 +1,9 @@
+pregunta_habilidad_cognitiva:
+  id:                                 ~
+  pregunta_id:                        { type: integer, foreignTable: pregunta, foreignReference: id,  onDelete: cascade }
+  habilidad_cognitiva_id:             { type: integer, foreignTable: habilidad_cognitiva_id, foreignReference: id,  onDelete: cascade }
+
+pregunta_curso:
+  id:                                 ~
+  pregunta_id:                        { type: integer, foreignTable: pregunta, foreignReference: id,  onDelete: cascade }
+  curso_id:                           { type: integer, foreignTable: curso, foreignReference: id,  onDelete: cascade }
