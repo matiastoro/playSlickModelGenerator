@@ -2,6 +2,8 @@ package via56.slickGenerator
 
 import scala.util.parsing.combinator._
 import collection.immutable.ListMap
+import java.nio.file.{Paths, Files}
+import java.nio.charset.StandardCharsets
 
 abstract class Column
 case class ColumnType(tpe: String) extends Column
@@ -15,7 +17,6 @@ class SlickCodeGenerator extends JavaTokenParsers {
   def typeAttr: Parser[(String, Any)] = "type"~":"~>"""(\w+)""".r ^^ ("type" -> _)
 
   def dbNameAttr: Parser[(String, Any)] = "dbName"~":"~>"""(\w+)""".r ^^ ("dbName" -> _)
-
 
   /*def value : Parser[Any] = obj | arr |
     stringLiteral |
@@ -42,18 +43,34 @@ object ParseJSON extends SlickCodeGenerator {
 }*/
 
 import scala.io.Source
-object parser{
+object parser {
   def main(args: Array[String]){
     val reader = Source.fromFile(args(0)).getLines.mkString("\n")
+    val pathName = if(args.size > 1) args(1)+"/models" else "models"
+    val path = Paths.get(pathName)
     YAMLParser.parse(reader).map{result =>
-
+      Files.createDirectories(path)
       result match{
         case tables : ListMap[String, ListMap[String, Any]] =>
-          tables.map{ table => println(table._1); println(generateTable(table._1, table._2))}
+          tables.map{ table => println(table._1); writeToFile(pathName, table._1,generateTable(table._1, table._2))}
         case _ : List[Any] => println("lala2")
         case _ => println("no")
       }
     }
+  }
+
+  def writeToFile(path: String, tableName: String, content: String) = {
+    val fileName = tableName.capitalize
+    val currentContent = getCurrentContent(path+"/"+fileName+".scala")
+    if(currentContent.size != content.size)
+      Files.write(Paths.get(path+"/"+fileName+".scala"), content.getBytes(StandardCharsets.UTF_8))
+  }
+
+  def getCurrentContent(path: String) = {
+    if(Files.exists(Paths.get(path)))
+      new String(Files.readAllBytes(Paths.get(path)),StandardCharsets.UTF_8)
+    else
+      ""
   }
 
   abstract class AbstractColumn(val name: String)
@@ -81,38 +98,37 @@ object parser{
   def generateTable(name: String, columnsMap: ListMap[String, Any]): String = {
     val className = underscoreToCamel(name).capitalize
 
+    def getColumns(columnsMap: ListMap[String, Any]): List[AbstractColumn] = {
+    columnsMap.map{
+      case (col, props) =>
 
-     def getColumns(columnsMap: ListMap[String, Any]): List[AbstractColumn] = {
-       columnsMap.map{
-         case (col, props) =>
+        if(col=="id"){
+          "Option[Long]"
+          Column("id", "id", "Long", true)
+        } else {
+          var optional = false
 
-            if(col=="id"){
-              "Option[Long]"
-              Column("id", "id", "Long", true)
-            } else {
-              var optional = false
-
-              if(isSubClass(props)){
-                props match{
-                  case ps: subClass =>
-                    println(ps)
-                    SubClass(underscoreToCamel(col), getColumns(ps))
-                  case _ => throw new Exception("parsing error")
-                }
-              } else {
-                val tpe = (props match{
-                  case ps: columnProps =>
-                      optional = isOptional(ps)
-                      getScalaType(col, ps,false)
-                  case _ if col != "created_at" && col != "updated_at" => "Long"
-                  case _ => "java.sql.Timestamp" //createdAt: ~, updatedAt: ~
-                })
-                Column(underscoreToCamel(col), col, tpe, optional)
-              }
+          if(isSubClass(props)){
+            props match{
+            case ps: subClass =>
+              println(ps)
+              SubClass(underscoreToCamel(col), getColumns(ps))
+            case _ => throw new Exception("parsing error")
             }
+          } else {
+            val tpe = (props match{
+              case ps: columnProps =>
+                optional = isOptional(ps)
+                getScalaType(col, ps,false)
+              case _ if col != "created_at" && col != "updated_at" => "Long"
+              case _ => "java.sql.Timestamp" //createdAt: ~, updatedAt: ~
+            })
+            Column(underscoreToCamel(col), col, tpe, optional)
+          }
+        }
         case _ => throw new Exception("Parsing error")
       }.toList
-     }
+    }
 
     val columns: List[AbstractColumn] = getColumns(columnsMap)
 
@@ -123,7 +139,10 @@ object parser{
         case c: SubClass => c.name+": "+c.name.capitalize
       }
 
-      head + cols.mkString(",\n"+(" "*head.length))+")"
+      head + cols.mkString(",\n"+(" "*head.length))+"""){
+  /*==============ADD YOUR """+className+""" CODE FROM HERE==============*/
+  /*=========================TO HERE=========================*/
+}"""
     }
 
 
@@ -186,24 +205,26 @@ object parser{
 
     //def * = (id.?, fir, name, latitude, longitude) <> (Fir.tupled, Fir.unapply)
 
-    val tableClassHead = """class """+className+"""s(tag: Tag) extends Table["""+className+"""](tag, """"+name+"""") {"""
+    val tableClassHead = """class """+className+"""Mapping(tag: Tag) extends Table["""+className+"""](tag, """"+name+"""") {"""
     val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+star+ shaped + "\n}"
 
 
     val objectHead ="""
 
-object """+className+"""s extends DatabaseClient["""+className+"""] {
-  type DBTable = """+className+"""s
+object """+className+"""Query extends DatabaseClient["""+className+"""] {
+  type DBTable = """+className+"""Mapping
 
   private[models] val all = database.withSession { implicit db: Session =>
     TableQuery[DBTable]
+    /*==============ADD YOUR """+className+"""Query CODE FROM HERE==============*/
+    /*=========================TO HERE=========================*/
   }
 }"""
 
 
 
 
-    baseClass+tableClass + objectHead
+    baseClass+tableClass + objectHead + extraClasses
   }
   def isOptional(ps: ListMap[String,String]): Boolean = {
     ps.getOrElse("required", "true") != "true"
@@ -242,11 +263,21 @@ object """+className+"""s extends DatabaseClient["""+className+"""] {
 import play.api.db.slick.Config.driver.simple._
 import play.api.db._
 import play.api.Play.current
-
+/*==============ADD YOUR ADDITIONAL IMPORTS FROM HERE==============*/
+/*=========================TO HERE=========================*/
 """
 
+  val extraClasses = """
+/*==============ADD YOUR ADDITIONAL CLASSES FROM HERE==============*/
+/*=========================TO HERE=========================*/"""
 
+
+  //function to transform from this_format to thisFormat
   def underscoreToCamel(name: String) = "_([a-z\\d])".r.replaceAllIn(name, {m =>
     m.group(1).toUpperCase()
   })
+
+  def rescueOldCode(source: String) = {
+    val rex = ""
+  }
 }
