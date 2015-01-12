@@ -62,8 +62,10 @@ object parser {
   def writeToFile(path: String, tableName: String, content: String) = {
     val fileName = tableName.capitalize
     val currentContent = getCurrentContent(path+"/"+fileName+".scala")
+    val customCode = rescueOldCode(currentContent)
+    val finalContent = insertOldCode(content, customCode)
     if(currentContent.size != content.size)
-      Files.write(Paths.get(path+"/"+fileName+".scala"), content.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path+"/"+fileName+".scala"), finalContent.getBytes(StandardCharsets.UTF_8))
   }
 
   def getCurrentContent(path: String) = {
@@ -140,8 +142,8 @@ object parser {
       }
 
       head + cols.mkString(",\n"+(" "*head.length))+"""){
-  /*==============ADD YOUR """+className+""" CODE FROM HERE==============*/
-  /*=========================TO HERE=========================*/
+/*==============ADD YOUR """+className+""" CODE FROM HERE==============*/
+/*=========================TO HERE=========================*/
 }"""
     }
 
@@ -216,8 +218,8 @@ object """+className+"""Query extends DatabaseClient["""+className+"""] {
 
   private[models] val all = database.withSession { implicit db: Session =>
     TableQuery[DBTable]
-    /*==============ADD YOUR """+className+"""Query CODE FROM HERE==============*/
-    /*=========================TO HERE=========================*/
+/*==============ADD YOUR """+className+"""Query CODE FROM HERE==============*/
+/*=========================TO HERE=========================*/
   }
 }"""
 
@@ -278,6 +280,29 @@ import play.api.Play.current
   })
 
   def rescueOldCode(source: String) = {
-    val rex = ""
+    val start = """[\s\S]*[/*][=]+ADD YOUR (?:ADDITIONAL[ ])?([A-Za-z]+)(?:[ ])(?:CODE[ ])?FROM HERE[=]+[*/][\s\S]*""".r
+    val end = """[\s\S]*[/*][=]+TO HERE[=]+[*/][\s\S]*""".r
+    var key = ""
+    var code = ""
+    val codes = scala.collection.mutable.HashMap.empty[String,String]
+    source.lines.toList.map { l =>
+      l match {
+        case start(z) => code = "";key = z
+        case end() => codes += key -> code; code = ""
+        case s : String => code += (if(s != "") s +"\n" else "")
+      }
+    }
+    codes
+  }
+  def insertOldCode(newSource: String, code: scala.collection.mutable.HashMap[String,String]) = {
+    val start = """[\s\S]*[/*][=]+ADD YOUR (?:ADDITIONAL[ ])?([A-Za-z]+)(?:[ ])(?:CODE[ ])?FROM HERE[=]+[*/][\s\S]*""".r
+    var newCode = ""
+    newSource.lines.toList.map { l =>
+      l match {
+        case start(z) => newCode += l +"\n"; newCode += code.getOrElse(z,"") +"\n"
+        case s : String => newCode += s + "\n"
+      }
+    }
+    newCode
   }
 }
