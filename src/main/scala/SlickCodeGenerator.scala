@@ -5,8 +5,8 @@ import collection.immutable.ListMap
 import java.nio.file.{Paths, Files}
 import java.nio.charset.StandardCharsets
 
-abstract class Column
-case class ColumnType(tpe: String) extends Column
+
+
 
 class SlickCodeGenerator extends JavaTokenParsers {
 
@@ -52,7 +52,12 @@ object parser {
       Files.createDirectories(path)
       result match{
         case tables : ListMap[String, ListMap[String, Any]] =>
-          tables.map{ table => println(table._1); writeToFile(pathName, table._1,generateTable(table._1, table._2))}
+          tables.map{ table =>
+            println(table._1)
+            val t = Table(table._1, table._2)
+            CrudGenerator.generate(t)
+            writeToFile(pathName, table._1, generateTable(table._1, table._2))
+          }
         case _ : List[Any] => println("lala2")
         case _ => println("no")
       }
@@ -60,7 +65,7 @@ object parser {
   }
 
   def writeToFile(path: String, tableName: String, content: String) = {
-    val fileName = tableName.capitalize
+    val fileName = underscoreToCamel(tableName.capitalize)
     val currentContent = getCurrentContent(path+"/"+fileName+".scala")
     val customCode = rescueOldCode(currentContent)
     val finalContent = insertOldCode(content, customCode)
@@ -75,64 +80,12 @@ object parser {
       ""
   }
 
-  abstract class AbstractColumn(val name: String)
 
-  case class SubClass(override val name: String, cols: List[AbstractColumn]) extends AbstractColumn(name)
-
-  case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean) extends AbstractColumn(name){
-    lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
-  }
-
-
-  def isSubClass(props: Any): Boolean = {
-    props match{
-      case ps: ListMap[String, Any] =>
-        ps.exists(pair =>
-          pair match {
-            case (prop, value) =>  value.isInstanceOf[Map[_,_]]
-          }
-        )
-      case _ => false
-    }
-  }
-  type columnProps = ListMap[String, String]
-  type subClass = ListMap[String, ListMap[String, String]]
   def generateTable(name: String, columnsMap: ListMap[String, Any]): String = {
-    val className = underscoreToCamel(name).capitalize
 
-    def getColumns(columnsMap: ListMap[String, Any]): List[AbstractColumn] = {
-    columnsMap.map{
-      case (col, props) =>
-
-        if(col=="id"){
-          "Option[Long]"
-          Column("id", "id", "Long", true)
-        } else {
-          var optional = false
-
-          if(isSubClass(props)){
-            props match{
-            case ps: subClass =>
-              println(ps)
-              SubClass(underscoreToCamel(col), getColumns(ps))
-            case _ => throw new Exception("parsing error")
-            }
-          } else {
-            val tpe = (props match{
-              case ps: columnProps =>
-                optional = isOptional(ps)
-                getScalaType(col, ps,false)
-              case _ if col != "created_at" && col != "updated_at" => "Long"
-              case _ => "java.sql.Timestamp" //createdAt: ~, updatedAt: ~
-            })
-            Column(underscoreToCamel(col), col, tpe, optional)
-          }
-        }
-        case _ => throw new Exception("Parsing error")
-      }.toList
-    }
-
-    val columns: List[AbstractColumn] = getColumns(columnsMap)
+    val table = Table(name, columnsMap)
+    val className = table.className
+    val columns: List[AbstractColumn] = table.columns
 
     def generateClass(className: String, columns: List[AbstractColumn]): String = {
       val head: String = """case class """+className+"""("""
@@ -228,38 +181,8 @@ object """+className+"""Query extends DatabaseClient["""+className+"""] {
 
     baseClass+tableClass + objectHead + extraClasses
   }
-  def isOptional(ps: ListMap[String,String]): Boolean = {
-    ps.getOrElse("required", "true") != "true"
-  }
-  def getScalaType(col: String, ps: ListMap[String,String], withOption: Boolean = true): String = {
-    val s = ps.getOrElse("type", "")
 
-    val tpe = (if("""varchar.*""".r.findFirstIn(s).isDefined)
-      "String"
-    else if("""integer.*""".r.findFirstIn(s).isDefined){
-      if(ps.isDefinedAt("foreignTable"))
-        "Long"
-      else
-        "Int"
-    }
-    else if("""boolean.*""".r.findFirstIn(s).isDefined)
-      "Boolean"
-    else if("""timestamp.*""".r.findFirstIn(s).isDefined)
-      "java.sql.Timestamp"
-    else if("""date.*""".r.findFirstIn(s).isDefined)
-      "java.sql.Date"
-    else if(s == "~" && col != "createdAt" && col != "updatedAt")
-      "Long"
-    else if(s == "~")
-      "java.sql.Timestamp"
-    else
-      throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'"))
 
-    if(withOption && isOptional(ps))
-      "Option["+tpe+"]"
-    else tpe
-
-  }
 
   val imports = """package models
 import play.api.db.slick.Config.driver.simple._

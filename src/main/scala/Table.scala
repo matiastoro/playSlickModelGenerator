@@ -1,0 +1,93 @@
+package via56.slickGenerator
+import scala.collection.immutable.ListMap
+
+case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGenerator{
+  val className = underscoreToCamel(tableName).capitalize
+  val mappingName = className+"Mapping"
+  val queryName = className+"Query"
+  val objName = underscoreToCamel(tableName)
+  val viewsPackage = underscoreToCamel(tableName)
+
+  type columnProps = ListMap[String, String]
+  type subClass = ListMap[String, ListMap[String, String]]
+
+
+  def isOptional(ps: ListMap[String,String]): Boolean = {
+    ps.getOrElse("required", "true") != "true"
+  }
+
+  def getColumns(columnsMap: ListMap[String, Any]): List[AbstractColumn] = {
+    columnsMap.map{
+      case (col, props) =>
+
+        if(col=="id"){
+          "Option[Long]"
+          Column("id", "id", "Long", true)
+        } else {
+          var optional = false
+
+          if(isSubClass(props)){
+            props match{
+              case ps: subClass =>
+                println(ps)
+                SubClass(underscoreToCamel(col), getColumns(ps))
+              case _ => throw new Exception("parsing error")
+            }
+          } else {
+            val tpe = (props match{
+              case ps: columnProps =>
+                optional = isOptional(ps)
+                getScalaType(col, ps,false)
+              case _ if col != "created_at" && col != "updated_at" => "Long"
+              case _ => "java.sql.Timestamp" //createdAt: ~, updatedAt: ~
+            })
+            Column(underscoreToCamel(col), col, tpe, optional)
+          }
+        }
+      case _ => throw new Exception("Parsing error")
+    }.toList
+  }
+
+  val columns: List[AbstractColumn] = getColumns(args)
+
+  def getScalaType(col: String, ps: ListMap[String,String], withOption: Boolean = true): String = {
+    val s = ps.getOrElse("type", "")
+
+    val tpe = (if("""varchar.*""".r.findFirstIn(s).isDefined)
+      "String"
+    else if("""integer.*""".r.findFirstIn(s).isDefined){
+      if(ps.isDefinedAt("foreignTable"))
+        "Long"
+      else
+        "Int"
+    }
+    else if("""boolean.*""".r.findFirstIn(s).isDefined)
+      "Boolean"
+    else if("""timestamp.*""".r.findFirstIn(s).isDefined)
+      "java.sql.Timestamp"
+    else if("""date.*""".r.findFirstIn(s).isDefined)
+      "java.sql.Date"
+    else if(s == "~" && col != "createdAt" && col != "updatedAt")
+      "Long"
+    else if(s == "~")
+      "java.sql.Timestamp"
+    else
+      throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'"))
+
+    if(withOption && isOptional(ps))
+      "Option["+tpe+"]"
+    else tpe
+
+  }
+
+}
+
+abstract class AbstractColumn(val name: String)
+
+case class SubClass(override val name: String, cols: List[AbstractColumn]) extends AbstractColumn(name)
+
+case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean) extends AbstractColumn(name){
+  lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
+}
+
+case class ColumnType(tpe: String)
