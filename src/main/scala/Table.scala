@@ -39,7 +39,7 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
                 optional = isOptional(ps)
                 getScalaType(col, ps,false)
               case _ if col != "created_at" && col != "updated_at" => "Long"
-              case _ => "java.sql.Timestamp" //createdAt: ~, updatedAt: ~
+              case _ => "DateTime" //createdAt: ~, updatedAt: ~
             })
             Column(underscoreToCamel(col), col, tpe, optional)
           }
@@ -64,13 +64,13 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
     else if("""boolean.*""".r.findFirstIn(s).isDefined)
       "Boolean"
     else if("""timestamp.*""".r.findFirstIn(s).isDefined)
-      "java.sql.Timestamp"
+      "DateTime"
     else if("""date.*""".r.findFirstIn(s).isDefined)
-      "java.sql.Date"
+      "LocalDate"
     else if(s == "~" && col != "createdAt" && col != "updatedAt")
       "Long"
     else if(s == "~")
-      "java.sql.Timestamp"
+      "DateTime"
     else
       throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'"))
 
@@ -90,15 +90,15 @@ case class SubClass(override val name: String, cols: List[AbstractColumn]) exten
 
 object GeneratorMappings {
   val specialMappings = Map[(String, String), String](
-    ("createdAt", "java.sql.Timestamp") -> "Date",
-    ("updatedAt", "java.sql.Timestamp") -> "Date"
+    ("createdAt", "DateTime") -> "jodaDate",
+    ("updatedAt", "DateTime") -> "jodaDate"
   )
   val formMappings = Map[String, String](
     "String" -> "text",
     "Int" -> "number",
     "Long" -> "longNumber",
     "Boolean" -> "checked",
-    "Date" -> "date"
+    "DateTime" -> "jodaDate"
   )
 }
 import GeneratorMappings._

@@ -48,15 +48,21 @@ object parser {
     val reader = Source.fromFile(args(0)).getLines.mkString("\n")
     val pathName = if(args.size > 1) args(1)+"/models" else "models"
     val path = Paths.get(pathName)
+    val pathExtensions = Paths.get(pathName+"/extensions")
     YAMLParser.parse(reader).map{result =>
       Files.createDirectories(path)
+      Files.createDirectories(pathExtensions)
       result match{
         case tables : ListMap[String, ListMap[String, Any]] =>
           tables.map{ table =>
             println(table._1)
             val t = Table(table._1, table._2)
             CrudGenerator.generate(t)
-            writeToFile(pathName, table._1, generateTable(table._1, table._2))
+            val classes = t.className :: t.columns.filter{
+              case _: SubClass => true
+              case _: Column => false
+            }.map(_.name.capitalize)
+            writeToFile(pathName, table._1, generateTable(table._1, table._2), classes)
           }
         case _ : List[Any] => println("lala2")
         case _ => println("no")
@@ -64,13 +70,16 @@ object parser {
     }
   }
 
-  def writeToFile(path: String, tableName: String, content: String) = {
+  def writeToFile(path: String, tableName: String, content: String, classes: List[String]) = {
     val fileName = underscoreToCamel(tableName.capitalize)
     val currentContent = getCurrentContent(path+"/"+fileName+".scala")
-    val customCode = rescueOldCode(currentContent)
-    val finalContent = insertOldCode(content, customCode)
+
     if(currentContent.size != content.size)
-      Files.write(Paths.get(path+"/"+fileName+".scala"), finalContent.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path+"/"+fileName+".scala"), content.getBytes(StandardCharsets.UTF_8))
+
+    if(!Files.exists(Paths.get(path+"/extensions/"+fileName+"Extension.scala"))){
+      Files.write(Paths.get(path+"/extensions/"+fileName+"Extension.scala"), extensionCode(classes).getBytes(StandardCharsets.UTF_8))
+    }
   }
 
   def getCurrentContent(path: String) = {
@@ -87,17 +96,14 @@ object parser {
     val className = table.className
     val columns: List[AbstractColumn] = table.columns
 
-    def generateClass(className: String, columns: List[AbstractColumn]): String = {
+    def generateClass(className: String, columns: List[AbstractColumn], isSubClass: Boolean = false): String = {
       val head: String = """case class """+className+"""("""
       val cols = columns.map{
         case c: Column => c.name+": "+c.tpeWithOption
         case c: SubClass => c.name+": "+c.name.capitalize
       }
 
-      head + cols.mkString(",\n"+(" "*head.length))+"""){
-/*==============ADD YOUR """+className+""" CODE FROM HERE==============*/
-/*=========================TO HERE=========================*/
-}"""
+      head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension"
     }
 
 
@@ -108,7 +114,7 @@ object parser {
       case _ => List()
     }.mkString("\n\n")+"\n\n"
 
-    val baseClass = imports+generateClass(className, columns)+"\n\n"+subClasses
+    val baseClass = imports(className)+generateClass(className, columns)+"\n\n"+subClasses
 
     def generateStars(columns: List[AbstractColumn]): String ={
       "("+columns.map{col => col match{
@@ -128,7 +134,7 @@ object parser {
             if(c.name=="id"){
               "  def id = column[Long](\"id\", O.PrimaryKey, O.AutoInc)"
             } else {
-              "  def "+c.name+" = column["+c.tpeWithOption+"](\""+c.rawName+"\""+(if(c.optional) ", O.Nullable)" else ")")
+              "  def "+c.name+" = column["+c.tpeWithOption+"](\""+c.rawName+"\""+(if(c.optional) ", O.Default(None))" else ")")
             }
           case s: SubClass =>
             hasSubClasses = true
@@ -166,35 +172,48 @@ object parser {
 
     val objectHead ="""
 
-object """+className+"""Query extends DatabaseClient["""+className+"""] {
+class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
   type DBTable = """+className+"""Mapping
 
   private[models] val all = database.withSession { implicit db: Session =>
     TableQuery[DBTable]
-/*==============ADD YOUR """+className+"""Query CODE FROM HERE==============*/
-/*=========================TO HERE=========================*/
   }
 }"""
 
-
-
-
-    baseClass+tableClass + objectHead + extraClasses
+    baseClass+tableClass + objectHead
   }
 
-
-
-  val imports = """package models
+  def imports(className: String) = s"""package models
+import models.extensions.${className}Extension
 import play.api.db.slick.Config.driver.simple._
+import com.github.tototoshi.slick.JdbcJodaSupport._
+import org.joda.time.{DateTime, LocalDate}
 import play.api.db._
 import play.api.Play.current
-/*==============ADD YOUR ADDITIONAL IMPORTS FROM HERE==============*/
-/*=========================TO HERE=========================*/
+
 """
 
-  val extraClasses = """
-/*==============ADD YOUR ADDITIONAL CLASSES FROM HERE==============*/
-/*=========================TO HERE=========================*/"""
+  def extensionCode(classes: List[String]) = {
+    val className = classes.head
+    val classesCode = classes.map{ c =>
+      s"""
+trait ${c}Extension{ this: $c =>
+
+}
+      """.trim
+    }.mkString("\n\n")
+    s"""
+package models.extensions
+
+import models._
+
+$classesCode
+
+object ${className}Query extends ${className}QueryBase{
+
+}
+    """.trim
+  }
 
 
   //function to transform from this_format to thisFormat

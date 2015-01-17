@@ -1,4 +1,5 @@
 package via56.slickGenerator
+
 import scala.util.parsing.combinator._
 import scala.util.matching.Regex
 import collection.immutable.ListMap
