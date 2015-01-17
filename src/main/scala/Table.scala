@@ -84,10 +84,30 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
 
 abstract class AbstractColumn(val name: String)
 
-case class SubClass(override val name: String, cols: List[AbstractColumn]) extends AbstractColumn(name)
+case class SubClass(override val name: String, cols: List[AbstractColumn]) extends AbstractColumn(name) with CodeGenerator{
+  val className = underscoreToCamel(name).capitalize
+}
 
+object GeneratorMappings {
+  val specialMappings = Map[(String, String), String](
+    ("createdAt", "java.sql.Timestamp") -> "Date",
+    ("updatedAt", "java.sql.Timestamp") -> "Date"
+  )
+  val formMappings = Map[String, String](
+    "String" -> "text",
+    "Int" -> "number",
+    "Long" -> "longNumber",
+    "Boolean" -> "checked",
+    "Date" -> "date"
+  )
+}
+import GeneratorMappings._
 case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
+
+  lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
+  lazy val formMapping: String = if(optional) "optional("+formMappingTpe+")" else formMappingTpe
+
 }
 
 case class ColumnType(tpe: String)

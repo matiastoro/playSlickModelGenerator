@@ -1,7 +1,10 @@
 package via56.slickGenerator.crud.controller
 
 import scala.collection.immutable.ListMap
-import via56.slickGenerator.{Table, CodeGenerator}
+import via56.slickGenerator._
+import via56.slickGenerator.Column
+import via56.slickGenerator.SubClass
+import via56.slickGenerator.Table
 
 /**
  * Created by matias on 1/15/15.
@@ -10,7 +13,7 @@ case class ControllerGenerator(table: Table) extends CodeGenerator{
   def generate: String = {
     val objectSignature = """object """+table.className+"""Controller extends ApplicationController {"""
     val l = List(imports, objectSignature, index(), show(), form())
-    println(table.args)
+    println(table.columns)
     l.mkString("\n")
   }
 
@@ -48,23 +51,35 @@ import play.api.i18n.Messages"""
   }"""
   }
 
+  def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1): String = {
+    val margin = (" "*(4+lvl*2))
+    val margin_1 = (" "*(4+(lvl-1)*2))
+    val list = columns.map{
+      case c @ Column(name, rawName, tpe, optional) => margin+"\""+name+"\" -> "+c.formMapping
+      case s @ SubClass(name, cols) => margin+"\""+name+"\" -> "+getFields(cols, s.className, lvl+1)
+    }
+
+    val optionalList = columns.map{ col => col.name}.mkString(", ")
+    val optionalListObj = columns.map{ col => "obj."+col.name}.mkString(", ")
+
+    val optionalMapping = List(margin_1+"""/*(("""+optionalList+""") => {""",
+      margin_1+"  "+className+"""("""+optionalList+""")""",
+      margin_1+"""})((obj: """+className+ """) => {""",
+      margin_1+"""  Some("""+optionalListObj+""")""",
+      margin_1+"""}))*/""")
+
+    "mapping(\n"+list.mkString("\n")+"\n"+margin_1+"("+className+".apply)("+className+".unapply)"+"\n"+optionalMapping.mkString("\n")
+
+
+
+  }
   def form(): String = {
 
 
-  """
+    """
   val form = Form(
-    mapping(
-      "id" -> optional(longNumber),
-      "cursoId" -> of[Long],
-      "preguntaId" -> of[Long]
-      )
-      (PreguntaCurso.apply)(PreguntaCurso.unapply))
-      /*((id, cursoId, preguntaId) => {
-        PreguntaCurso(id, cursoId, preguntaId)
-      })((obj: PreguntaCurso) => {
-        Some(obj.id, obj.cursoId, obj.preguntaId)
-      }))*/
-  """
+    """+getFields(table.columns, table.className)+"""
+  )"""
   }
 
 
