@@ -14,7 +14,7 @@ case class ControllerGenerator(table: Table) extends CodeGenerator{
     val objectSignature = """object """+table.className+"""Controller extends ApplicationController {"""
     val l = List(imports, objectSignature, index(), show(), form(), create, save, edit, update)
     println(table.columns)
-    l.mkString("\n")
+    l.mkString("\n")+"\n}"
   }
 
   val imports =
@@ -70,7 +70,7 @@ import play.api.i18n.Messages"""
       margin_1+"""  Some("""+optionalListObj+""")""",
       margin_1+"""}))*/""")
 
-    "mapping(\n"+list.mkString("\n")+"\n"+margin_1+"("+className+".apply)("+className+".unapply)"+"\n"+optionalMapping.mkString("\n")
+    "mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")("+className+".apply)("+className+".unapply)"+"\n"+optionalMapping.mkString("\n")
 
 
 

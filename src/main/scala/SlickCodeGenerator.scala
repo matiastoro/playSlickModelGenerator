@@ -4,8 +4,7 @@ import scala.util.parsing.combinator._
 import collection.immutable.ListMap
 import java.nio.file.{Paths, Files}
 import java.nio.charset.StandardCharsets
-
-
+import via56.slickGenerator.crud.controller.ControllerGenerator
 
 
 class SlickCodeGenerator extends JavaTokenParsers {
@@ -46,23 +45,25 @@ import scala.io.Source
 object parser {
   def main(args: Array[String]){
     val reader = Source.fromFile(args(0)).getLines.mkString("\n")
-    val pathName = if(args.size > 1) args(1)+"/models" else "models"
+    val pathName = if(args.size > 1) args(1)+"/" else "output"
     val path = Paths.get(pathName)
-    val pathExtensions = Paths.get(pathName+"/extensions")
+    val pathExtensions = Paths.get(path+"/models/extensions")
+    val pathControllers = Paths.get(path+"/controllers")
     YAMLParser.parse(reader).map{result =>
       Files.createDirectories(path)
       Files.createDirectories(pathExtensions)
+      Files.createDirectories(pathControllers)
       result match{
         case tables : ListMap[String, ListMap[String, Any]] =>
           tables.map{ table =>
             println(table._1)
             val t = Table(table._1, table._2)
-            CrudGenerator.generate(t)
+
             val classes = t.className :: t.columns.filter{
               case _: SubClass => true
               case _: Column => false
             }.map(_.name.capitalize)
-            writeToFile(pathName, table._1, generateTable(table._1, table._2), classes)
+            writeToFile(pathName, t, generateTable(table._1, table._2), classes)
           }
         case _ : List[Any] => println("lala2")
         case _ => println("no")
@@ -70,16 +71,20 @@ object parser {
     }
   }
 
-  def writeToFile(path: String, tableName: String, content: String, classes: List[String]) = {
-    val fileName = underscoreToCamel(tableName.capitalize)
-    val currentContent = getCurrentContent(path+"/"+fileName+".scala")
+  def writeToFile(path: String, table: Table, content: String, classes: List[String]) = {
+    val fileName = underscoreToCamel(table.tableName.capitalize)
+    val currentContent = getCurrentContent(path+"/models/"+fileName+".scala")
 
     if(currentContent.size != content.size)
-      Files.write(Paths.get(path+"/"+fileName+".scala"), content.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path+"/models/"+fileName+".scala"), content.getBytes(StandardCharsets.UTF_8))
 
-    if(!Files.exists(Paths.get(path+"/extensions/"+fileName+"Extension.scala"))){
-      Files.write(Paths.get(path+"/extensions/"+fileName+"Extension.scala"), extensionCode(classes).getBytes(StandardCharsets.UTF_8))
+
+
+    if(!Files.exists(Paths.get(path+"/models/extensions/"+fileName+"Extension.scala"))){
+      Files.write(Paths.get(path+"/models/extensions/"+fileName+"Extension.scala"), extensionCode(classes).getBytes(StandardCharsets.UTF_8))
     }
+
+    Files.write(Paths.get(path+"/controllers/"+fileName+"Controller.scala"), ControllerGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
   }
 
   def getCurrentContent(path: String) = {
