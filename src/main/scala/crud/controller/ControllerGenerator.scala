@@ -6,9 +6,6 @@ import via56.slickGenerator.Column
 import via56.slickGenerator.SubClass
 import via56.slickGenerator.Table
 
-/**
- * Created by matias on 1/15/15.
- */
 case class ControllerGenerator(table: Table) extends CodeGenerator{
   def generate: String = {
     val objectSignature = """object """+table.className+"""Controller extends ApplicationController {"""
@@ -27,6 +24,7 @@ import actors._
 
 import play.api.Play.current
 import models._
+import models.extensions._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.format.Formats._
@@ -57,7 +55,7 @@ import play.api.i18n.Messages"""
     val margin = (" "*(4+lvl*2))
     val margin_1 = (" "*(4+(lvl-1)*2))
     val list = columns.map{
-      case c @ Column(name, rawName, tpe, optional) => margin+"\""+name+"\" -> "+c.formMapping
+      case c : Column => margin+"\""+c.name+"\" -> "+c.formMapping
       case s @ SubClass(name, cols) => margin+"\""+name+"\" -> "+getFields(cols, s.className, lvl+1)
     }
 
@@ -83,32 +81,41 @@ import play.api.i18n.Messages"""
     """+getFields(table.columns, table.className)+"""
   )"""
   }
+  val fks = table.foreignColumns.map{fk =>
+    "    val "+fk.table+" = "+fk.className+"Query.getAll"
+  }.mkString("\n")
+  val params = table.foreignColumns.map{fk => ", "+fk.table}.mkString("")
 
   def edit(): String = {
+
     """
   def edit(id: Long) = Action{ implicit request =>
-    """+table.queryName+""".byId(id).map{ """+table.objName+""" =>
-
-      Ok(views.html."""+table.viewsPackage+""".edit(form.fill("""+table.objName+"""), """+table.objName+"""))
+    """+table.queryName+""".byId(id).map{ """+table.objName+ """ =>
+"""+fks+"""
+      Ok(views.html."""+table.viewsPackage+""".edit(form.fill("""+table.objName+""")"""+params+""", """+table.objName+"""))
     }.getOrElse(NotFound)
   }"""
   }
 
   def create(): String = {
-  """
+
+    """
   def create() = Action{ implicit request =>
-    Ok(views.html."""+table.viewsPackage+""".create(form))
+"""+fks+"""
+    Ok(views.html."""+table.viewsPackage+""".create(form"""+params+"""))
 
   }"""
   }
 
   def update = {
-  """
+    """
   def update(id: Long) = Action{ implicit request =>
     """+table.queryName+""".byId(id).map{ """+table.objName+""" =>
       form.bindFromRequest.fold(
-        formWithErrors => BadRequest(views.html."""+table.viewsPackage+""".edit(formWithErrors, """+table.objName+""")),
-        obj => {
+        formWithErrors => {
+          """+fks+"""
+          BadRequest(views.html."""+table.viewsPackage+""".edit(formWithErrors"""+params+""", """+table.objName+"""))
+        }, obj => {
           """+table.queryName+""".update(obj.copy(id = """+table.objName+""".id)).map{ id =>
             Redirect(routes."""+table.className+"""Controller.show("""+table.objName+""".id.get)).flashing("success" -> Messages("save.success"))
           }.getOrElse(NotFound)
@@ -117,13 +124,14 @@ import play.api.i18n.Messages"""
     }.getOrElse(NotFound)
   }"""
   }
-  def save = {
-    """
+  def save = { """
   def save() = Action{ implicit request =>
 
     form.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html."""+table.viewsPackage+""".create(formWithErrors)),
-      obj => {
+      formWithErrors => {
+        """+fks+ """
+        BadRequest(views.html."""+table.viewsPackage+""".create(formWithErrors"""+params+"""))
+      }, obj => {
         val id = """+table.queryName+""".insert(obj)
         Redirect(routes."""+table.className+"""Controller.show(id)).flashing("success" -> Messages("save.success"))
       }

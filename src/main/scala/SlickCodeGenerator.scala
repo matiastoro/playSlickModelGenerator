@@ -5,6 +5,7 @@ import collection.immutable.ListMap
 import java.nio.file.{Paths, Files}
 import java.nio.charset.StandardCharsets
 import via56.slickGenerator.crud.controller.ControllerGenerator
+import via56.slickGenerator.crud.views._
 
 
 class SlickCodeGenerator extends JavaTokenParsers {
@@ -49,10 +50,12 @@ object parser {
     val path = Paths.get(pathName)
     val pathExtensions = Paths.get(path+"/models/extensions")
     val pathControllers = Paths.get(path+"/controllers")
+    val pathViews = Paths.get(path+"/views")
     YAMLParser.parse(reader).map{result =>
       Files.createDirectories(path)
       Files.createDirectories(pathExtensions)
       Files.createDirectories(pathControllers)
+      Files.createDirectories(pathViews)
       result match{
         case tables : ListMap[String, ListMap[String, Any]] =>
           tables.map{ table =>
@@ -85,6 +88,17 @@ object parser {
     }
 
     Files.write(Paths.get(path+"/controllers/"+fileName+"Controller.scala"), ControllerGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+
+    /*views*/
+    Files.createDirectories(Paths.get(path+"/views/"+table.viewsPackage))
+    Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/_form.scala.html"), FormGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/create.scala.html"), CreateGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/edit.scala.html"), EditGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/index.scala.html"), IndexGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/main.scala.html"), MainGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/show.scala.html"), ShowGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/sidebar.scala.html"), SidebarGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+
   }
 
   def getCurrentContent(path: String) = {
@@ -108,7 +122,9 @@ object parser {
         case c: SubClass => c.name+": "+c.name.capitalize
       }
 
-      head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension"
+      val selectCol = columns.filter(_.name == table.objName).headOption.getOrElse(columns.head).name
+      val selectString = "  lazy val selectString = "+selectCol
+      head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n}"
     }
 
 
@@ -133,13 +149,26 @@ object parser {
     }
 
     var hasSubClasses = false
+    def guessFkName(name: String): String = {
+      val pos = name.indexOf("Id")
+      if(pos>0)
+        name.substring(0,pos)
+      else
+        name+"Rel"
+    }
     def generateColumnsTagTable(columns: List[AbstractColumn]): String = {
       columns.map{ col => col match{
           case c: Column =>
             if(c.name=="id"){
               "  def id = column[Long](\"id\", O.PrimaryKey, O.AutoInc)"
             } else {
-              "  def "+c.name+" = column["+c.tpeWithOption+"](\""+c.rawName+"\""+(if(c.optional) ", O.Default(None))" else ")")
+              val colMap = "  def "+c.name+" = column["+c.tpeWithOption+"](\""+c.rawName+"\""+(if(c.optional) ", O.Default(None))" else ")")
+
+              c.foreignKey.map{ fk =>
+                val onDelete = fk.onDelete.map{od => ", onDelete=ForeignKeyAction."+od.capitalize}.getOrElse("")
+                colMap + "\n  def "+guessFkName(c.name)+" = foreignKey(\""+c.rawName+"_fk\", "+c.name+", "+underscoreToCamel(fk.table).capitalize+"Query.all)(_."+fk.reference+onDelete+")"
+              }.getOrElse(colMap)
+
             }
           case s: SubClass =>
             hasSubClasses = true
@@ -195,8 +224,9 @@ import com.github.tototoshi.slick.JdbcJodaSupport._
 import org.joda.time.{DateTime, LocalDate}
 import play.api.db._
 import play.api.Play.current
+import extensions._
 
-"""
+""" /*TODO: only import classes relatives to the table*/
 
   def extensionCode(classes: List[String]) = {
     val className = classes.head
