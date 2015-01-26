@@ -141,21 +141,38 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
   def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1): String = {
     val margin = (" "*(4+lvl*2))
     val margin_1 = (" "*(4+(lvl-1)*2))
-    val list = columns.map{
-      case c : Column => margin+"\""+c.name+"\" -> "+c.formMapping
+
+    val list = columns.collect{
+      case c : Column if !c.synthetic=> margin+"\""+c.name+"\" -> "+c.formMapping
       case s @ SubClass(name, cols) => margin+"\""+name+"\" -> "+getFields(cols, s.className, lvl+1)
     }
 
-    val optionalList = columns.map{ col => col.name}.mkString(", ")
-    val optionalListObj = columns.map{ col => "obj."+col.name}.mkString(", ")
 
-    val optionalMapping = List(margin_1+"""/*(("""+optionalList+""") => {""",
+
+    val optionalList = columns.map{
+      case c: Column if c.synthetic => "Some(new DateTime())"
+      case c => c.name
+    }.mkString(", ")
+
+    val nonSynthList = columns.collect{
+      case c: Column if !c.synthetic => c.name
+      case c: SubClass => c.name
+    }.mkString(",")
+
+    val optionalListObj = columns.collect{
+      case c: Column if !c.synthetic => "obj."+c.name
+      case c: SubClass => "obj."+c.name
+    }.mkString(", ")
+    val withSynth = table.createdAt || table.updatedAt
+
+    val optionalMapping = List(margin_1+(if(withSynth) "" else "/*")+"""(("""+nonSynthList+""") => {""",
       margin_1+"  "+className+"""("""+optionalList+""")""",
       margin_1+"""})((obj: """+className+ """) => {""",
       margin_1+"""  Some("""+optionalListObj+""")""",
-      margin_1+"""}))*/""")
+      margin_1+"""})"""+(if(withSynth) "" else "*/"))
 
-    "mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")("+className+".apply)("+className+".unapply)"+"\n"+optionalMapping.mkString("\n")
+    val defaultMapping = (if(withSynth) "/*("+className+".apply)("+className+".unapply)*/" else "("+className+".apply)("+className+".unapply)")
+    "mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")"+defaultMapping+"\n"+optionalMapping.mkString("\n")
 
 
 

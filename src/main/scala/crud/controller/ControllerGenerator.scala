@@ -80,6 +80,8 @@ import play.api.i18n.Messages"""
   }
 
   def update = {
+
+    val createdAt = if(table.createdAt) ", createdAt = "+table.objName+".createdAt" else ""
     """
   def update(id: Long) = Action{ implicit request =>
     """+table.queryName+""".byId(id).map{ """+table.objName+""" =>
@@ -88,7 +90,7 @@ import play.api.i18n.Messages"""
           """+fks+"""
           BadRequest(views.html."""+table.viewsPackage+""".edit(formWithErrors"""+params+""", """+table.objName+"""))
         }, obj => {
-          """+table.queryName+""".update(obj.copy(id = """+table.objName+""".id)).map{ id =>
+          """+table.queryName+""".update(obj.copy(id = """+table.objName+""".id"""+createdAt+""")).map{ id =>
             Redirect(routes."""+table.className+"""Controller.show("""+table.objName+""".id.get)).flashing("success" -> Messages("save.success"))
           }.getOrElse(NotFound)
         }

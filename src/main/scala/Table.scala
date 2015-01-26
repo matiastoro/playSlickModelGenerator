@@ -36,6 +36,7 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
           } else {
             var optional = false
             var fk: Option[ForeignKey] = None
+            var synth = false
             val tpe = (props match{
               case ps: columnProps =>
                 optional = isOptional(ps)
@@ -44,9 +45,10 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
               case _ if col != "created_at" && col != "updated_at" => "Long"
               case _ =>
                 optional = true
+                synth = true
                 "DateTime" //createdAt: ~, updatedAt: ~
             })
-            Column(underscoreToCamel(col), col, tpe, optional, fk)
+            Column(underscoreToCamel(col), col, tpe, optional, fk, synth)
           }
         }
       case _ => throw new Exception("Parsing error")
@@ -60,6 +62,16 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
   }
 
   val columns: List[AbstractColumn] = getColumns(args)
+
+
+  val createdAt = columns.exists({
+    case c: Column => c.name == "createdAt" && c.synthetic
+    case _ => false
+  })
+  val updatedAt = columns.exists({
+    case c: Column => c.name == "updatedAt" && c.synthetic
+    case _ => false
+  })
 
   def getScalaType(col: String, ps: ListMap[String,String], withOption: Boolean = true): String = {
     val s = ps.getOrElse("type", "")
@@ -122,7 +134,7 @@ object GeneratorMappings {
   )
 }
 import GeneratorMappings._
-case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None) extends AbstractColumn(name){
+case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
   lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
@@ -146,7 +158,7 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
 
   def foreignKeyInput(prefix: String, foreignKey: Option[ForeignKey]) = {
     foreignKey.map{ fk =>
-      val options = fk.table+".map(o => o.id.toString -> o.selectString)"
+      val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       """@select(frm(""""+prefix+name+""""),"""+options+""", '_label -> """"+name.capitalize+"""")"""
     }.getOrElse(inputDefault(prefix))
   }
