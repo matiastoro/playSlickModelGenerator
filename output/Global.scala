@@ -28,7 +28,6 @@ object Global  extends GlobalSettings {
 
   lazy val startActor = {
     db.createDB
-    Akka.system.actorOf(Props[Statictitian], name = "statictitian")
   }
 
 }
