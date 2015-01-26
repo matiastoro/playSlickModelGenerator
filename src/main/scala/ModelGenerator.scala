@@ -1,0 +1,162 @@
+package via56.slickGenerator
+
+import scala.collection.immutable.ListMap
+
+/**
+ * Created by matias on 1/26/15.
+ */
+case class ModelGenerator(table: Table) extends CodeGenerator {
+
+
+  def imports(className: String) = s"""package models
+import models.extensions.${className}Extension
+import play.api.db.slick.Config.driver.simple._
+import com.github.tototoshi.slick.JdbcJodaSupport._
+import org.joda.time.{DateTime, LocalDate}
+import play.api.db._
+import play.api.Play.current
+import extensions._
+
+""" /*TODO: only import classes relatives to the table*/
+
+  def generate: String = {
+
+
+    val className = table.className
+    val columns: List[AbstractColumn] = table.columns
+
+    def generateClass(className: String, columns: List[AbstractColumn], isSubClass: Boolean = false): String = {
+      val head: String = """case class """+className+"""("""
+      val cols = columns.map{
+        case c: Column => c.name+": "+c.tpeWithOption
+        case c: SubClass => c.name+": "+c.className
+      }
+
+      val selectCol = columns.filter(_.name == table.objName).headOption.getOrElse(columns.head).name
+      val selectString = "  lazy val selectString = "+selectCol
+      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n}"
+
+
+      val subClasses = columns.collect{
+        case c: SubClass => c
+      }
+
+      generatedClass + subClasses.map{sc => generateClass(sc.className, sc.cols)}.mkString("\n\n")
+    }
+
+
+    /*val head: String = """case class """+className+"""("""
+
+    val subClasses = columns.flatMap{
+      case c: SubClass => List(generateClass(c.className, c.cols))
+      case _ => List()
+    }.mkString("\n\n")+"\n\n"*/
+
+    val baseClass = imports(className)+generateClass(className, columns)
+
+    def generateStars(columns: List[AbstractColumn]): String ={
+      "("+columns.map{col => col match{
+        case c: Column =>
+          if(c.name == "id")
+            "id.?"
+          else
+            c.name
+        case s: SubClass => s.name+"Cols"
+      }}.mkString(", ")+")"
+    }
+
+    var hasSubClasses = false
+    def guessFkName(name: String): String = {
+      val pos = name.indexOf("Id")
+      if(pos>0)
+        name.substring(0,pos)
+      else
+        name+"Rel"
+    }
+    def generateColumnsTagTable(columns: List[AbstractColumn]): String = {
+      columns.map{ col => col match{
+        case c: Column =>
+          if(c.name=="id"){
+            "  def id = column[Long](\"id\", O.PrimaryKey, O.AutoInc)"
+          } else {
+            val colMap = "  def "+c.name+" = column["+c.tpeWithOption+"](\""+c.rawName+"\""+(if(c.optional) ", O.Default(None))" else ")")
+
+            c.foreignKey.map{ fk =>
+              val onDelete = fk.onDelete.map{od => ", onDelete=ForeignKeyAction."+od.capitalize}.getOrElse("")
+              colMap + "\n  def "+guessFkName(c.name)+" = foreignKey(\""+c.rawName+"_fk\", "+c.name+", "+underscoreToCamel(fk.table).capitalize+"Query.all)(_."+fk.reference+onDelete+")"
+            }.getOrElse(colMap)
+
+          }
+        case s: SubClass =>
+          hasSubClasses = true
+          "\n"+generateColumnsTagTable(s.cols)+"\n  val "+s.name+"Cols = "+generateStars(s.cols)+"\n"
+      }
+      }.mkString("\n")
+    }
+
+    val tableCols = generateColumnsTagTable(columns)
+
+
+    val star = "  def * = "+generateStars(columns)
+
+    val shaped = ".shaped <> " +
+      (if(hasSubClasses){
+        val fields = "("+columns.map{ _.name }.mkString(", ")+") =>\n"
+        val obj = className+"("+columns.map{
+          case c: Column => c.name
+          case s: SubClass => s.name.capitalize+".tupled.apply("+s.name+")"
+        }.mkString(", ")+")"
+        val unapplies = "      Some((" + columns.map{
+          case c: Column => "o."+c.name
+          case s: SubClass => s.name.capitalize+".unapply(o."+s.name+").get"
+        }.mkString(",")+"))"
+        "\n    ({\n      case "+fields + "      "+obj+"\n    }, {o: "+className+" =>\n"+unapplies+"\n    })"
+      }
+      else
+        "("+className+".tupled, "+className+".unapply)")
+
+    //def * = (id.?, fir, name, latitude, longitude) <> (Fir.tupled, Fir.unapply)
+
+    val tableClassHead = """class """+className+"""Mapping(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableName+"""") {"""
+    val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+star+ shaped + "\n}"
+
+
+    val objectHead ="""
+
+class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
+  type DBTable = """+className+"""Mapping
+
+  private[models] val all = database.withSession { implicit db: Session =>
+    TableQuery[DBTable]
+  }
+}"""
+
+    baseClass+tableClass + objectHead
+  }
+
+  def generateExtension: String = {
+    val classes = table.className :: table.columns.collect{
+      case c: SubClass => c.className
+
+    }
+    val className = classes.head
+    val classesCode = classes.map{ c =>
+      s"""
+trait ${c}Extension{ this: $c =>
+
+}
+      """.trim
+    }.mkString("\n\n")
+    s"""
+package models.extensions
+
+import models._
+
+$classesCode
+
+object ${className}Query extends ${className}QueryBase{
+
+}
+    """.trim
+  }
+}
