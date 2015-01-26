@@ -4,6 +4,8 @@ import play.api.db.DB
 import play.api.db.slick.Config.driver.simple._
 import play.api.Play.current
 import com.mchange.v2.c3p0.ComboPooledDataSource
+import scala.slick.lifted.Shape
+import scala.slick.lifted.FlatShapeLevel
 
 
 object db{
@@ -149,6 +151,13 @@ trait DatabaseClient[E] {
 
   def list[E,U,C[_]](q: Query[E,U,C]) =  database.withSession { implicit db: Session =>
     q.list
+  }
+
+  def allQuery = all
+
+  def update[F, G, T](id: Long, f: DBTable => F, vals: T)(implicit shape: Shape[_ <: FlatShapeLevel, F, T, G]) = database.withSession { implicit db: Session =>
+    val q = all.filter(_.id === id).map(f)
+    q.update(vals)
   }
 
 
