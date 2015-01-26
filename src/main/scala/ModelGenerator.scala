@@ -17,6 +17,10 @@ import play.api.db._
 import play.api.Play.current
 import extensions._
 
+import play.api.data.Form
+import play.api.data.Forms._
+import play.api.data.format.Formats._
+
 """ /*TODO: only import classes relatives to the table*/
 
   def generate: String = {
@@ -41,7 +45,7 @@ import extensions._
         case c: SubClass => c
       }
 
-      generatedClass + subClasses.map{sc => generateClass(sc.className, sc.cols)}.mkString("\n\n")
+      generatedClass + "\n\n"+subClasses.map{sc => generateClass(sc.className, sc.cols)}.mkString("\n\n")
     }
 
 
@@ -131,8 +135,41 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
   }
 }"""
 
-    baseClass+tableClass + objectHead
+    baseClass+"\n\n"+tableClass + objectHead + form()
   }
+
+  def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1): String = {
+    val margin = (" "*(4+lvl*2))
+    val margin_1 = (" "*(4+(lvl-1)*2))
+    val list = columns.map{
+      case c : Column => margin+"\""+c.name+"\" -> "+c.formMapping
+      case s @ SubClass(name, cols) => margin+"\""+name+"\" -> "+getFields(cols, s.className, lvl+1)
+    }
+
+    val optionalList = columns.map{ col => col.name}.mkString(", ")
+    val optionalListObj = columns.map{ col => "obj."+col.name}.mkString(", ")
+
+    val optionalMapping = List(margin_1+"""/*(("""+optionalList+""") => {""",
+      margin_1+"  "+className+"""("""+optionalList+""")""",
+      margin_1+"""})((obj: """+className+ """) => {""",
+      margin_1+"""  Some("""+optionalListObj+""")""",
+      margin_1+"""}))*/""")
+
+    "mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")("+className+".apply)("+className+".unapply)"+"\n"+optionalMapping.mkString("\n")
+
+
+
+  }
+  def form(): String = {
+    """
+
+  object """+table.className+"""Form{
+    val form = Form(
+              """+getFields(table.columns, table.className)+"""
+    )
+  }"""
+  }
+
 
   def generateExtension: String = {
     val classes = table.className :: table.columns.collect{
