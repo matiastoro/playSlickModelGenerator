@@ -25,9 +25,7 @@ import actors._
 import play.api.Play.current
 import models._
 import models.extensions._
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.data.format.Formats._
+
 
 import org.joda.time.{DateTimeZone, DateTime}
 import play.api.i18n.Messages"""
@@ -51,35 +49,9 @@ import play.api.i18n.Messages"""
   }"""
   }
 
-  def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1): String = {
-    val margin = (" "*(4+lvl*2))
-    val margin_1 = (" "*(4+(lvl-1)*2))
-    val list = columns.map{
-      case c : Column => margin+"\""+c.name+"\" -> "+c.formMapping
-      case s @ SubClass(name, cols) => margin+"\""+name+"\" -> "+getFields(cols, s.className, lvl+1)
-    }
+  def form(): String= {
+    """  val form = """+table.className+"""Form.form"""
 
-    val optionalList = columns.map{ col => col.name}.mkString(", ")
-    val optionalListObj = columns.map{ col => "obj."+col.name}.mkString(", ")
-
-    val optionalMapping = List(margin_1+"""/*(("""+optionalList+""") => {""",
-      margin_1+"  "+className+"""("""+optionalList+""")""",
-      margin_1+"""})((obj: """+className+ """) => {""",
-      margin_1+"""  Some("""+optionalListObj+""")""",
-      margin_1+"""}))*/""")
-
-    "mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")("+className+".apply)("+className+".unapply)"+"\n"+optionalMapping.mkString("\n")
-
-
-
-  }
-  def form(): String = {
-
-
-    """
-  val form = Form(
-    """+getFields(table.columns, table.className)+"""
-  )"""
   }
   val fks = table.foreignColumns.map{fk =>
     "    val "+fk.table+" = "+fk.className+"Query.getAll"
