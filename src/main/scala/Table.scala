@@ -42,7 +42,9 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
                 fk = getForeignKey(ps)
                 getScalaType(col, ps,false)
               case _ if col != "created_at" && col != "updated_at" => "Long"
-              case _ => "DateTime" //createdAt: ~, updatedAt: ~
+              case _ =>
+                optional = true
+                "DateTime" //createdAt: ~, updatedAt: ~
             })
             Column(underscoreToCamel(col), col, tpe, optional, fk)
           }
@@ -76,10 +78,7 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
       "DateTime"
     else if("""date.*""".r.findFirstIn(s).isDefined)
       "LocalDate"
-    else if(s == "~" && col != "createdAt" && col != "updatedAt")
-      "Long"
-    else if(s == "~")
-      "DateTime"
+
     else
       throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'"))
 
