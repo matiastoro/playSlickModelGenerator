@@ -3,15 +3,11 @@ package models
 import play.api.db.DB
 import play.api.db.slick.Config.driver.simple._
 import play.api.Play.current
-import util.Via56Logging._
 import com.mchange.v2.c3p0.ComboPooledDataSource
 
 
 object db{
   def createDB = {
-    //Aerodromes.createDB
-    Fpls.createDB
-    Operations.createDB
   }
 }
 
@@ -59,7 +55,7 @@ trait DatabaseClient[E] {
     try{
       all.ddl.create
     } catch {
-      case e: Exception => error("Could not create database.... assuming it already exists")
+      case e: Exception => println("Could not create database.... assuming it already exists")
     }
   }
 
