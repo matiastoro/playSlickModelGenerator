@@ -1,0 +1,20 @@
+@(field: play.api.data.Field, sid: Option[String], args: (Symbol,Any)*)(implicit handler: helper.FieldConstructor, lang: play.api.i18n.Lang)
+
+@boxValue = @{ args.toMap.get('value).getOrElse("true") }
+
+@helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
+    @sid.map{ id =>
+        @if(id.length>0){
+        <a href="@routes.AipController.download(id.toInt)" target="_blank">@value</a>
+        }
+    }
+    <input type="file" class="@htmlArgs.get('_class)" id="@id" name="@name" @toHtmlArgs(htmlArgs.filterKeys(_ != '_class))>
+    @sid.map{ id =>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" id="@{name}_delete" name="@{name}_delete" value="1" />
+                Eliminar archivo
+            </label>
+        </div>
+    }
+}

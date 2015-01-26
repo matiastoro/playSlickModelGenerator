@@ -1,0 +1,18 @@
+@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit lang: play.api.i18n.Lang)
+
+@import play.api.i18n._
+@import views.html.helper._
+
+    @elements = @{ new FieldElements(field.id, field, null, args.toMap, lang) }
+
+<div class="@elements.args.get('_class) @if(elements.hasErrors) {has-error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
+    <div class="input">
+        <input type="text" class="form-control" id="@field.id" name="@field.name" value="@field.value" @toHtmlArgs(elements.args.filterKeys(_ != '_class))>
+        @if(!elements.args.get('hideErrors).isDefined){
+            @if(!elements.args.get('hideInfo).isDefined) {
+                <span class="help-inline">@elements.infos(elements.lang).mkString(", ")</span>
+            }
+            <span class="help-block">@elements.errors(elements.lang).mkString(", ")</span>
+        }
+    </div>
+</div>

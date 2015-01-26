@@ -1,0 +1,37 @@
+@(total: Int, page: Int, pageLength: Int, callBuilder: (Int,Int) => play.api.mvc.Call, lengthSizes: List[Int] = List(5,10,20,50,100))(implicit lang: Lang, flash: Flash, session: Session, context: ApplicationContext)
+
+@jumpBack(page: Int) = @{if (page - 10 > 0) 5 else {if (page - 5 > 0) 2 else 1}}
+@jumpForward(pages: Int,page: Int) = @{if (page + 10 < pages) 5 else {if (page + 5 < pages) 2 else 1}}
+
+@defining(math.ceil(1.0*total/pageLength).toInt) { pages =>
+    @if(pages>1){
+        <div id="pagination" style="width:100%; text-align: center">
+            <div style="display:inline-block; float:right;">
+                @Messages("paginator.amount")
+                <select class="form-control" name="pagination_length" id="pagi_length" onchange="window.location=this.value;">
+                @lengthSizes.map { length =>
+                    <option @if(pageLength == length) {selected} value="@callBuilder(1, length)">@length</option>
+                }
+                </select>
+            </div>
+            <div style="display:inline-block;">
+                <ul class="pagination" style="margin:0">
+                    <li><a href="@callBuilder(1, pageLength)">&laquo;</a></li>
+                    <li><a href="@callBuilder(if(page>1) {page-1} else 1, pageLength)">&lt;</a></li>
+                    @if(page > 3) {
+                        <li><a href="@callBuilder(page - jumpBack(page), pageLength)">...</a></li>
+                    }
+                    @for(p <- scala.math.max(page-2,1) to scala.math.min(page+2,pages)){
+                        <li class="@if(p==page){active}else{}"><a href="@callBuilder(p, pageLength)">@p</a></li>
+                    }
+                    @if(page < (pages - 2)) {
+                        <li><a href="@callBuilder(page + jumpForward(pages,page), pageLength)">...</a></li>
+                    }
+                    <li><a href="@callBuilder(if(pages -1 > page) {page+1} else pages, pageLength)">&gt;</a></li>
+                    <li><a href="@callBuilder(pages, pageLength)">&raquo;</a></li>
+                </ul>
+            </div>
+            <div style="clear:right;overflow:hidden"></div>
+        </div>
+    }
+}

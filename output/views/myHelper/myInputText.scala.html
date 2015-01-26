@@ -1,0 +1,7 @@
+@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: helper.FieldConstructor, lang: play.api.i18n.Lang)
+
+@boxValue = @{ args.toMap.get('value).getOrElse("true") }
+
+@helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
+	<input type="text" class="form-control @htmlArgs.get('_class)" id="@id" name="@name" value="@value" @toHtmlArgs(htmlArgs.filterKeys(_ != '_class))>
+}
