@@ -17,9 +17,11 @@ case class ShowGenerator(table: Table, tablesOneToMany: List[Table] = List()) ex
 
         <h1>@Messages(""""+table.objName+""".show.title")</h3>
 
-"""+cols+"""
+                                         """+cols+"""
         @"""+table.objName+""".id.map{ id =>
-            <a href="@routes."""+table.className+"""Controller.edit(id)">@Messages("edit")</a>
+            <a href="@routes."""+table.className+
+      """Controller.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@routes."""+table.className+"""Controller.delete(id)';">@Messages("delete")</a>
         }
         | <a href="@routes."""+table.className+"""Controller.index(1,20)">@Messages("list")</a>
 

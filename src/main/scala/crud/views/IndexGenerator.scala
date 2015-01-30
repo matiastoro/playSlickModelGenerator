@@ -43,17 +43,18 @@ case class IndexGenerator(table: Table) extends CodeGenerator{
             <table class="table table-striped table-condensed">
                 <thead>
                     <tr>
-"""+header+"""
+                                                                                                """+header+"""
                         <th>@Messages("Actions")</th>
                     </tr>
                 </thead>
                 <tbody>
                 @for(obj <- list) {
                     <tr class="if(it.state==1){warning}else{}">
-"""+values+"""
+                                                                                                           """+values+"""
                         <td>
                             <a href="@routes."""+table.className+"""Controller.show(obj.id.get)">@Messages("show")</a>
                             <a href="@routes."""+table.className+"""Controller.edit(obj.id.get)">@Messages("edit")</a>
+                            <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@routes."""+table.className+"""Controller.delete(obj.id.get)';">@Messages("delete")</a>
                         </td>
                     </tr>
                 }
