@@ -166,8 +166,9 @@ GET         /"""+table.objName+"""/:page             controllers."""+table.class
   def createNested() = """
   def createNested() = Action{ implicit request =>
     val i = request.getQueryString("i").getOrElse("0").toInt
+    val name = request.getQueryString("name").getOrElse(""""+table.objName+"""s")
 """+fks+ """
-    Ok(views.html."""+table.viewsPackage+"""._nestedForm(Field(form, """"+table.objName+"""s["+i+"]", Seq(), None, Seq(), None)"""+params+"""))
+    Ok(views.html."""+table.viewsPackage+"""._nestedForm(Field(form, name+"["+i+"]", Seq(), None, Seq(), None)"""+params+"""))
   }"""
 
 

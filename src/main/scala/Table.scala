@@ -168,29 +168,29 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
 
   def formHelper =
 
-    """          <div id=""""+objName+"""sDiv">
+    """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
               <h2>@Messages(""""+objName+""".list")</h2>
               @repeat(frm(""""+foreignTable+"""s"), min = 0) { field =>
                   @controllers."""+className+"""Controller.nestedForm(field)
               }
           </div>
-          <input type="hidden" id="n"""+objName+"""s" value="@frm(""""+objName+"""s").indexes.size" />
+          <input type="hidden" id="n"""+objName+"""s_@frm(""""+objName+"""s").id" value="@frm(""""+objName+"""s").indexes.size" />
           <div class="form-group">
-              <a id="addNested"""+objName+"""" href="javascript:;" onclick="addNested"""+className+"""()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a """+objName+"""</a>
-              <span id="loadingNested"""+objName+"""" style="display:none;">Loading...</span>
+              <a id="addNested"""+objName+"""_@frm(""""+objName+"""s").id" href="javascript:;" onclick="addNested"""+className+"""_@{frm(""""+objName+"""s").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a """+objName+"""</a>
+              <span id="loadingNested_"""+objName+"""@frm(""""+objName+"""s").id" style="display:none;">Loading...</span>
           </div>
 
           <script>
-              function addNested"""+className+"""() {
-                    $('#addNested"""+objName+"""').hide(); $('#loadingNested"""+objName+"""').show();
-                    var i = parseInt($('#n"""+objName+"""s').val());
+              function addNested"""+className+"""_@{frm(""""+objName+"""s").id}() {
+                    $('#addNested"""+objName+"""_@frm(""""+objName+"""s").id').hide(); $('#loadingNested_"""+objName+"""@frm(""""+objName+"""s").id').show();
+                    var i = parseInt($('#n"""+objName+"""s_@frm(""""+objName+"""s").id').val());
                     $.ajax({
                       url: "@routes."""+className+"""Controller.createNested()",
-                      data: { i: i }
+                      data: { i: i, name: '@frm(""""+objName+"""s").id' }
                     }).done(function(msg) {
-                        $('#"""+objName+"""sDiv').append(msg)
-                        $('#n"""+objName+"""s' ).val(i+1);
-                        $('#addNested"""+objName+"""').show(); $('#loadingNested"""+objName+"""').hide();
+                        $('#"""+objName+"""sDiv_@frm(""""+objName+"""s").id').append(msg)
+                        $('#n"""+objName+"""s_@frm(""""+objName+"""s").id' ).val(i+1);
+                        $('#addNested"""+objName+"""_@frm(""""+objName+"""s").id').show(); $('#loadingNested_"""+objName+"""@frm(""""+objName+"""s").id').hide();
                     });
               }
           </script>"""
