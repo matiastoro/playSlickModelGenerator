@@ -17,6 +17,7 @@ case class FormGenerator(table: Table) extends CodeGenerator{
           tab+c.formHelper(prefix)
         groupTab+"<div class=\"form-group\">\n"+input+"\n"+groupTab+"</div>"
       case s: SubClass => generateInputs(s.cols, s.name+".")
+      case o: OneToMany => o.formHelper
       case _ => ""
     }}.mkString("\n")
   }
@@ -24,17 +25,14 @@ case class FormGenerator(table: Table) extends CodeGenerator{
 
   def generate: String = {
     val inputs = generateInputs(table.columns)
-    val args = table.foreignColumns.map{fk => ", "+fk.table+": List[models."+fk.className+"]"}.mkString("")
-
-    val html = """@(frm: Form[models."""+table.className+"""]"""+args+""", """+table.objName+"""Opt: Option[models."""+table.className+"""] = None)(implicit flash: Flash, lang: Lang, session: Session, context: ApplicationContext)
+    val args = table.foreignKeys.map{fk => ", "+fk.table+": List[models."+fk.className+"]"}.mkString("")
+    val formClass = table.className+"FormData"//if(table.hasOneToMany) table.className+"FormData" else table.className
+    val html = """@(frm: Form[models."""+formClass+"""]"""+args+""", """+table.objName+"""Opt: Option[models."""+table.className+"""] = None)(implicit flash: Flash, lang: Lang, session: Session, context: ApplicationContext, request: Request[AnyContent])
 @import myHelper._
 @import helper._
 
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h3 class="panel-title">@Messages(""""+table.objName+""".form.title")</h3>
-    </div>
-    <div class="panel-body">
+        <h1>@Messages(""""+table.objName+""".form.title")</h1>
+
 
         @if(frm.hasErrors){
             <div id=""""+table.objName+"""Errors" class="row alert alert-danger">
@@ -54,15 +52,14 @@ case class FormGenerator(table: Table) extends CodeGenerator{
             <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
             @"""+table.objName+"""Opt.map{ """+table.objName+""" =>
                 @"""+table.objName+""".id.map{ id =>
-                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="loadDelete(@id);">
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@routes."""+table.className+"""Controller.delete(id)';">
                     @Messages("delete")</button>
                 }
             }
             <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
         </div>
 
-    </div>
-</div>
+
     """
 
     html

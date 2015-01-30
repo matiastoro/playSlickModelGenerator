@@ -5,7 +5,7 @@ import scala.collection.immutable.ListMap
 /**
  * Created by matias on 1/26/15.
  */
-case class ModelGenerator(table: Table) extends CodeGenerator {
+case class ModelGenerator(table: Table, tablesOneToMany: List[Table] = List()) extends CodeGenerator {
 
 
   def imports(className: String) = s"""package models
@@ -31,7 +31,7 @@ import play.api.data.format.Formats._
 
     def generateClass(className: String, columns: List[AbstractColumn], isSubClass: Boolean = false): String = {
       val head: String = """case class """+className+"""("""
-      val cols = columns.map{
+      val cols = columns.collect{
         case c: Column => c.name+": "+c.tpeWithOption
         case c: SubClass => c.name+": "+c.className
       }
@@ -59,7 +59,7 @@ import play.api.data.format.Formats._
     val baseClass = imports(className)+generateClass(className, columns)
 
     def generateStars(columns: List[AbstractColumn]): String ={
-      "("+columns.map{col => col match{
+      "("+columns.collect{col => col match{
         case c: Column =>
           if(c.name == "id")
             "id.?"
@@ -78,7 +78,7 @@ import play.api.data.format.Formats._
         name+"Rel"
     }
     def generateColumnsTagTable(columns: List[AbstractColumn]): String = {
-      columns.map{ col => col match{
+      columns.collect{ col => col match{
         case c: Column =>
           if(c.name=="id"){
             "  def id = column[Long](\"id\", O.PrimaryKey, O.AutoInc)"
@@ -105,12 +105,15 @@ import play.api.data.format.Formats._
 
     val shaped = ".shaped <> " +
       (if(hasSubClasses){
-        val fields = "("+columns.map{ _.name }.mkString(", ")+") =>\n"
-        val obj = className+"("+columns.map{
+        val fields = "("+columns.collect{
+          case s: Column => s.name
+          case s: SubClass => s.name
+        }.mkString(", ")+") =>\n"
+        val obj = className+"("+columns.collect{
           case c: Column => c.name
           case s: SubClass => s.name.capitalize+".tupled.apply("+s.name+")"
         }.mkString(", ")+")"
-        val unapplies = "      Some((" + columns.map{
+        val unapplies = "      Some((" + columns.collect{
           case c: Column => "o."+c.name
           case s: SubClass => s.name.capitalize+".unapply(o."+s.name+").get"
         }.mkString(",")+"))"
@@ -124,18 +127,33 @@ import play.api.data.format.Formats._
     val tableClassHead = """class """+className+"""Mapping(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableName+"""") {"""
     val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+star+ shaped + "\n}"
 
+    val foreignKeyFilters = table.foreignColumns.map{ c =>
+      c.foreignKey.map{fk =>
+        """  def by"""+fk.className+"""Id(id: Option[Long]) = database.withSession { implicit db: Session =>
+    id.map{i =>
+      all.filter(_."""+c.name+"""===i).list
+    }.getOrElse(List())
+  }
+                            """
+      }.getOrElse("")
+    }.mkString("\n\n")
 
     val objectHead ="""
 
 class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
   type DBTable = """+className+"""Mapping
 
-  private[models] val all = database.withSession { implicit db: Session =>
+  private[models] val all = {
     TableQuery[DBTable]
   }
+"""+foreignKeyFilters+"""
 }"""
 
-    baseClass+"\n\n"+tableClass + objectHead + form()
+    baseClass+"\n\n"+tableClass + objectHead + formData() + form()
+  }
+
+  def isColumnOneToManyMap(c: Column): Boolean = {
+    c.foreignKey.map{fk => tablesOneToMany.exists{t => t.tableName == fk.table}}.getOrElse(false)
   }
 
   def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1): String = {
@@ -143,48 +161,99 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
     val margin_1 = (" "*(4+(lvl-1)*2))
 
     val list = columns.collect{
-      case c : Column if !c.synthetic=> margin+"\""+c.name+"\" -> "+c.formMapping
+      case c : Column if !c.synthetic=> margin+"\""+c.name+"\" -> "+{
+        if(isColumnOneToManyMap(c)) "optional("+c.formMapping+")" else c.formMapping
+      }
       case s @ SubClass(name, cols) => margin+"\""+name+"\" -> "+getFields(cols, s.className, lvl+1)
+      case o: OneToMany => margin+"\""+o.name+"s\" -> list(models."+o.className+"Form.form.mapping)"
     }
+    val hasOneToMany = lvl <= 1 //&& table.hasOneToMany
 
 
 
-    val optionalList = columns.map{
+    val optionalList = columns.collect{
       case c: Column if c.synthetic => "Some(new DateTime())"
-      case c => c.name
+      case c: Column => if(!isColumnOneToManyMap(c)) c.name else c.name+".getOrElse(0)"
+      case c: SubClass => c.name
     }.mkString(", ")
 
     val nonSynthList = columns.collect{
       case c: Column if !c.synthetic => c.name
       case c: SubClass => c.name
+      case c: OneToMany => c.name+"s"
     }.mkString(",")
 
+    val prefix = if(hasOneToMany) "obj." else ""
     val optionalListObj = columns.collect{
-      case c: Column if !c.synthetic => "obj."+c.name
-      case c: SubClass => "obj."+c.name
+      case c: Column if !c.synthetic => if(!isColumnOneToManyMap(c)) "formData."+prefix+c.name else "Some(formData."+prefix+c.name+")"
+      case c: SubClass => "formData."+prefix+c.name
+      case o: OneToMany => "formData."+o.name+"s"
     }.mkString(", ")
-    val withSynth = table.createdAt || table.updatedAt
+    val advancedForm = true//table.createdAt || table.updatedAt || table.oneToManies.size>0
 
-    val optionalMapping = List(margin_1+(if(withSynth) "" else "/*")+"""(("""+nonSynthList+""") => {""",
-      margin_1+"  "+className+"""("""+optionalList+""")""",
-      margin_1+"""})((obj: """+className+ """) => {""",
+    val formClass = if(hasOneToMany) table.className+"""FormData""" else className
+
+    val embeddedStart = if(hasOneToMany) table.className+"""FormData(""" else ""
+
+    val embeddedEnd = if(hasOneToMany) (if(table.hasOneToMany) ", " else "")+table.oneToManies.map{otm => otm.name+"s"}.mkString(", ")+")" else ""
+
+    val optionalMapping = List(margin_1+(if(advancedForm) "" else "/*")+"""(("""+nonSynthList+""") => {""",
+      margin_1+"  "+embeddedStart+className+"""("""+optionalList+""")"""+embeddedEnd,
+      margin_1+"""})((formData: """+formClass+ """) => {""",
       margin_1+"""  Some("""+optionalListObj+""")""",
-      margin_1+"""})"""+(if(withSynth) "" else "*/"))
+      margin_1+"""})"""+(if(advancedForm) "" else "*/"))
 
-    val defaultMapping = (if(withSynth) "/*("+className+".apply)("+className+".unapply)*/" else "("+className+".apply)("+className+".unapply)")
+    val defaultMapping = (if(advancedForm) "/*("+className+".apply)("+className+".unapply)*/" else "("+className+".apply)("+className+".unapply)")
     "mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")"+defaultMapping+"\n"+optionalMapping.mkString("\n")
 
 
 
   }
-  def form(): String = {
-    """
 
-  object """+table.className+"""Form{
-    val form = Form(
-              """+getFields(table.columns, table.className)+"""
-    )
-  }"""
+
+  def formData(): String = {
+    val otms: String = if(table.oneToManies.size>0) ", "+table.oneToManies.map{otm => otm.foreignTable+"s: List["+otm.className+"FormData]"}.mkString(", ") else ""
+    val otmsUpdates = table.oneToManies.map{otm =>
+      "    //Delete elements that are not part of the form but they do exists in the database.\n"+
+      """    """+otm.queryName+""".by"""+table.className+"""Id(obj.id).filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.queryName+""".delete(_)}"""+"\n"+
+      """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.tableName+"""Id = obj.id.get))}"""
+    }.mkString("\n")
+    val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.tableName+"""Id = id))}""" }.mkString("\n")
+
+    val alternativeConstructor = if(table.oneToManies.size>0){
+      val otmsLists = table.oneToManies.map{otm =>
+        """    val """+otm.foreignTable+"""s = """+otm.queryName+""".by"""+table.className+"""Id(obj.id).map("""+otm.className+"""FormData(_))"""
+      }.mkString("\n")
+      val otmsArgs = table.oneToManies.map{otm => otm.foreignTable+"s"}.mkString(", ")
+"""object """+table.className+"""FormData{
+  def apply(obj: """+table.className+""") = {
+"""+otmsLists+"""
+    new """+table.className+"""FormData(obj, """+otmsArgs+""")
+  }
+}"""
+    } else ""
+
+    """
+case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
+  def update(updatedObj: """+table.className+""" = obj) = {
+"""+otmsUpdates+"""
+    """+table.queryName+""".updateOrInsert(updatedObj)
+  }
+  def insert(insertedObj: """+table.className+""") = {
+    val id = """+table.queryName+""".insert(insertedObj)
+"""+otmsInserts+"""
+    id
+  }
+}
+"""+alternativeConstructor
+  }
+  def form(): String = {
+   """
+object """+table.className+"""Form{
+  val form = Form(
+            """+getFields(table.columns, table.className)+"""
+  )
+}"""
   }
 
 

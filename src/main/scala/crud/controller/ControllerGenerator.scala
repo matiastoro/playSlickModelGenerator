@@ -6,12 +6,15 @@ import via56.slickGenerator.Column
 import via56.slickGenerator.SubClass
 import via56.slickGenerator.Table
 
-case class ControllerGenerator(table: Table) extends CodeGenerator{
+case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List()) extends CodeGenerator{
+  val isMany = tablesOneToMany.size>0
   def generate: String = {
     val objectSignature = """object """+table.className+"""Controller extends ApplicationController {"""
-    val l = List(imports, objectSignature, index(), show(), form(), create, save, edit, update)
+    val l = List(imports, objectSignature, index(), show(), form(), create, save, edit, delete, update)
+
+    val lMany = if(isMany) l ++ List(nestedForm,createNested, showByManies) else l
     println(table.columns)
-    l.mkString("\n")+"\n}"
+    lMany.mkString("\n")+"\n}"
   }
 
   val imports =
@@ -28,7 +31,7 @@ import models.extensions._
 
 
 import org.joda.time.{DateTimeZone, DateTime}
-import play.api.i18n.Messages"""
+import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else "")
 
   def index(): String = {
 
@@ -53,24 +56,37 @@ import play.api.i18n.Messages"""
     """  val form = """+table.className+"""Form.form"""
 
   }
-  val fks = table.foreignColumns.map{fk =>
+  val fks = table.foreignKeys.map{fk =>
     "    val "+fk.table+" = "+fk.className+"Query.getAll"
   }.mkString("\n")
-  val params = table.foreignColumns.map{fk => ", "+fk.table}.mkString("")
+  val params = table.foreignKeys.map{fk => ", "+fk.table}.mkString("")
 
   def edit(): String = {
-
+    val fillObj = //if(table.hasOneToMany){
+      table.className+"FormData("+table.objName+")"//+(if(table.hasOneToMany) ", " else "")+table.oneToManies.map{otm => otm.queryName+".by"+table.className+"Id("+table.objName+".id)" }.mkString(", ")+")"
+    //}  else table.objName
     """
   def edit(id: Long) = Action{ implicit request =>
     """+table.queryName+""".byId(id).map{ """+table.objName+ """ =>
-"""+fks+"""
-      Ok(views.html."""+table.viewsPackage+""".edit(form.fill("""+table.objName+""")"""+params+""", """+table.objName+"""))
+  """+fks+"""
+      Ok(views.html."""+table.viewsPackage+""".edit(form.fill("""+fillObj+""")"""+params+""", """+table.objName+"""))
+    }.getOrElse(NotFound)
+  }"""
+  }
+  def delete(): String = {
+    val fillObj =
+      table.className+"FormData("+table.objName+")"
+    //}  else table.objName
+    """
+  def delete(id: Long) = Action{ implicit request =>
+    """+table.queryName+""".byId(id).map{ """+table.objName+ """ =>
+      """+table.queryName+""".delete("""+table.objName+ """)
+      Redirect(routes.""" + table.className + """Controller.index(1,20)).flashing("success" -> Messages("delete.success"))
     }.getOrElse(NotFound)
   }"""
   }
 
   def create(): String = {
-
     """
   def create() = Action{ implicit request =>
 """+fks+"""
@@ -80,17 +96,22 @@ import play.api.i18n.Messages"""
   }
 
   def update = {
-
+    val updateObj = if(table.hasOneToMany) "obj."+table.objName else "obj"
     val createdAt = if(table.createdAt) ", createdAt = "+table.objName+".createdAt" else ""
+    /*val maniesObj = table.oneToManies.map{ otm =>
+"""          formData."""+otm.name+"""s.map{ fData =>
+            fData.update(fData.obj.copy("""+table.tableName+"""Id = id))
+          }"""
+    }.mkString("\n")*/
     """
   def update(id: Long) = Action{ implicit request =>
     """+table.queryName+""".byId(id).map{ """+table.objName+""" =>
       form.bindFromRequest.fold(
         formWithErrors => {
-          """+fks+"""
+     """+fks+"""
           BadRequest(views.html."""+table.viewsPackage+""".edit(formWithErrors"""+params+""", """+table.objName+"""))
-        }, obj => {
-          """+table.queryName+""".update(obj.copy(id = """+table.objName+""".id"""+createdAt+""")).map{ id =>
+        }, formData => {
+          formData.update(formData.obj.copy(id = """+table.objName+""".id"""+createdAt+""")).map{ id =>
             Redirect(routes."""+table.className+"""Controller.show("""+table.objName+""".id.get)).flashing("success" -> Messages("save.success"))
           }.getOrElse(NotFound)
         }
@@ -98,32 +119,65 @@ import play.api.i18n.Messages"""
     }.getOrElse(NotFound)
   }"""
   }
-  def save = { """
+  def save = {
+    val maniesObj = table.oneToManies.map{ otm =>
+"""        formData."""+otm.name+"""s.map{ fData =>
+             fData.insert(fData.obj.copy("""+table.tableName+"""Id = id))
+        }"""
+    }.mkString("\n")
+    """
   def save() = Action{ implicit request =>
 
     form.bindFromRequest.fold(
       formWithErrors => {
-        """+fks+ """
+    """+fks+ """
         BadRequest(views.html."""+table.viewsPackage+""".create(formWithErrors"""+params+"""))
-      }, obj => {
-        val id = """+table.queryName+""".insert(obj)
+      }, formData => {
+        val id = formData.insert(formData.obj)
         Redirect(routes."""+table.className+"""Controller.show(id)).flashing("success" -> Messages("save.success"))
       }
     )
   }
   """
   }
-  
+
+  val nestedRoute = if(isMany) "\n"+"""GET         /"""+table.objName+"""/nested            controllers."""+table.className+"""Controller.createNested()""" else ""
   def routes = {
     """
 GET         /"""+table.objName+"""/                  controllers."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20)
 GET         /"""+table.objName+"""/show/:id          controllers."""+table.className+"""Controller.show(id: Long)
 GET         /"""+table.objName+"""/edit/:id          controllers."""+table.className+"""Controller.edit(id: Long)
-GET         /"""+table.objName+"""/create            controllers."""+table.className+"""Controller.create()
+GET         /"""+table.objName+"""/delete/:id          controllers."""+table.className+"""Controller.delete(id: Long)
+GET         /"""+table.objName+"""/create            controllers."""+table.className+"""Controller.create()"""+nestedRoute+"""
 POST        /"""+table.objName+"""/save              controllers."""+table.className+"""Controller.save()
 POST        /"""+table.objName+"""/update/:id        controllers."""+table.className+"""Controller.update(id: Long)
 GET         /"""+table.objName+"""/:page/:pageLength controllers."""+table.className+"""Controller.index(page: Int, pageLength: Int)
 GET         /"""+table.objName+"""/:page             controllers."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20)
 """
+  }
+
+  def nestedForm() = { """  def nestedForm(form: Field)(implicit request: Request[AnyContent]) = {
+"""+fks+ """
+    views.html."""+table.viewsPackage+"""._nestedForm(form"""+params+""")
+  }"""
+  }
+
+
+  def createNested() = """
+  def createNested() = Action{ implicit request =>
+    val i = request.getQueryString("i").getOrElse("0").toInt
+"""+fks+ """
+    Ok(views.html."""+table.viewsPackage+"""._nestedForm(Field(form, """"+table.objName+"""s["+i+"]", Seq(), None, Seq(), None)"""+params+"""))
+  }"""
+
+
+  def showByManies() = {
+    tablesOneToMany.map{ t =>
+      """
+  def showBy"""+t.className+"""(id: Option[Long]) = {
+    views.html."""+table.viewsPackage+"""._nestedShow("""+table.queryName+""".by"""+t.className+"""Id(id))
+  }"""
+
+    }.mkString("\n")
   }
 }

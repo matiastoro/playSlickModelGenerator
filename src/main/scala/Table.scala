@@ -21,7 +21,6 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
       case (col, props) =>
 
         if(col=="id"){
-          "Option[Long]"
           Column("id", "id", "Long", true)
         } else {
 
@@ -37,18 +36,18 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
             var optional = false
             var fk: Option[ForeignKey] = None
             var synth = false
-            val tpe = (props match{
+            (props match{
               case ps: columnProps =>
                 optional = isOptional(ps)
                 fk = getForeignKey(ps)
-                getScalaType(col, ps,false)
-              case _ if col != "created_at" && col != "updated_at" => "Long"
-              case _ =>
-                optional = true
-                synth = true
-                "DateTime" //createdAt: ~, updatedAt: ~
+                getScalaType(col, ps,false) match{
+                  case Some(tpe) => Column(underscoreToCamel(col), col, tpe, optional, fk, false)
+                  case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR")))
+                }
+              case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", false, None, false)
+              case _ => Column(underscoreToCamel(col), col, "DateTime", true, None, true) //createdAt: ~, updatedAt: ~
             })
-            Column(underscoreToCamel(col), col, tpe, optional, fk, synth)
+
           }
         }
       case _ => throw new Exception("Parsing error")
@@ -73,7 +72,7 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
     case _ => false
   })
 
-  def getScalaType(col: String, ps: ListMap[String,String], withOption: Boolean = true): String = {
+  def getScalaType(col: String, ps: ListMap[String,String], withOption: Boolean = true): Option[String] = {
     val s = ps.getOrElse("type", "")
 
     val tpe = (if("""varchar.*""".r.findFirstIn(s).isDefined)
@@ -90,32 +89,59 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
       "DateTime"
     else if("""date.*""".r.findFirstIn(s).isDefined)
       "LocalDate"
-
+    else if("""oneToMany.*""".r.findFirstIn(s).isDefined)
+      "OneToMany"
     else
       throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'"))
 
-    if(withOption && isOptional(ps))
-      "Option["+tpe+"]"
-    else tpe
+    if(tpe == "OneToMany") None
+    else Some({
+      if(withOption && isOptional(ps))
+        "Option["+tpe+"]"
+      else tpe
+    })
 
   }
 
-  def getForeignColumns(cols: List[AbstractColumn]): List[ForeignKey] = {
+  def getForeignKeys(cols: List[AbstractColumn]): List[ForeignKey] = {
     val list = cols.map{
       case c: Column => c.foreignKey.map{ fk =>
         List(fk)
       }.getOrElse(List())
+      case s: SubClass => getForeignKeys(s.cols)
+      case _ => List()
+    }
+    list.flatten
+  }
+  lazy val foreignKeys = getForeignKeys(columns)
+
+  def getForeignColumns(cols: List[AbstractColumn]): List[Column] = {
+    val list = cols.map{
+      case c: Column => c.foreignKey.map{ fk =>
+        List(c)
+      }.getOrElse(List())
       case s: SubClass => getForeignColumns(s.cols)
+      case _ => List()
     }
     list.flatten
   }
   lazy val foreignColumns = getForeignColumns(columns)
 
+  def getOneToManies(cols: List[AbstractColumn]): List[OneToMany] = {
+    cols.map{
+      case c: OneToMany => List(c)
+      case s: SubClass => getOneToManies(s.cols)
+      case _ => List()
+    }.flatten
+  }
+  lazy val oneToManies = getOneToManies(columns)
+  lazy val hasOneToMany = oneToManies.size>0
+
 }
 
-abstract class AbstractColumn(val name: String)
+abstract class AbstractColumn(val name: String) extends CodeGenerator
 
-case class SubClass(override val name: String, cols: List[AbstractColumn]) extends AbstractColumn(name) with CodeGenerator{
+case class SubClass(override val name: String, cols: List[AbstractColumn]) extends AbstractColumn(name){
   val className = underscoreToCamel(name).capitalize
 }
 
@@ -134,6 +160,43 @@ object GeneratorMappings {
   )
 }
 import GeneratorMappings._
+
+case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
+  val className = underscoreToCamel(foreignTable).capitalize
+  val objName = underscoreToCamel(foreignTable)
+  val queryName = className+"Query"
+
+  def formHelper =
+
+    """          <div id=""""+objName+"""sDiv">
+              <h2>@Messages(""""+objName+""".list")</h2>
+              @repeat(frm(""""+foreignTable+"""s"), min = 0) { field =>
+                  @controllers."""+className+"""Controller.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="n"""+objName+"""s" value="@frm(""""+objName+"""s").indexes.size" />
+          <div class="form-group">
+              <a id="addNested"""+objName+"""" href="javascript:;" onclick="addNested"""+className+"""()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a """+objName+"""</a>
+              <span id="loadingNested"""+objName+"""" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNested"""+className+"""() {
+                    $('#addNested"""+objName+"""').hide(); $('#loadingNested"""+objName+"""').show();
+                    var i = parseInt($('#n"""+objName+"""s').val());
+                    $.ajax({
+                      url: "@routes."""+className+"""Controller.createNested()",
+                      data: { i: i }
+                    }).done(function(msg) {
+                        $('#"""+objName+"""sDiv').append(msg)
+                        $('#n"""+objName+"""s' ).val(i+1);
+                        $('#addNested"""+objName+"""').show(); $('#loadingNested"""+objName+"""').hide();
+                    });
+              }
+          </script>"""
+
+}
+
 case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
@@ -162,6 +225,8 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
       """@select(frm(""""+prefix+name+""""),"""+options+""", '_label -> """"+name.capitalize+"""")"""
     }.getOrElse(inputDefault(prefix))
   }
+
+
 
 }
 case class ForeignKey(table: String, reference: String, onDelete: Option[String]) extends CodeGenerator{

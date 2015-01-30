@@ -1,5 +1,6 @@
 package via56.slickGenerator
 
+import _root_.crud.views.NestedFormGenerator
 import scala.util.parsing.combinator._
 import collection.immutable.ListMap
 import java.nio.file.{Paths, Files}
@@ -57,24 +58,33 @@ object parser {
       Files.createDirectories(pathControllers)
       Files.createDirectories(pathViews)
       result match{
-        case tables : ListMap[String, ListMap[String, Any]] =>
-          tables.map{ table =>
+        case tbles : ListMap[String, ListMap[String, Any]] =>
+          val tables = tbles.map{ table =>
             println(table._1)
-            val t = Table(table._1, table._2)
+            Table(table._1, table._2)
+          }.toList
 
-            writeToFile(pathName, t)
-          }
+          tables.map{t => writeToFile(pathName, t, tablesOneToMany(t, tables))}
         case _ : List[Any] => println("lala2")
         case _ => println("no")
       }
     }
   }
+  def tablesOneToMany(t: Table, tables: List[Table]): List[Table] = {
+    val fks = t.columns.collect{
+      case c: Column if c.foreignKey.isDefined => c.foreignKey.get
+    }
+    for{ 
+      fk <- fks
+      table <- tables if table.tableName == fk.table
+    } yield table
+  }
 
-  def writeToFile(path: String, table: Table) = {
+  def writeToFile(path: String, table: Table, tablesOneToMany: List[Table]) = {
     val fileName = underscoreToCamel(table.tableName.capitalize)
     val currentContent = getCurrentContent(path+"/models/"+fileName+".scala")
 
-    val mg = ModelGenerator(table)
+    val mg = ModelGenerator(table, tablesOneToMany)
     val content = mg.generate
     if(currentContent.size != content.size)
       Files.write(Paths.get(path+"/models/"+fileName+".scala"), content.getBytes(StandardCharsets.UTF_8))
@@ -85,7 +95,7 @@ object parser {
       Files.write(Paths.get(path+"/models/extensions/"+fileName+"Extension.scala"), mg.generateExtension.getBytes(StandardCharsets.UTF_8))
     }
 
-    Files.write(Paths.get(path+"/controllers/"+fileName+"Controller.scala"), ControllerGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get(path+"/controllers/"+fileName+"Controller.scala"), ControllerGenerator(table, tablesOneToMany).generate.getBytes(StandardCharsets.UTF_8))
 
     /*views*/
     Files.createDirectories(Paths.get(path+"/views/"+table.viewsPackage))
@@ -97,6 +107,10 @@ object parser {
     Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/show.scala.html"), ShowGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
     Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/sidebar.scala.html"), SidebarGenerator(table).generate.getBytes(StandardCharsets.UTF_8))
 
+    if(tablesOneToMany.size>0){
+      Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/_nestedForm.scala.html"), NestedFormGenerator(table, tablesOneToMany).generate.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path+"/views/"+table.viewsPackage+"/_nestedShow.scala.html"), NestedShowGenerator(table, tablesOneToMany).generate.getBytes(StandardCharsets.UTF_8))
+    }
   }
 
   def getCurrentContent(path: String) = {

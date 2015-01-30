@@ -6,6 +6,7 @@ company:
     username: {type:varchar(255)}
     password: {type: varchar(255)}
     email: {type: varchar(255), required: false}
+  branches: {type: oneToMany, foreignTable: branch}
   created_at: ~
   updated_at: ~
 
@@ -16,7 +17,21 @@ branch:
   address: {type: varchar(255)}
   visible: {type: boolean}
   state: {type: integer}
+  doors: {type: oneToMany, foreignTable: door}
+  windows: {type: oneToMany, foreignTable: window}
   created_at: ~
   updated_at: ~
+
+
+door:
+  id: ~
+  branch_id: {type: integer, foreignTable: branch, foreignReference: id, onDelete: cascade}
+  door: {type: varchar(255)}
+
+
+window:
+  id: ~
+  branch_id: {type: integer, foreignTable: branch, foreignReference: id, onDelete: cascade}
+  window: {type: varchar(255)}
 
 

@@ -8,14 +8,14 @@ import via56.slickGenerator.Table
 
 case class IndexGenerator(table: Table) extends CodeGenerator{
   def generateColumnsHeader(columns: List[AbstractColumn]): String = {
-    columns.map{ col => col match{
+    columns.collect{ col => col match{
       case c: Column => """                        <th>@Messages(""""+table.objName+"""."""+c.name+"""")</th>"""
       case s: SubClass => generateColumnsHeader(s.cols)
     }}.mkString("\n")
   }
 
   def generateColumnsValues(obj: String, columns: List[AbstractColumn]): String = {
-    columns.map{ col => col match{
+    columns.collect{ col => col match{
       case c: Column => """                        <td>@"""+obj+"""."""+c.name+"""</td>"""
       case s: SubClass => generateColumnsValues(obj+"."+s.name, s.cols)
     }}.mkString("\n")
