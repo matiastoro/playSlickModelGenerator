@@ -23,6 +23,13 @@ import play.api.data.format.Formats._
 
 """ /*TODO: only import classes relatives to the table*/
 
+
+  def getters = table.foreignColumns.map{fc =>
+    fc.foreignKey.map{ fk =>
+      """  def get"""+fk.className+""" = """+fk.queryName+""".byId("""+fc.name+""")"""
+    }.getOrElse("")
+  }.mkString("\n")
+
   def generate: String = {
 
 
@@ -36,9 +43,17 @@ import play.api.data.format.Formats._
         case c: SubClass => c.name+": "+c.className
       }
 
-      val selectCol = columns.filter(_.name == table.objName).headOption.getOrElse(columns.head).name
+      val selectCol = columns.filter(_.name == table.objName).headOption.getOrElse{
+        columns.filter(c => c.name == "name" || c.name == "nombre").headOption.getOrElse{
+          columns.collect{case c: Column if c.tpe=="String" => c}.headOption.getOrElse{
+            columns.head
+          }
+        }
+      }.name
+
       val selectString = "  lazy val selectString = "+selectCol
-      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n}"
+
+      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n"+getters+"\n}"
 
 
       val subClasses = columns.collect{

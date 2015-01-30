@@ -15,10 +15,17 @@ trait ShowCodeGenerator extends CodeGenerator{
     val tab = (" "*12)
     columns.map{ col => col match{
       case c: Column =>
+        val (label, name) = c.foreignKey.map{ fk =>
+          val linkedName = "@"+obj+""".get"""+fk.className+""".map{c => @c.selectString}.getOrElse("NOT FOUND")"""
+          val link = """<a href="@routes."""+fk.className+"""Controller.show("""+obj+"""."""+c.name+""")">"""+linkedName+"""</a>"""
+          (fk.className, link)
+          }.getOrElse((c.name.capitalize, """@"""+obj+"""."""+c.name))
+
+
         val default = """            <div class="form-group">
-                <label class="col-sm-2 control-label">"""+c.name.capitalize+"""</label>
+                <label class="col-sm-2 control-label">"""+label+"""</label>
                 <div class="col-sm-10">
-                    <p class="form-control-static">@"""+obj+"""."""+c.name+"""</p>
+                    <p class="form-control-static">"""+name+"""</p>
                 </div>
             </div>"""
 
