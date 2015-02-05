@@ -5,10 +5,10 @@ import via56.slickGenerator.Column
 import via56.slickGenerator.SubClass
 import via56.slickGenerator.Table
 
-case class NestedShowGenerator(table: Table, tablesOneToMany: List[Table] = List()) extends ShowCodeGenerator{
+case class NestedShowGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String = "") extends ShowCodeGenerator{
 
   def generate: String = {
-    val cols = generateCols(table.columns, table.objName)
+    val cols = generateCols(table.columns, table.objName, submodulePackageString)
 
 
     val html = """@("""+table.objName+"""s: List[models."""+table.className+"""])

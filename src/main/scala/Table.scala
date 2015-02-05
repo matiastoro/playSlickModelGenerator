@@ -42,7 +42,7 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
                 fk = getForeignKey(ps)
                 getScalaType(col, ps,false) match{
                   case Some(tpe) => Column(underscoreToCamel(col), col, tpe, optional, fk, false)
-                  case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR")))
+                  case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR").capitalize))
                 }
               case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", false, None, false)
               case _ => Column(underscoreToCamel(col), col, "DateTime", true, None, true) //createdAt: ~, updatedAt: ~
@@ -85,6 +85,8 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
     }
     else if("""boolean.*""".r.findFirstIn(s).isDefined)
       "Boolean"
+    else if("""double.*""".r.findFirstIn(s).isDefined)
+      "Double"
     else if("""timestamp.*""".r.findFirstIn(s).isDefined)
       "DateTime"
     else if("""date.*""".r.findFirstIn(s).isDefined)
@@ -155,6 +157,7 @@ object GeneratorMappings {
     "Int" -> "number",
     "Long" -> "longNumber",
     "Boolean" -> "boolean",
+    "Double" -> "of(doubleFormat)",
     "DateTime" -> "jodaDate",
     "Date" -> "jodaDate"
   )
@@ -166,12 +169,12 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
   val objName = underscoreToCamel(foreignTable)
   val queryName = className+"Query"
 
-  def formHelper =
+  def formHelper(submodulePackageString: String = "") =
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
               <h2>@Messages(""""+objName+""".list")</h2>
               @repeat(frm(""""+foreignTable+"""s"), min = 0) { field =>
-                  @controllers."""+className+"""Controller.nestedForm(field)
+                  @controllers"""+submodulePackageString+"""."""+className+"""Controller.nestedForm(field)
               }
           </div>
           <input type="hidden" id="n"""+objName+"""s_@frm(""""+objName+"""s").id" value="@frm(""""+objName+"""s").indexes.size" />
@@ -185,7 +188,7 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
                     $('#addNested"""+objName+"""_@frm(""""+objName+"""s").id').hide(); $('#loadingNested_"""+objName+"""@frm(""""+objName+"""s").id').show();
                     var i = parseInt($('#n"""+objName+"""s_@frm(""""+objName+"""s").id').val());
                     $.ajax({
-                      url: "@routes."""+className+"""Controller.createNested()",
+                      url: "@controllers"""+submodulePackageString+""".routes."""+className+"""Controller.createNested()",
                       data: { i: i, name: '@frm(""""+objName+"""s").id' }
                     }).done(function(msg) {
                         $('#"""+objName+"""sDiv_@frm(""""+objName+"""s").id').append(msg)
@@ -213,6 +216,7 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     case "Int" => inputDefault(prefix)
     case "Long" => inputDefault(prefix)
     case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+    case "Double" => inputDefault(prefix)
     case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
     case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
     case _ => inputDefault(prefix)

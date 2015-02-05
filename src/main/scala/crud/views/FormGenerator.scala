@@ -5,7 +5,7 @@ import via56.slickGenerator.Column
 import via56.slickGenerator.SubClass
 import via56.slickGenerator.Table
 
-case class FormGenerator(table: Table) extends CodeGenerator{
+case class FormGenerator(table: Table, submodulePackageString: String) extends CodeGenerator{
   def generateInputs(columns: List[AbstractColumn], prefix: String = ""): String = {
     val groupTab = (" "*10)
     val tab = (" "*12)
@@ -17,7 +17,7 @@ case class FormGenerator(table: Table) extends CodeGenerator{
           tab+c.formHelper(prefix)
         groupTab+"<div class=\"form-group\">\n"+input+"\n"+groupTab+"</div>"
       case s: SubClass => generateInputs(s.cols, s.name+".")
-      case o: OneToMany => o.formHelper
+      case o: OneToMany => o.formHelper(submodulePackageString)
       case _ => ""
     }}.mkString("\n")
   }
@@ -27,7 +27,7 @@ case class FormGenerator(table: Table) extends CodeGenerator{
     val inputs = generateInputs(table.columns)
     val args = table.foreignKeys.map{fk => ", "+fk.table+": List[models."+fk.className+"]"}.mkString("")
     val formClass = table.className+"FormData"//if(table.hasOneToMany) table.className+"FormData" else table.className
-    val html = """@(frm: Form[models."""+formClass+"""]"""+args+""", """+table.objName+"""Opt: Option[models."""+table.className+"""] = None)(implicit flash: Flash, lang: Lang, session: Session, context: ApplicationContext, request: Request[AnyContent])
+    val html = """@(frm: Form[models."""+formClass+"""]"""+args+""", """+table.objName+"""Opt: Option[models."""+table.className+"""] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers"""+submodulePackageString+""".ApplicationContext, request: Request[AnyContent])
 @import myHelper._
 @import helper._
 
@@ -52,7 +52,7 @@ case class FormGenerator(table: Table) extends CodeGenerator{
             <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
             @"""+table.objName+"""Opt.map{ """+table.objName+""" =>
                 @"""+table.objName+""".id.map{ id =>
-                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@routes."""+table.className+"""Controller.delete(id)';">
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.delete(id)';">
                     @Messages("delete")</button>
                 }
             }

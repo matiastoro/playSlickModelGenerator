@@ -6,7 +6,7 @@ import via56.slickGenerator.Column
 import via56.slickGenerator.SubClass
 import via56.slickGenerator.Table
 
-case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List()) extends CodeGenerator{
+case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String) extends CodeGenerator{
   val isMany = tablesOneToMany.size>0
   def generate: String = {
     val objectSignature = """object """+table.className+"""Controller extends ApplicationController {"""
@@ -18,12 +18,11 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
   }
 
   val imports =
-    """package controllers
+    """package controllers"""+submodulePackageString+"""
 
 import play.api._
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
-import actors._
 
 import play.api.Play.current
 import models._
@@ -39,7 +38,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 /*"""+routes+"""*/
   def index(page: Int = 1, pageLength: Int = 20) = Action { implicit request =>
     val pagination = """+table.queryName+""".paginate("""+table.queryName+""".allQuery,pageLength,page)
-    Ok(views.html."""+table.viewsPackage+""".index(pagination.results, pagination.count, page, pageLength))
+    Ok(views.html"""+submodulePackageString+"""."""+table.viewsPackage+""".index(pagination.results, pagination.count, page, pageLength))
   }"""
   }
 
@@ -47,7 +46,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     """
   def show(id: Long) = Action{ implicit request =>
     """+table.queryName+""".byId(id).map{ """+table.objName+""" =>
-      Ok(views.html."""+table.viewsPackage+""".show("""+table.objName+"""))
+      Ok(views.html"""+submodulePackageString+"."+table.viewsPackage+""".show("""+table.objName+"""))
     }.getOrElse(NotFound)
   }"""
   }
@@ -69,7 +68,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   def edit(id: Long) = Action{ implicit request =>
     """+table.queryName+""".byId(id).map{ """+table.objName+ """ =>
   """+fks+"""
-      Ok(views.html."""+table.viewsPackage+""".edit(form.fill("""+fillObj+""")"""+params+""", """+table.objName+"""))
+      Ok(views.html"""+submodulePackageString+"."+table.viewsPackage+""".edit(form.fill("""+fillObj+""")"""+params+""", """+table.objName+"""))
     }.getOrElse(NotFound)
   }"""
   }
@@ -81,7 +80,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   def delete(id: Long) = Action{ implicit request =>
     """+table.queryName+""".byId(id).map{ """+table.objName+ """ =>
       """+table.queryName+""".delete("""+table.objName+ """)
-      Redirect(routes.""" + table.className + """Controller.index(1,20)).flashing("success" -> Messages("delete.success"))
+      Redirect(controllers"""+submodulePackageString+""".routes.""" + table.className + """Controller.index(1,20)).flashing("success" -> Messages("delete.success"))
     }.getOrElse(NotFound)
   }"""
   }
@@ -90,7 +89,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     """
   def create() = Action{ implicit request =>
 """+fks+"""
-    Ok(views.html."""+table.viewsPackage+""".create(form"""+params+"""))
+    Ok(views.html"""+submodulePackageString+"."+table.viewsPackage+""".create(form"""+params+"""))
 
   }"""
   }
@@ -109,10 +108,10 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
       form.bindFromRequest.fold(
         formWithErrors => {
      """+fks+"""
-          BadRequest(views.html."""+table.viewsPackage+""".edit(formWithErrors"""+params+""", """+table.objName+"""))
+          BadRequest(views.html"""+submodulePackageString+"."+table.viewsPackage+""".edit(formWithErrors"""+params+""", """+table.objName+"""))
         }, formData => {
           formData.update(formData.obj.copy(id = """+table.objName+""".id"""+createdAt+""")).map{ id =>
-            Redirect(routes."""+table.className+"""Controller.show("""+table.objName+""".id.get)).flashing("success" -> Messages("save.success"))
+            Redirect(controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.show("""+table.objName+""".id.get)).flashing("success" -> Messages("save.success"))
           }.getOrElse(NotFound)
         }
       )
@@ -131,10 +130,10 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     form.bindFromRequest.fold(
       formWithErrors => {
     """+fks+ """
-        BadRequest(views.html."""+table.viewsPackage+""".create(formWithErrors"""+params+"""))
+        BadRequest(views.html"""+submodulePackageString+"."+table.viewsPackage+""".create(formWithErrors"""+params+"""))
       }, formData => {
         val id = formData.insert(formData.obj)
-        Redirect(routes."""+table.className+"""Controller.show(id)).flashing("success" -> Messages("save.success"))
+        Redirect(controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.show(id)).flashing("success" -> Messages("save.success"))
       }
     )
   }
@@ -158,7 +157,7 @@ GET         /"""+table.objName+"""/:page             controllers."""+table.class
 
   def nestedForm() = { """  def nestedForm(form: Field)(implicit request: Request[AnyContent]) = {
 """+fks+ """
-    views.html."""+table.viewsPackage+"""._nestedForm(form"""+params+""")
+    views.html"""+submodulePackageString+"."+table.viewsPackage+"""._nestedForm(form"""+params+""")
   }"""
   }
 
@@ -168,7 +167,7 @@ GET         /"""+table.objName+"""/:page             controllers."""+table.class
     val i = request.getQueryString("i").getOrElse("0").toInt
     val name = request.getQueryString("name").getOrElse(""""+table.objName+"""s")
 """+fks+ """
-    Ok(views.html."""+table.viewsPackage+"""._nestedForm(Field(form, name+"["+i+"]", Seq(), None, Seq(), None)"""+params+"""))
+    Ok(views.html"""+submodulePackageString+"."+table.viewsPackage+"""._nestedForm(Field(form, name+"["+i+"]", Seq(), None, Seq(), None)"""+params+"""))
   }"""
 
 
@@ -176,7 +175,7 @@ GET         /"""+table.objName+"""/:page             controllers."""+table.class
     tablesOneToMany.map{ t =>
       """
   def showBy"""+t.className+"""(id: Option[Long]) = {
-    views.html."""+table.viewsPackage+"""._nestedShow("""+table.queryName+""".by"""+t.className+"""Id(id))
+    views.html"""+submodulePackageString+"."+table.viewsPackage+"""._nestedShow("""+table.queryName+""".by"""+t.className+"""Id(id))
   }"""
 
     }.mkString("\n")

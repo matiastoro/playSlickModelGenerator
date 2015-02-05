@@ -215,7 +215,7 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
     val optionalMapping = List(margin_1+(if(advancedForm) "" else "/*")+"""(("""+nonSynthList+""") => {""",
       margin_1+"  "+embeddedStart+className+"""("""+optionalList+""")"""+embeddedEnd,
       margin_1+"""})((formData: """+formClass+ """) => {""",
-      margin_1+"""  Some("""+optionalListObj+""")""",
+      margin_1+"""  Some(("""+optionalListObj+"""))""",
       margin_1+"""})"""+(if(advancedForm) "" else "*/"))
 
     val defaultMapping = (if(advancedForm) "/*("+className+".apply)("+className+".unapply)*/" else "("+className+".apply)("+className+".unapply)")
