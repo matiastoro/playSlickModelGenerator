@@ -38,7 +38,7 @@ case class IndexGenerator(table: Table, submodulePackageString: String) extends 
             <div class="clearfix"></div>
         </div>
         <div class="panel-body">
-            @{Messages(""""+table.objName+""".list.legend1")+" "+total+" "+Messages(""""+table.objName+""".list.legend2")+" "+((page-1)*20)+" "+Messages(""""+table.objName+""".list.legend3")+" "+(math.min(page*20, total))}
+            @{Messages("paginator.list.total")+" "+total+" "+Messages("paginator.list.from")+" "+((page-1)*20)+" "+Messages("paginator.list.to")+" "+(math.min(page*20, total))}
             @views.html"""+submodulePackageString+""".paginator(total, page, pageLength, {(x: Int, y: Int) => controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.index(x, y)})
             <table class="table table-striped table-condensed">
                 <thead>

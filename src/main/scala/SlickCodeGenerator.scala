@@ -5,6 +5,7 @@ import scala.util.parsing.combinator._
 import collection.immutable.ListMap
 import java.nio.file.{Paths, Files}
 import java.nio.charset.StandardCharsets
+import via56.slickGenerator.crud.config.MessageGenerator
 import via56.slickGenerator.crud.controller.ControllerGenerator
 import via56.slickGenerator.crud.views._
 
@@ -46,9 +47,11 @@ object ParseJSON extends SlickCodeGenerator {
 import scala.io.Source
 object parser {
   def main(args: Array[String]){
-    val reader = Source.fromFile(args(0)).getLines.mkString("\n")
-    val pathName = if(args.size > 1) args(1)+"/" else "output"
-    val submoduleName = if(args.size > 2) args(2) else ""
+    println("run (model|controller|view|config|all) filename [destination_folder] [module_name]")
+    val buildType = args(0)
+    val reader = Source.fromFile(args(1)).getLines.mkString("\n")
+    val pathName = if(args.size > 2) args(2)+"/" else "output"
+    val submoduleName = if(args.size > 3) args(3) else ""
     val path = Paths.get(pathName)
     val pathExtensions = Paths.get(path+"/models/extensions")
     val pathControllers = Paths.get(path+"/controllers")
@@ -65,10 +68,8 @@ object parser {
             Table(table._1, table._2)
           }.toList
 
-
-
           tables.map{t =>
-            writeToFile(pathName, submoduleName, t, tablesOneToMany(t, tables))
+            writeToFile(pathName, submoduleName, t, tablesOneToMany(t, tables), buildType)
           }
         case _ : List[Any] => println("lala2")
         case _ => println("no")
@@ -89,39 +90,58 @@ object parser {
     })
   }
 
-  def writeToFile(path: String, submoduleName: String, table: Table, tablesOneToMany: List[Table]) = {
-    val submodulePath = if(submoduleName == "" ) "" else submoduleName+"/"
-    val submodulePackageString  = if(submoduleName == "" ) "" else "."+submoduleName
+  def writeToFile(path: String, submoduleName: String, table: Table, tablesOneToMany: List[Table], buildType: String) = {
+    val submodulePath = if (submoduleName == "") "" else submoduleName + "/"
+    val submodulePackageString = if (submoduleName == "") "" else "." + submoduleName
 
     val fileName = underscoreToCamel(table.tableName.capitalize)
-    val currentContent = getCurrentContent(path+"/models/"+fileName+".scala")
+    val currentContent = getCurrentContent(path + "/models/" + fileName + ".scala")
 
     val mg = ModelGenerator(table, tablesOneToMany)
     val content = mg.generate
-    if(currentContent.size != content.size)
-      Files.write(Paths.get(path+"/models/"+fileName+".scala"), content.getBytes(StandardCharsets.UTF_8))
+    /*model*/
+    if (currentContent.size != content.size && (buildType == "all" || buildType == "model")) {
+      println("Building Model: "+path + "/models/" + fileName + ".scala")
+      Files.write(Paths.get(path + "/models/" + fileName + ".scala"), content.getBytes(StandardCharsets.UTF_8))
+    }
 
 
-
-    if(!Files.exists(Paths.get(path+"/models/extensions/"+fileName+"Extension.scala"))){
+    /*extension*/
+    if(!Files.exists(Paths.get(path+"/models/extensions/"+fileName+"Extension.scala")) && (buildType == "all" || buildType == "model")){
+      println("Creating Model Extension: "+path+"/models/extensions/"+fileName+"Extension.scala")
       Files.write(Paths.get(path+"/models/extensions/"+fileName+"Extension.scala"), mg.generateExtension.getBytes(StandardCharsets.UTF_8))
     }
 
-    Files.write(Paths.get(path+"/controllers/"+fileName+"Controller.scala"), ControllerGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+    /*config*/
+    if(buildType == "all" || buildType == "config") {
+      println("Building Config: "+path + "/config/" + fileName + "Messages.raw")
+      Files.createDirectories(Paths.get(path + "/conf/"))
+      Files.write(Paths.get(path + "/config/" + fileName + "Messages.raw"), MessageGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+    }
+
+
+    /*controller*/
+    if(buildType == "all" || buildType == "controller") {
+      println("Building Controller: "+path + "/controllers/" + fileName + "Controller.scala")
+      Files.write(Paths.get(path + "/controllers/" + fileName + "Controller.scala"), ControllerGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+    }
 
     /*views*/
-    Files.createDirectories(Paths.get(path+"/views/"+submodulePath+table.viewsPackage))
-    Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/_form.scala.html"), FormGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/create.scala.html"), CreateGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/edit.scala.html"), EditGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/index.scala.html"), IndexGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/main.scala.html"), MainGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/show.scala.html"), ShowGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
-    Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/sidebar.scala.html"), SidebarGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+    if(buildType == "all" || buildType == "view") {
+      println("Building Views: "+path + "/views/" + submodulePath + table.viewsPackage + "/")
+      Files.createDirectories(Paths.get(path + "/views/" + submodulePath + table.viewsPackage))
+      Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/_form.scala.html"), FormGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/create.scala.html"), CreateGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/edit.scala.html"), EditGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/index.scala.html"), IndexGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/main.scala.html"), MainGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/show.scala.html"), ShowGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/sidebar.scala.html"), SidebarGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
 
-    if(tablesOneToMany.size>0){
-      Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/_nestedForm.scala.html"), NestedFormGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
-      Files.write(Paths.get(path+"/views/"+submodulePath+table.viewsPackage+"/_nestedShow.scala.html"), NestedShowGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      if (tablesOneToMany.size > 0) {
+        Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/_nestedForm.scala.html"), NestedFormGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+        Files.write(Paths.get(path + "/views/" + submodulePath + table.viewsPackage + "/_nestedShow.scala.html"), NestedShowGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      }
     }
   }
 

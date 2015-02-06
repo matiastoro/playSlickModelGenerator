@@ -168,7 +168,6 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
   val className = underscoreToCamel(foreignTable).capitalize
   val objName = underscoreToCamel(foreignTable)
   val queryName = className+"Query"
-
   def formHelper(submodulePackageString: String = "") =
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">

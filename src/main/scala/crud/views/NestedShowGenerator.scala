@@ -13,7 +13,7 @@ case class NestedShowGenerator(table: Table, tablesOneToMany: List[Table] = List
 
     val html = """@("""+table.objName+"""s: List[models."""+table.className+"""])
 
-        <h2>@Messages(""""+table.objName+""".list")</h2>
+        <h2>@Messages(""""+table.objName+""".related.list")</h2>
         @for("""+table.objName+""" <- """+table.objName+"""s){
 """+cols+"""
         }
