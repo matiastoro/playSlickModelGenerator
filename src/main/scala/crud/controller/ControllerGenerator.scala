@@ -140,18 +140,18 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   """
   }
 
-  val nestedRoute = if(isMany) "\n"+"""GET         /"""+table.objName+"""/nested            controllers."""+table.className+"""Controller.createNested()""" else ""
+  val nestedRoute = if(isMany) "\n"+"""GET         /"""+table.objName+"""/nested            controllers"""+submodulePackageString+"""."""+table.className+"""Controller.createNested()""" else ""
   def routes = {
     """
-GET         /"""+table.objName+"""/                  controllers."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20)
-GET         /"""+table.objName+"""/show/:id          controllers."""+table.className+"""Controller.show(id: Long)
-GET         /"""+table.objName+"""/edit/:id          controllers."""+table.className+"""Controller.edit(id: Long)
-GET         /"""+table.objName+"""/delete/:id          controllers."""+table.className+"""Controller.delete(id: Long)
-GET         /"""+table.objName+"""/create            controllers."""+table.className+"""Controller.create()"""+nestedRoute+"""
-POST        /"""+table.objName+"""/save              controllers."""+table.className+"""Controller.save()
-POST        /"""+table.objName+"""/update/:id        controllers."""+table.className+"""Controller.update(id: Long)
-GET         /"""+table.objName+"""/:page/:pageLength controllers."""+table.className+"""Controller.index(page: Int, pageLength: Int)
-GET         /"""+table.objName+"""/:page             controllers."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20)
+GET         /"""+table.objName+"""/                  controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20)
+GET         /"""+table.objName+"""/show/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.show(id: Long)
+GET         /"""+table.objName+"""/edit/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.edit(id: Long)
+GET         /"""+table.objName+"""/delete/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.delete(id: Long)
+GET         /"""+table.objName+"""/create            controllers"""+submodulePackageString+"""."""+table.className+"""Controller.create()"""+nestedRoute+"""
+POST        /"""+table.objName+"""/save              controllers"""+submodulePackageString+"""."""+table.className+"""Controller.save()
+POST        /"""+table.objName+"""/update/:id        controllers"""+submodulePackageString+"""."""+table.className+"""Controller.update(id: Long)
+GET         /"""+table.objName+"""/:page/:pageLength controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int)
+GET         /"""+table.objName+"""/:page             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20)
 """
   }
 

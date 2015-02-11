@@ -1,0 +1,63 @@
+location:
+    id: ~
+    location:  { type:  varchar, size: 255 }
+    slug:      { type: varchar size: 32 }
+    latitude:  { type: double }
+    longitude: { type: double }
+    altitude:  { type: double }
+    countries: { type: oneToMany, foreignTable: location_country }
+
+country:
+    id: ~
+    country: { type:  varchar, size: 100 }
+    image: { type: varchar, size: 255}
+
+location_country:
+    id: ~
+    location_id: { type: integer, foreignTable: location, foreignReference: id, primaryKey: true, onDelete: cascade }
+    country_id: { type: integer, foreignTable: country, foreignReference: id, primaryKey: true, onDelete: cascade }
+
+
+
+aerodromito:
+  _attributes:
+    table_name: aerodromiito
+  id: ~
+  location_id:  { type: integer, foreignTable: location, foreignReference: id, primaryKey: true, onDelete: cascade }
+  aerodromito: { type: varchar, size: 255, rawName: aerodromiito}
+  icao_code: { type: varchar,size: 4, required: true, index: true}
+  iata_code: { type: varchar, size: 3, required: true, index: true}
+  aftn_address:
+    aftn_address_global: { type: longvarchar}
+    aftn_address_departure: { type: longvarchar}
+    aftn_address_arrival: { type: longvarchar}
+    aftn_address_alternative: { type: longvarchar}
+  length: { type:varchar, size:255 }
+  ilumination: { type: boolean }
+  public: { type: boolean }
+  aerodrome_type: { type: integer }
+  ilumination_other: { type: varchar, size: 255}
+  operation_hours: { type: varchar, size: 255}
+  observations:  { type: varchar, size: 255}
+  lights: { type: boolean}
+  ils: { type: boolean}
+  point: { type: varchar, size: 24}
+  slug: { type: varchar, size: 255}
+  runways: { type: oneToMany, foreignTable: runway }
+
+runway:
+  id: ~
+  aerodromito_id: { type: integer, foreignTable: aerodromito, foreignReference: id, primaryKey: true, onDelete: cascade }
+  runway:  { type: varchar(10)}
+  magnetic_orientation: { type: varchar(10)}
+  length: { type: varchar, size: 255}
+  inclination: { type: double}
+  surface: { type: varchar, size:255}
+  resistance: { type: varchar, size:255}
+  ilumination_apch: { type: boolean}
+  ilumination_thr: { type: boolean}
+  ilumination_rwy: { type: boolean}
+  ilumination_papi: { type: boolean}
+  papi_angle: { type: double}
+  landing_gear_ski: { type: boolean}
+  landing_gear_wheel: { type: boolean}

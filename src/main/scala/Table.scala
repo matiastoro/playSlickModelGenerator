@@ -1,12 +1,25 @@
 package via56.slickGenerator
 import scala.collection.immutable.ListMap
 
-case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGenerator{
-  val className = underscoreToCamel(tableName).capitalize
+case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGenerator{
+  val tableName = underscoreToCamel(yamlName)
+  val className = tableName.capitalize
+
+  val attributes = args.getOrElse("_attributes", ListMap[String, Any]())
+  val tableNameDB: String = attributes match{
+    case l: ListMap[String, Any] =>
+      l.getOrElse("table_name", yamlName) match{
+        case s:String =>  s
+        case _ => yamlName
+      }
+    case _ => yamlName
+  }
+
+  println("TableNameDB; "+tableName)
   val mappingName = className+"Mapping"
   val queryName = className+"Query"
-  val objName = underscoreToCamel(tableName)
-  val viewsPackage = underscoreToCamel(tableName)
+  val objName = tableName
+  val viewsPackage = tableName
 
   type columnProps = ListMap[String, String]
   type subClass = ListMap[String, ListMap[String, String]]
@@ -28,11 +41,12 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
           if(isSubClass(props)){
             props match{
               case ps: subClass =>
-                println(ps)
+                println("SubClass: "+ps)
                 SubClass(underscoreToCamel(col), getColumns(ps))
               case _ => throw new Exception("parsing error")
             }
-          } else {
+          }
+          else {
             var optional = false
             var fk: Option[ForeignKey] = None
             var synth = false
@@ -41,7 +55,7 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
                 optional = isOptional(ps)
                 fk = getForeignKey(ps)
                 getScalaType(col, ps,false) match{
-                  case Some(tpe) => Column(underscoreToCamel(col), col, tpe, optional, fk, false)
+                  case Some(tpe) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false)
                   case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR").capitalize))
                 }
               case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", false, None, false)
@@ -53,6 +67,11 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
       case _ => throw new Exception("Parsing error")
     }.toList
   }
+
+  def getRawName(col: String, ps: ListMap[String,String]): String = {
+    ps.getOrElse("rawName", col)
+  }
+
   def getForeignKey(ps: ListMap[String, String]): Option[ForeignKey] = {
     for{
       foreignTable <- ps.get("foreignTable")
@@ -60,7 +79,7 @@ case class Table(tableName: String, args: ListMap[String, Any]) extends CodeGene
     } yield ForeignKey(foreignTable, foreignReference, onDelete = ps.get("onDelete"))
   }
 
-  val columns: List[AbstractColumn] = getColumns(args)
+  val columns: List[AbstractColumn] = getColumns(args.filterNot(pair => pair._1 == "_attributes")) //omit _attributes, its not a column
 
 
   val createdAt = columns.exists({
@@ -178,7 +197,7 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
           </div>
           <input type="hidden" id="n"""+objName+"""s_@frm(""""+objName+"""s").id" value="@frm(""""+objName+"""s").indexes.size" />
           <div class="form-group">
-              <a id="addNested"""+objName+"""_@frm(""""+objName+"""s").id" href="javascript:;" onclick="addNested"""+className+"""_@{frm(""""+objName+"""s").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a """+objName+"""</a>
+              <a id="addNested"""+objName+"""_@frm(""""+objName+"""s").id" href="javascript:;" onclick="addNested"""+className+"""_@{frm(""""+objName+"""s").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages(""""+objName+""".related.add")</a>
               <span id="loadingNested_"""+objName+"""@frm(""""+objName+"""s").id" style="display:none;">Loading...</span>
           </div>
 

@@ -16,14 +16,15 @@ case class MessageGenerator(table: Table, tablesOneToMany: List[Table] = List(),
 
   val nested = tablesOneToMany.foldRight("")((value, acum) => acum + table.viewsPackage +".related.list = Related "+table.className)
   def generate : String =
-"""#"""+table.className+ """
+"""
+#""".stripMargin+table.className+ """
 """+table.viewsPackage+""".title = """ + table.className+""" List
 """+table.viewsPackage+""".list.title = """+ table.className+ """ List
 """ + table.viewsPackage + """.form.title = """ + table.className + """ Form
 """+generateColumnsHeader(table.columns)+"""
 """+nested+"""
 """+table.viewsPackage+""".show.title = Show """+table.className+"""
-  """
+"""
 
 
 }

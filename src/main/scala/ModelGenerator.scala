@@ -53,14 +53,14 @@ import play.api.data.format.Formats._
 
       val selectString = "  lazy val selectString = "+selectCol
 
-      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n"+getters+"\n}"
+      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n"+{if(!isSubClass) getters else ""}+"\n}"
 
 
       val subClasses = columns.collect{
         case c: SubClass => c
       }
 
-      generatedClass + "\n\n"+subClasses.map{sc => generateClass(sc.className, sc.cols)}.mkString("\n\n")
+      generatedClass + "\n\n"+subClasses.map{sc => generateClass(sc.className, sc.cols, true)}.mkString("\n\n")
     }
 
 
@@ -139,7 +139,7 @@ import play.api.data.format.Formats._
 
     //def * = (id.?, fir, name, latitude, longitude) <> (Fir.tupled, Fir.unapply)
 
-    val tableClassHead = """class """+className+"""Mapping(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableName+"""") {"""
+    val tableClassHead = """class """+className+"""Mapping(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
     val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+star+ shaped + "\n}"
 
     val foreignKeyFilters = table.foreignColumns.map{ c =>
@@ -296,5 +296,6 @@ object ${className}Query extends ${className}QueryBase{
 
 }
     """.trim
+
   }
 }
