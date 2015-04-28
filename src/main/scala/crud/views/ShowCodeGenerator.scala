@@ -17,7 +17,7 @@ trait ShowCodeGenerator extends CodeGenerator{
       case c: Column =>
         val (label, name) = c.foreignKey.map{ fk =>
           val linkedName = "@"+obj+""".get"""+fk.className+""".map{c => @c.selectString}.getOrElse("NOT FOUND")"""
-          val link = """<a href="@controllers"""+submodulePackageString+""".routes."""+fk.className+"""Controller.show("""+obj+"""."""+c.name+""")">"""+linkedName+"""</a>"""
+          val link = if(!c.optional) """<a href="@controllers"""+submodulePackageString+""".routes."""+fk.className+"""Controller.show("""+obj+"""."""+c.name+""".get)">"""+linkedName+"""</a>""" else """"""
           (fk.className, link)
           }.getOrElse((c.name.capitalize, """@"""+obj+"""."""+c.name))
 

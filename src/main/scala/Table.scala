@@ -1,4 +1,7 @@
 package via56.slickGenerator
+
+import via56.slickGenerator.DisplayType.DisplayType
+
 import scala.collection.immutable.ListMap
 
 case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGenerator{
@@ -25,6 +28,16 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
   type subClass = ListMap[String, ListMap[String, String]]
 
 
+
+  def getDefault(ps: ListMap[String,String]): Option[String] = {
+    val res = ps.getOrElse("default", None) match {
+      case s:String => s.replaceAll("""(^\"|\"$)""", "")
+      case _ => null
+    }
+
+    Option(res/*ps.getOrElse("default", null)*/)
+  }
+
   def isOptional(ps: ListMap[String,String]): Boolean = {
     ps.getOrElse("required", "true") != "true"
   }
@@ -36,12 +49,10 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
         if(col=="id"){
           Column("id", "id", "Long", true)
         } else {
-
-
           if(isSubClass(props)){
             props match{
               case ps: subClass =>
-                println("SubClass: "+ps)
+                //println("SubClass: "+ps)
                 SubClass(underscoreToCamel(col), getColumns(ps))
               case _ => throw new Exception("parsing error")
             }
@@ -55,17 +66,27 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
                 optional = isOptional(ps)
                 fk = getForeignKey(ps)
                 getScalaType(col, ps,false) match{
-                  case Some(tpe) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false)
+                  case Some(tpe) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps))
                   case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR").capitalize))
                 }
               case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", false, None, false)
-              case _ => Column(underscoreToCamel(col), col, "DateTime", true, None, true) //createdAt: ~, updatedAt: ~
+              case _ => Column(underscoreToCamel(col), col, "DateTime", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
             })
 
           }
         }
       case _ => throw new Exception("Parsing error")
     }.toList
+  }
+
+  def getDisplayType(ps: ListMap[String,String]) = {
+    val stringType = ps.getOrElse("display", "None").capitalize
+    stringType match{
+      case "Hidden" => DisplayType.Hidden
+      case "None" => DisplayType.None
+      case _ => DisplayType.None
+    }
+
   }
 
   def getRawName(col: String, ps: ListMap[String,String]): String = {
@@ -218,7 +239,24 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
 
 }
 
-case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false) extends AbstractColumn(name){
+object DisplayType extends Enumeration {
+  type DisplayType = Value
+  val None, Hidden = Value
+}
+
+object Columns{
+  val defaultValues = Map[String, String](
+   "Long" -> "0",
+   "String" -> "",
+   "Int" -> "0",
+   "Boolean" -> "false",
+   "Double" -> "0",
+   "DateTime" -> "",
+   "Date" -> ""
+  )
+}
+
+case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
   lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
@@ -240,6 +278,21 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     case _ => inputDefault(prefix)
   }
 
+  val defaultValue = {
+    val d = if(defaultString.isDefined) defaultString.get else Columns.defaultValues.getOrElse(tpe, "0")
+    tpe match {
+      case "Long" => d
+      case "String" => "\""+d+"\""
+      case "Int" => d
+      case "Boolean" => d
+      case "Double" => d
+      case "DateTime" => "new DateTime("+d+")"
+      case "Date" => "new Date("+d+")"
+      case _ => d
+    }
+  }
+
+  val default: Option[String] = if(!optional || defaultString.isDefined) Some(defaultValue) else None
 
   def foreignKeyInput(prefix: String, foreignKey: Option[ForeignKey]) = {
     foreignKey.map{ fk =>
@@ -247,8 +300,6 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
       """@select(frm(""""+prefix+name+""""),"""+options+""", '_label -> """"+name.capitalize+"""")"""
     }.getOrElse(inputDefault(prefix))
   }
-
-
 
 }
 case class ForeignKey(table: String, reference: String, onDelete: Option[String]) extends CodeGenerator{

@@ -1,0 +1,81 @@
+fpl:
+  _attributes:
+    table_name: fpl
+  id: ~
+  main_fields:
+      callsign:          {type: varchar, size:15, rawName: matricula}
+      ssr:          {type: varchar, size:7, rawName: transpondedor, required: false, display: hidden}
+      flight_rules:        {type: varchar, size:1, rawName: regla_vuelo}
+      type_of_flight:         {type: varchar, size:1, rawName: tipo_vuelo, required: false}
+      number:     {type: integer, rawName: numero_aviones, required: false}
+      type_of_aircraft:      {type: varchar, size: 6, rawName: tipo_aeronave}
+      wake_turbulence_category:             {type: varchar, size: 1, rawName: estela}
+      radiocom_equipment:    {type: varchar, size:26, rawName: equipo_radiocom}
+      survelliance_equipment:  {type: varchar, size:10, rawName: equipo_vigilancia}
+      departure:             {type: varchar, size:4, rawName: salida}
+      etd_hour:           {type: varchar, size:4, rawName: hora_etd}
+      speed_unit:   {type: varchar, size:1, rawName: velocidad_unidad}
+      speed:          {type: varchar, size:5, rawName: velocidad}
+      level_unit:       {type: varchar, size:3, rawName: nivel_unidad}
+      level:              {type: varchar, size:7, rawName: nivel}
+      route:               {type: longvarchar, rawName: ruta}
+      destination:            {type: varchar, size:4, rawName: destino, required: true}
+      eet:           {type: varchar, size:4, rawName: hora_ete}
+  main_fields2:
+      alternative1:             {type: varchar, size:4, rawName: alter1, required: false}
+      alternative2:             {type: varchar, size:4, rawName: alter2, required: false}
+      other_information:        {type: longvarchar, rawName: otros_datos}
+  supplementary_fields:
+      endurance:          {type: varchar, size:4, rawName: autonomia, required: false}
+      persons_on_board:          {type: integer, rawName: pasajeros, required: false}
+      radio_uhf:          {type: boolean, rawName: radio_uhf, required: false}
+      radio_vhf:          {type: boolean, rawName: radio_vhf, required: false}
+      radio_elba:            {type: boolean, rawName: radio_e, required: false}
+      survival_equipment: {type: boolean, rawName: equipo_supervivencia, required: false}
+      survival_equipment_polar:       {type: boolean, rawName: equipo_polar, required: false}
+      survival_equipment_desert:   {type: boolean, rawName: equipo_desertico, required: false}
+      survival_equipment_maritime:    {type: boolean, rawName: equipo_maritimo, required: false}
+      survival_equipment_jungle:      {type: boolean, rawName: equipo_jungla, required: false}
+      jackets:            {type: boolean, rawName: jackets, required: false}
+      jackets_lights:        {type: boolean, rawName: chaleco_luz, required: false}
+      jackets_fluor: {type: boolean, rawName: chaleco_fluorecente, required: false}
+      jackets_uhf:        {type: boolean, rawName: chaleco_uhf, required: false}
+      jackets_vhf:        {type: boolean, rawName: chaleco_vhf, required: false}
+      dinghies:     {type: boolean, rawName: bote_neumatico, required: false}
+      dinghies_number:      {type: integer, rawName: bote_cantidad, required: false}
+      dinghies_capacity:     {type: integer, rawName: bote_capacidad, required: false}
+  supplementary_fields2:
+      dinghies_cover:      {type: boolean, rawName: bote_cubierto, required: false}
+      dinghies_color:         {type: varchar, size: 50, rawName: bote_color, required: false}
+      aircraft_color_and_markings: {type: varchar, size:255, rawName: aeronave_color_marca, required: false}
+      remarks:  {type: longvarchar, rawName: observacion_texto, required: false}
+  time_fields:
+      etd:          {type: timestamp, rawName: fecha_etd, display: hidden}
+      eta:          {type: timestamp, rawName: fecha_arribo, display: hidden}
+      atd:           {type: varchar, size:4, rawName: hora_atd, display: hidden, required: false}
+      ata:           {type: varchar, size:4, rawName: hora_ata, display: hidden, required: false}
+  user_fields:
+      user_id:         {type: integer, rawName: usuario_id, display: hidden, required: false}
+      pilot_id_number:         {type: varchar, size:25, rawName: piloto_rut, display: hidden, required: false}
+      pilot_name:      {type: varchar, size:255, rawName: piloto_nombre, display: hidden, required: false}
+      pilot_surname: {type: varchar, size:255, rawName: piloto_apellido_paterno, display: hidden, required: false}
+      pilot_other_surname: {type: varchar, size:255, rawName: piloto_apellido_materno, display: hidden, required: false}
+      pilot_license:    {type: varchar, size:6, rawName: piloto_licencia, display: hidden, required: false}
+      issuer_id_number:    {type: varchar, size:25, rawName: presentador_rut, display: hidden, required: false}
+      issuer_name: {type: varchar, size:255, rawName: presentador_nombre, display: hidden, required: false}
+      issuer_surname: {type: varchar, size:255, rawName: presentador_apellido_paterno, display: hidden, required: false}
+      issuer_other_surname: {type: varchar, size:255, rawName: presentador_apellido_materno, display: hidden, required: false}
+      issuer_license: {type: varchar, size:6, rawName: presentador_licencia, display: hidden, required: false}
+  message_fields:
+      message:            {type: longvarchar, rawName: mensaje, display: hidden, required: false}
+      ci:                 {type:varchar, size:3, rawName: ci, display: hidden, required: false}
+      csn:                {type: integer, rawName: csn, display: hidden, required: false}
+  state:             {type: varchar, size:2, rawName: estado, display: hidden, default: "1"}
+  bit_ctrl:           {type: integer, rawName: bit_ctrl, display: hidden, default: 0}
+  created_at:         ~
+  other_fields:
+      aircraft_expiration_date: {type: varchar, size:10, rawName: fecha_vencimiento_aeronave, display: hidden, required: false}
+      observation:        {type: boolean, rawName: observacion, display: hidden, required: false}
+      issue_date:  {type: timestamp, rawName: hora_presentacion, display: hidden, required: false}
+      message_date:      {type: timestamp, rawName: fecha_mensaje, display: hidden, required: false}
+  fpl_id: {type: integer,index: true, rawName: fpl_id, display: hidden, required: false}

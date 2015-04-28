@@ -25,7 +25,7 @@ case class IndexGenerator(table: Table, submodulePackageString: String) extends 
     val header = generateColumnsHeader(table.columns)
     val values = generateColumnsValues("obj", table.columns)
 
-    val html = """@(list: List[models."""+table.className+"""], total: Int, page: Int, pageLength: Int)(implicit lang: Lang, flash: Flash, session: Session, context: controllers"""+submodulePackageString+""".ApplicationContext)
+    val html = """@(list: List[models."""+table.className+"""], total: Int, page: Int, pageLength: Int)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
 
 @views.html"""+submodulePackageString+"""."""+table.viewsPackage+""".main(Html(Messages("home.title")))(sidebar(1)) {
 
@@ -39,7 +39,7 @@ case class IndexGenerator(table: Table, submodulePackageString: String) extends 
         </div>
         <div class="panel-body">
             @{Messages("paginator.list.total")+" "+total+" "+Messages("paginator.list.from")+" "+((page-1)*20)+" "+Messages("paginator.list.to")+" "+(math.min(page*20, total))}
-            @views.html"""+submodulePackageString+""".paginator(total, page, pageLength, {(x: Int, y: Int) => controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.index(x, y)})
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.index(x, y)})
             <table class="table table-striped table-condensed">
                 <thead>
                     <tr>
@@ -60,7 +60,7 @@ case class IndexGenerator(table: Table, submodulePackageString: String) extends 
                 }
                 </tbody>
             </table>
-            @views.html"""+submodulePackageString+""".paginator(total, page, pageLength, {(x: Int, y: Int) => controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.index(x, y)})
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.index(x, y)})
 
         </div>
     </div>

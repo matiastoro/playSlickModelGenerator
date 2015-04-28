@@ -8,10 +8,16 @@ import via56.slickGenerator.Table
 case class ShowGenerator(table: Table, submodulePackageString: String = "", tablesOneToMany: List[Table] = List()) extends ShowCodeGenerator{
 
   def generate: String = {
-    val cols = generateCols(table.columns, table.objName, submodulePackageString)
+    val filteredCols = table.columns.collect {
+      case c: Column if c.display != DisplayType.Hidden || c.synthetic => c
+      case sc: SubClass => sc
+      case otm: OneToMany => otm
+
+    }
+    val cols = generateCols(filteredCols, table.objName, submodulePackageString)
 
 
-    val html = """@("""+table.objName+""": models."""+table.className+""")(implicit lang: Lang, flash: Flash, session: Session, context: controllers"""+submodulePackageString+""".ApplicationContext)
+    val html = """@("""+table.objName+""": models."""+table.className+""")(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
 
 @views.html"""+submodulePackageString+"""."""+table.viewsPackage+""".main(Html(Messages("home.title")))(sidebar(1)) {
 

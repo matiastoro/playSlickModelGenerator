@@ -27,8 +27,8 @@ import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import models._
 import models.extensions._
-
-
+import controllers.ApplicationController
+import scala.slick.driver.H2Driver.simple._
 import org.joda.time.{DateTimeZone, DateTime}
 import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else "")
 

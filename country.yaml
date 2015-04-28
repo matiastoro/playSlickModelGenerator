@@ -14,8 +14,8 @@ country:
 
 location_country:
     id: ~
-    location_id: { type: integer, foreignTable: location, foreignReference: id, primaryKey: true, onDelete: cascade }
-    country_id: { type: integer, foreignTable: country, foreignReference: id, primaryKey: true, onDelete: cascade }
+    location_id: { type: integer, foreignTable: location, foreignReference: id, onDelete: cascade }
+    country_id: { type: integer, foreignTable: country, foreignReference: id, onDelete: cascade }
 
 
 
@@ -23,9 +23,8 @@ aerodromito:
   _attributes:
     table_name: aerodromiito
   id: ~
-  location_id:  { type: integer, foreignTable: location, foreignReference: id, primaryKey: true, onDelete: cascade }
   aerodromito: { type: varchar, size: 255, rawName: aerodromiito}
-  icao_code: { type: varchar,size: 4, required: true, index: true}
+  icao_code: { type: varchar,size: 4, required: true, index: true, display: hidden }
   iata_code: { type: varchar, size: 3, required: true, index: true}
   aftn_address:
     aftn_address_global: { type: longvarchar}
@@ -37,8 +36,7 @@ aerodromito:
   public: { type: boolean }
   aerodrome_type: { type: integer }
   ilumination_other: { type: varchar, size: 255}
-  operation_hours: { type: varchar, size: 255}
-  observations:  { type: varchar, size: 255}
+  created_at: ~
   lights: { type: boolean}
   ils: { type: boolean}
   point: { type: varchar, size: 24}
@@ -47,15 +45,16 @@ aerodromito:
 
 runway:
   id: ~
-  aerodromito_id: { type: integer, foreignTable: aerodromito, foreignReference: id, primaryKey: true, onDelete: cascade }
+  aerodromito_id: { type: integer, foreignTable: aerodromito, foreignReference: id, onDelete: cascade }
   runway:  { type: varchar(10)}
   magnetic_orientation: { type: varchar(10)}
-  length: { type: varchar, size: 255}
+  length: { type: varchar, size: 255, display: hidden}
   inclination: { type: double}
   surface: { type: varchar, size:255}
   resistance: { type: varchar, size:255}
   ilumination_apch: { type: boolean}
   ilumination_thr: { type: boolean}
+  created_at: ~
   ilumination_rwy: { type: boolean}
   ilumination_papi: { type: boolean}
   papi_angle: { type: double}
