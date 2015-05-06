@@ -15,7 +15,7 @@ object YAMLParser extends RegexParsers {
 
   val newLine = " *\r*\n+"r
 
-  val inlineSeparator = " *, +"r
+  val inlineSeparator = " *, *"r
 
   val openBrace = """\{ *"""r;
 

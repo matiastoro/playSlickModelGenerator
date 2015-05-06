@@ -5,6 +5,6 @@ import via56.slickGenerator.crud.controller.ControllerGenerator
 
 object CrudGenerator extends CodeGenerator{
   def generate(table: Table) {
-    println("generated:" + ControllerGenerator(table).generate)
+    println("generated:" /*+ ControllerGenerator(table).generate*/)
   }
 }

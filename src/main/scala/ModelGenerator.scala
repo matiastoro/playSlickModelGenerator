@@ -26,7 +26,12 @@ import play.api.data.format.Formats._
 
   def getters = table.foreignColumns.map{fc =>
     fc.foreignKey.map{ fk =>
-      """  def get"""+fk.className+""" = """+fk.queryName+""".byId("""+fc.name+""")"""
+      """  def get"""+fk.className+""" = """+{
+        if(!fc.optional)
+          fk.queryName+""".byId("""+fc.name+""")"""
+        else
+          """if("""+fc.name+""".isDefined) """+fk.queryName+""".byId("""+fc.name+""".get) else None"""
+      }
     }.getOrElse("")
   }.mkString("\n")
 
@@ -39,7 +44,16 @@ import play.api.data.format.Formats._
     def generateClass(className: String, columns: List[AbstractColumn], isSubClass: Boolean = false): String = {
       val head: String = """case class """+className+"""("""
       val cols = columns.collect{
-        case c: Column => c.name+": "+c.tpeWithOption
+        case c: Column => c.name+": "+c.tpeWithOption+{
+          c.default match{
+            case Some(default) =>
+              val formattedDefault = if(c.tpe == "String") /*"\"" +*/ default /*+ "\""*/ else default
+              if(c.optional) {" = Some("+formattedDefault+")"} else {" = "+formattedDefault}
+            case None if c.optional => " = None"
+            case None => ""
+          }
+          //if(c.default.isDefined) " = "+ c.default.get else ""
+        }+" /*"+c.display.toString()+"*/"
         case c: SubClass => c.name+": "+c.className
       }
 
@@ -53,14 +67,14 @@ import play.api.data.format.Formats._
 
       val selectString = "  lazy val selectString = "+selectCol
 
-      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n"+getters+"\n}"
+      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n"+{if(!isSubClass) getters else ""}+"\n}"
 
 
       val subClasses = columns.collect{
         case c: SubClass => c
       }
 
-      generatedClass + "\n\n"+subClasses.map{sc => generateClass(sc.className, sc.cols)}.mkString("\n\n")
+      generatedClass + "\n\n"+subClasses.map{sc => generateClass(sc.className, sc.cols, true)}.mkString("\n\n")
     }
 
 
@@ -98,7 +112,16 @@ import play.api.data.format.Formats._
           if(c.name=="id"){
             "  def id = column[Long](\"id\", O.PrimaryKey, O.AutoInc)"
           } else {
-            val colMap = "  def "+c.name+" = column["+c.tpeWithOption+"](\""+c.rawName+"\""+(if(c.optional) ", O.Default(None))" else ")")
+
+            val colMap = "  def "+c.name+" = column["+c.tpeWithOption+"](\""+c.rawName+"\""+(
+              if(c.optional)
+              ", O.Default(None)"
+            else
+                c.default match{
+                  case Some(x) => ", O.Default("+x+")"
+                  case _ => ""
+                }
+            )+")"
 
             c.foreignKey.map{ fk =>
               val onDelete = fk.onDelete.map{od => ", onDelete=ForeignKeyAction."+od.capitalize}.getOrElse("")
@@ -139,7 +162,7 @@ import play.api.data.format.Formats._
 
     //def * = (id.?, fir, name, latitude, longitude) <> (Fir.tupled, Fir.unapply)
 
-    val tableClassHead = """class """+className+"""Mapping(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableName+"""") {"""
+    val tableClassHead = """class """+className+"""Mapping(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
     val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+star+ shaped + "\n}"
 
     val foreignKeyFilters = table.foreignColumns.map{ c =>
@@ -171,15 +194,18 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
     c.foreignKey.map{fk => tablesOneToMany.exists{t => t.tableName == fk.table}}.getOrElse(false)
   }
 
-  def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1): String = {
+  def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1): Option[String] = {
     val margin = (" "*(4+lvl*2))
     val margin_1 = (" "*(4+(lvl-1)*2))
 
     val list = columns.collect{
-      case c : Column if !c.synthetic=> margin+"\""+c.name+"\" -> "+{
+      case c : Column if !c.synthetic && c.display != DisplayType.Hidden => margin+"\""+c.name+"\" -> "+{
         if(isColumnOneToManyMap(c)) "optional("+c.formMapping+")" else c.formMapping
       }
-      case s @ SubClass(name, cols) => margin+"\""+name+"\" -> "+getFields(cols, s.className, lvl+1)
+      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1).isDefined)  =>
+        getFields(cols, s.className, lvl+1).map{ a =>
+          margin+"\""+name+"\" -> "+a
+        }.get
       case o: OneToMany => margin+"\""+o.name+"s\" -> list(models."+o.className+"Form.form.mapping)"
     }
     val hasOneToMany = lvl <= 1 //&& table.hasOneToMany
@@ -188,20 +214,29 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
 
     val optionalList = columns.collect{
       case c: Column if c.synthetic => "Some(new DateTime())"
-      case c: Column => if(!isColumnOneToManyMap(c)) c.name else c.name+".getOrElse(0)"
-      case c: SubClass => c.name
+      case c: Column if c.display != DisplayType.Hidden => if(!isColumnOneToManyMap(c)) c.name else c.name+".getOrElse(0)"
+      case c: Column if c.display == DisplayType.Hidden =>
+        if(c.optional)
+          "Some("+c.defaultValue+")"
+        else
+          c.defaultValue
+      case s @ SubClass(name, cols) =>
+        if(getFields(cols, s.className, lvl+1).isDefined)
+          s.name
+        else
+          s.name.capitalize+"()"
     }.mkString(", ")
 
     val nonSynthList = columns.collect{
-      case c: Column if !c.synthetic => c.name
-      case c: SubClass => c.name
+      case c: Column if !c.synthetic && c.display != DisplayType.Hidden => c.name
+      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1).isDefined) => s.name
       case c: OneToMany => c.name+"s"
     }.mkString(",")
 
     val prefix = if(hasOneToMany) "obj." else ""
     val optionalListObj = columns.collect{
-      case c: Column if !c.synthetic => if(!isColumnOneToManyMap(c)) "formData."+prefix+c.name else "Some(formData."+prefix+c.name+")"
-      case c: SubClass => "formData."+prefix+c.name
+      case c: Column if (!c.synthetic && c.display != DisplayType.Hidden)   => if(!isColumnOneToManyMap(c)) "formData."+prefix+c.name else "Some(formData."+prefix+c.name+")"
+      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1).isDefined) => "formData."+prefix+s.name
       case o: OneToMany => "formData."+o.name+"s"
     }.mkString(", ")
     val advancedForm = true//table.createdAt || table.updatedAt || table.oneToManies.size>0
@@ -215,11 +250,15 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
     val optionalMapping = List(margin_1+(if(advancedForm) "" else "/*")+"""(("""+nonSynthList+""") => {""",
       margin_1+"  "+embeddedStart+className+"""("""+optionalList+""")"""+embeddedEnd,
       margin_1+"""})((formData: """+formClass+ """) => {""",
-      margin_1+"""  Some("""+optionalListObj+""")""",
+      margin_1+"""  Some(("""+optionalListObj+"""))""",
       margin_1+"""})"""+(if(advancedForm) "" else "*/"))
 
     val defaultMapping = (if(advancedForm) "/*("+className+".apply)("+className+".unapply)*/" else "("+className+".apply)("+className+".unapply)")
-    "mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")"+defaultMapping+"\n"+optionalMapping.mkString("\n")
+
+    if(!list.isEmpty)
+      Some("mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")"+defaultMapping+"\n"+optionalMapping.mkString("\n"))
+    else
+      None
 
 
 
@@ -266,7 +305,7 @@ case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
    """
 object """+table.className+"""Form{
   val form = Form(
-            """+getFields(table.columns, table.className)+"""
+            """+getFields(table.columns, table.className).getOrElse("")+"""
   )
 }"""
   }
@@ -296,5 +335,6 @@ object ${className}Query extends ${className}QueryBase{
 
 }
     """.trim
+
   }
 }

@@ -3,7 +3,10 @@
 To run the generator from sbt:
 
 ```
-run [FILENAME] [PARENT_FOLDER]
+run [FILENAME] [PARENT_FOLDER] [SUB_MODULE_NAME](Optional)
+
+FILENAME: Yaml formatted file, example below
+PARENT_FOLDER: Folder where the output will be generated
 ```
 
 ## Output
