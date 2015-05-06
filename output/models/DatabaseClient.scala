@@ -96,6 +96,11 @@ trait DatabaseClient[E] {
       id => all.filter(_.id === id).update(obs)
     }
   }
+  def updateOrInsert(obj: E{def id: Option[Long]}) = database.withSession { implicit db: Session =>
+    obj.id.map{ id =>
+      update(obj)
+    }.getOrElse(Some(insert(obj)))
+  }
 
   /** table truncate, in SQL fashion */
   def deleteAll = database.withSession { implicit db: Session =>

@@ -34,4 +34,7 @@ window:
   branch_id: {type: integer, foreignTable: branch, foreignReference: id, onDelete: cascade}
   window: {type: varchar(255)}
 
-
+perro:
+  id: ~
+  nombre: {type: varchar(255)}
+  edad: {type: integer}
