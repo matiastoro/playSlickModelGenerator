@@ -9,7 +9,7 @@ import via56.slickGenerator.Table
 case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String) extends CodeGenerator{
   val isMany = tablesOneToMany.size>0
   def generate: String = {
-    val objectSignature = """object """+table.className+"""Controller extends ApplicationController {"""
+    val objectSignature = """object """+table.className+"""Controller extends SimpleAuthorization {"""
     val l = List(imports, objectSignature, index(), show(), form(), create, save, edit, delete, update)
 
     val lMany = if(isMany) l ++ List(nestedForm,createNested, showByManies) else l
@@ -20,6 +20,7 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
   val imports =
     """package controllers"""+submodulePackageString+"""
 
+import controllers.SimpleAuthorization
 import play.api._
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
@@ -27,7 +28,6 @@ import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import models._
 import models.extensions._
-import controllers.ApplicationController
 import scala.slick.driver.H2Driver.simple._
 import org.joda.time.{DateTimeZone, DateTime}
 import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else "")

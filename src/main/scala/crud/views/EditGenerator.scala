@@ -9,7 +9,7 @@ case class EditGenerator(table: Table, submodulePackageString: String) extends C
     val params = table.foreignKeys.map{fk => ", "+fk.table}.mkString("")
     val args = table.foreignKeys.map{fk => ", "+fk.table+": List[models."+fk.className+"]"}.mkString("")
     val formClass = table.className+"FormData"//if(table.hasOneToMany) table.className+"FormData" else table.className
-    val html = """@(frm: Form[models."""+formClass+"""]"""+args+""", """+table.objName+""": models."""+table.className+""")(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+    val html = """@(frm: Form[models."""+formClass+"""]"""+args+""", """+table.objName+""": models."""+table.className+""")(implicit flash: Flash, lang: Lang, session: Session, context: controllers.AuthHandler, request: Request[AnyContent])
 @import helper._
 @views.html"""+submodulePackageString+"""."""+table.viewsPackage+""".main(Html(Messages("home.title")))(sidebar(1)) {
     <div style="width:100%">

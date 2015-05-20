@@ -1,0 +1,8 @@
+camera:
+  id: ~
+  location_id: {type: integer, foreignTable: location, required: true, foreignReference: id, onDelete: cascade}
+  camera: { type:  varchar, size: 255 }
+  url: { type:  varchar, size: 255 }
+  orientation: { type:  varchar, size: 255 }
+  description: { type:  varchar, size: 255 }
+  active:   {type: boolean, required: false}

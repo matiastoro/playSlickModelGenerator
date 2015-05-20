@@ -17,7 +17,7 @@ case class ShowGenerator(table: Table, submodulePackageString: String = "", tabl
     val cols = generateCols(filteredCols, table.objName, submodulePackageString)
 
 
-    val html = """@("""+table.objName+""": models."""+table.className+""")(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+    val html = """@("""+table.objName+""": models."""+table.className+""")(implicit lang: Lang, flash: Flash, session: Session, request: Request[AnyContent], context: controllers.AuthHandler)
 
 @views.html"""+submodulePackageString+"""."""+table.viewsPackage+""".main(Html(Messages("home.title")))(sidebar(1)) {
 
@@ -27,7 +27,7 @@ case class ShowGenerator(table: Table, submodulePackageString: String = "", tabl
         @"""+table.objName+""".id.map{ id =>
             <a href="@controllers"""+submodulePackageString+""".routes."""+table.className+
       """Controller.edit(id)">@Messages("edit")</a>
-         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.delete(id)';">@Messages("delete")</a>
+         | <a href="javascript:;" onclick="if(confirm('@Messages("confirm.message")')) window.location = '@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.delete(id)';">@Messages("delete")</a>
         }
         | <a href="@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.index(1,20)">@Messages("list")</a>
 

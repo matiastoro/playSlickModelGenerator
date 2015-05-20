@@ -36,13 +36,13 @@ case class NestedFormGenerator(table: Table, tablesOneToMany: List[Table] = List
     val inputs = generateInputs(table.columns)
     val args = table.foreignKeys.map{fk => ", "+fk.table+": List[models."+fk.className+"]"}.mkString("")
     val formClass = if(table.hasOneToMany) table.className+"FormData" else table.className
-    val html = """@(frm: play.api.data.Field"""+args+""", """+table.objName+"""Opt: Option[models."""+table.className+"""] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+    val html = """@(frm: play.api.data.Field"""+args+""", """+table.objName+"""Opt: Option[models."""+table.className+"""] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.AuthHandler, request: Request[AnyContent])
 @import myHelper._
 @import helper._
 
 <div class="panel panel-default" id="nestedParent@frm.id">
     <div class="panel-heading">
-        <a class="pull-right glyphicon glyphicon-remove" href="javascript:;" onclick="if(confirm('are you sure?')) $('#nestedParent@frm.id').remove()"></a>
+        <a class="pull-right glyphicon glyphicon-remove" href="javascript:;" onclick="if(confirm('@Messages("confirm.message")')) $('#nestedParent@frm.id').remove()"></a>
         <h3 class="panel-title">@Messages(""""+table.objName+""".form.title")</h3>
     </div>
     <div class="panel-body">

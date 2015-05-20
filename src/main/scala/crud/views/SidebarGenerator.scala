@@ -7,7 +7,7 @@ case class SidebarGenerator(table: Table, submodulePackageString: String = "") e
 
   def generate: String = {
 
-    val html = """@(activePosition: Int = 1)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+    val html = """@(activePosition: Int = 1)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.AuthHandler)
 
 <div class="col-md-3" id="sidebar" role="navigation">
     <ul class="sidebar nav nav-sidebar">

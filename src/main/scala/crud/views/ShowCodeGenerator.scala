@@ -22,7 +22,7 @@ trait ShowCodeGenerator extends CodeGenerator{
           }.getOrElse((c.name.capitalize, """@"""+obj+"""."""+c.name))
 
 
-        val default = """            <div class="form-group">
+        val default = """            <div class="form-group row">
                 <label class="col-sm-2 control-label">"""+label+"""</label>
                 <div class="col-sm-10">
                     <p class="form-control-static">"""+name+"""</p>

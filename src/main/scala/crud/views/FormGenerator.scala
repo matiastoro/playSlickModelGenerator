@@ -27,7 +27,7 @@ case class FormGenerator(table: Table, submodulePackageString: String) extends C
     val inputs = generateInputs(table.columns)
     val args = table.foreignKeys.map{fk => ", "+fk.table+": List[models."+fk.className+"]"}.mkString("")
     val formClass = table.className+"FormData"//if(table.hasOneToMany) table.className+"FormData" else table.className
-    val html = """@(frm: Form[models."""+formClass+"""]"""+args+""", """+table.objName+"""Opt: Option[models."""+table.className+"""] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+    val html = """@(frm: Form[models."""+formClass+"""]"""+args+""", """+table.objName+"""Opt: Option[models."""+table.className+"""] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.AuthHandler, request: Request[AnyContent])
 @import myHelper._
 @import helper._
 
@@ -49,10 +49,10 @@ case class FormGenerator(table: Table, submodulePackageString: String) extends C
 
 
         <div class="modalButtons">
-            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            <a type="button" class="btn btn-default" data-dismiss="modal" href="@controllers""" + submodulePackageString + """.routes.""" + table.className + """Controller.index(1,20)">@Messages("close")</a>
             @"""+table.objName+"""Opt.map{ """+table.objName+""" =>
                 @"""+table.objName+""".id.map{ id =>
-                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.delete(id)';">
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('@Messages("confirm.message")')) window.location='@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.delete(id)';">
                     @Messages("delete")</button>
                 }
             }
