@@ -52,9 +52,9 @@ case class IndexGenerator(table: Table, submodulePackageString: String) extends 
                     <tr class="if(it.state==1){warning}else{}">
                                                                                                            """+values+"""
                         <td>
-                            <a href="@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.show(obj.id.get)" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>@Messages("show")</a>
-                            <a href="@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.edit(obj.id.get)" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>@Messages("edit")</a>
-                            <a href="javascript:;" class="btn btn-default btn-sm" onclick="if(confirm('@Messages("confirm.message")')) window.location = '@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.delete(obj.id.get)';"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span>@Messages("delete")</a>
+                            <a href="@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.show(obj.id.get)" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> @Messages("show")</a>
+                            <a href="@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.edit(obj.id.get)" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> @Messages("edit")</a>
+                            <a href="javascript:;" class="btn btn-default btn-sm" onclick="if(confirm('@Messages("confirm.message")')) window.location = '@controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.delete(obj.id.get)';"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @Messages("delete")</a>
                         </td>
                     </tr>
                 }

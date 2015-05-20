@@ -47,7 +47,7 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
       case (col, props) =>
 
         if(col=="id"){
-          Column("id", "id", "Long", true)
+          Column(this, "id", "id", "Long", true)
         } else {
           if(isSubClass(props)){
             props match{
@@ -66,11 +66,11 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
                 optional = isOptional(ps)
                 fk = getForeignKey(ps)
                 getScalaType(col, ps,false) match{
-                  case Some(tpe) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps))
+                  case Some(tpe) => Column(this, underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps))
                   case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR").capitalize))
                 }
-              case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", false, None, false)
-              case _ => Column(underscoreToCamel(col), col, "DateTime", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
+              case _ if col != "created_at" && col != "updated_at" => Column(this, underscoreToCamel(col), col, "Long", false, None, false)
+              case _ => Column(this, underscoreToCamel(col), col, "DateTime", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
             })
 
           }
@@ -256,7 +256,7 @@ object Columns{
   )
 }
 
-case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None) extends AbstractColumn(name){
+case class Column(table: Table, override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
   lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
@@ -264,18 +264,18 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
 
   lazy val isId: Boolean = name.toLowerCase == "id"
 
-  def inputDefault(prefix: String) = """@myInputText(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+  def inputDefault(prefix: String, table: Table) = """@myInputText(frm(""""+prefix+name+""""), '_label -> Messages(""""+table.tableName+"."+name+""""))"""
   /* it was generated with a Map but we are choosing this ways giving that probably every helper is going to receive different parameters*/
   def formHelper(prefix: String = "") = tpe match {
     case "Long" if foreignKey.isDefined => foreignKeyInput(prefix, foreignKey)
-    case "String" => inputDefault(prefix)
-    case "Int" => inputDefault(prefix)
-    case "Long" => inputDefault(prefix)
-    case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
-    case "Double" => inputDefault(prefix)
-    case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
-    case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
-    case _ => inputDefault(prefix)
+    case "String" => inputDefault(prefix, table)
+    case "Int" => inputDefault(prefix, table)
+    case "Long" => inputDefault(prefix, table)
+    case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> Messages(""""+table.tableName+"."+name+""""))"""
+    case "Double" => inputDefault(prefix, table)
+    case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> Messages(""""+table.tableName+"."+name+""""))"""
+    case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> Messages(""""+table.tableName+"."+name+""""))"""
+    case _ => inputDefault(prefix, table)
   }
 
   val defaultValue = {
@@ -297,8 +297,8 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
   def foreignKeyInput(prefix: String, foreignKey: Option[ForeignKey]) = {
     foreignKey.map{ fk =>
       val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
-      """@select(frm(""""+prefix+name+""""),"""+options+""", '_label -> """"+name.capitalize+"""")"""
-    }.getOrElse(inputDefault(prefix))
+      """@select(frm(""""+prefix+name+""""),"""+options+""", '_label -> Messages(""""+table.tableName+"."+name+""""), 'class -> "form-control")"""
+    }.getOrElse(inputDefault(prefix, table))
   }
 
 }
