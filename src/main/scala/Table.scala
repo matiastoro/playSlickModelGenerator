@@ -123,6 +123,9 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
       else
         "Int"
     }
+    else if("""byte.*""".r.findFirstIn(s).isDefined){
+      "Byte"
+    }
     else if("""boolean.*""".r.findFirstIn(s).isDefined)
       "Boolean"
     else if("""double.*""".r.findFirstIn(s).isDefined)
@@ -249,6 +252,8 @@ object Columns{
    "Long" -> "0",
    "String" -> "",
    "Int" -> "0",
+   "Byte" -> "0",
+   "Byte" -> "0",
    "Boolean" -> "false",
    "Double" -> "0",
    "DateTime" -> "",
@@ -270,6 +275,7 @@ case class Column(table: Table, override val name: String, rawName: String, tpe:
     case "Long" if foreignKey.isDefined => foreignKeyInput(prefix, foreignKey)
     case "String" => inputDefault(prefix, table)
     case "Int" => inputDefault(prefix, table)
+    case "Byte" => inputDefault(prefix, table)
     case "Long" => inputDefault(prefix, table)
     case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> Messages(""""+table.tableName+"."+name+""""))"""
     case "Double" => inputDefault(prefix, table)
@@ -284,6 +290,7 @@ case class Column(table: Table, override val name: String, rawName: String, tpe:
       case "Long" => d
       case "String" => "\""+d+"\""
       case "Int" => d
+      case "Byte" => d
       case "Boolean" => d
       case "Double" => d
       case "DateTime" => "new DateTime("+d+")"

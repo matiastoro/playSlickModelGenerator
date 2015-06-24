@@ -25,3 +25,60 @@ runway:
   ilumination_rwy:    {type: boolean, required: false}
   ilumination_papi:	  {type: boolean, required: false}
   papi_angle:        {type: double, required: false}
+
+
+country:
+  id: ~
+  country: { type:  varchar, size: 255, required: true }
+
+location_country:
+  id: ~
+  location_id: {type: integer, foreignTable: location, required: true, foreignReference: id, onDelete: cascade}
+  country_id:  {type: integer, foreignTable: country, required: true, foreignReference: id, onDelete: cascade}
+
+
+airfield:
+  id: ~
+  location_id:  {type: integer, foreignTable: location, foreignReference: id, onDelete: cascade}
+  station_first_opened: { type: integer, required: false }
+  icao_code: {type: varchar, size: 4, required: false}
+  iata_code: {type: varchar, size: 3, required: false}
+
+
+
+
+base:
+  id: ~
+  location_id:  {type: integer, foreignTable: location, foreignReference: id, onDelete: cascade, required: false}
+  chapel: {type: varchar, size:255, required: false}
+
+
+meteo_station:
+  id: ~
+  location_id:  {type: integer, foreignTable: location, foreignReference: id, onDelete: cascade, required: false}
+  wmo_argos: { type: integer }
+  main_bulletin: { type:  varchar, size: 64 }
+  network: { type:  varchar, size: 64 }
+  observations: { type:  varchar, size: 255 }
+
+subantartic_station:
+  id: ~
+  location_id:  {type: integer, foreignTable: location, foreignReference: id, onDelete: cascade}
+  wmo_argos: { type: integer }
+  main_bulletin: { type:  varchar, size: 64 }
+  network: { type:  varchar, size: 64 }
+  observations: { type:  varchar, size: 255 }
+
+mobile_station:
+  id: ~
+  location_id:  {type: integer, foreignTable: location, foreignReference: id, onDelete: cascade}
+  main_bulletin: { type:  varchar, size: 64 }
+  network: { type:  varchar, size: 64 }
+  observations: { type:  varchar, size: 255 }
+
+iceberg:
+  id: ~
+  location_id:  {type: integer, foreignTable: location, foreignReference: id, onDelete: cascade}
+  main_bulletin: { type:  varchar, size: 64 }
+  network: { type:  varchar, size: 64 }
+  observations: { type:  varchar, size: 255 }

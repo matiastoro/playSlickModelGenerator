@@ -1,0 +1,29 @@
+
+
+
+hallazgo:
+  id:                ~
+  hallazgo:         { type: varchar, size: 255 }
+  fecha_deteccion:  { type: timestamp }
+  fecha_cierre:     { type: timestamp, required: false }
+  estado:           { type: byte }
+  gravedad:         { type: byte, options: {0: "C1", 1: "C2", 2: "C3", 3: "C4", 4: "C5"} }
+  fecha_respuesta:  { type: timestamp, required: false }
+  cartilla_item_id: { type: integer, foreignTable: cartilla_item, required: false, foreignReference: id, onDelete: setnull }
+  usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: setnull }
+
+hallazgo_accion:
+  id:               ~
+  hallazgo_accion:  { type: varchar, size: 255 }
+  estado:           { type: byte }
+  fecha_accion:     { type: timestamp }
+  respuesta:        { type: varchar, size: 255, required: false }
+  fecha_respuesta:  { type: timestamp, required: false }
+  plazo:            { type: timestamp, required: false }
+  hallazgo_id:      { type: integer, foreignTable: hallazgo, required: true, foreignReference: id, onDelete: cascade }
+  usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: setnull }
+
+
+
+
+
