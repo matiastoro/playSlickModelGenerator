@@ -2,24 +2,26 @@
 
 
 hallazgo:
+  _desc: ""Cada entrada en esta tabla representa la detección de un hallazgo o problema en algún objeto de inspección, el cual contiene todos los detalles de este""
   id:                ~
-  hallazgo:         { type: varchar, size: 255 }
-  fecha_deteccion:  { type: timestamp }
-  fecha_cierre:     { type: timestamp, required: false }
-  estado:           { type: byte }
-  gravedad:         { type: byte, options: {0: "C1", 1: "C2", 2: "C3", 3: "C4", 4: "C5"} }
-  fecha_respuesta:  { type: timestamp, required: false }
+  hallazgo:         { type: varchar, size: 255, _desc: ""Descripción del hallazgo"" }
+  fecha_deteccion:  { type: timestamp, _desc: ""Fecha de la detección del hallazgo"" }
+  fecha_cierre:     { type: timestamp, required: false, _desc: ""Fecha de resolución del hallazgo"" }
+  estado:           { type: byte, _desc: ""Representa el estado del hallazgo, puede estar resuelto o no resuelto"" }
+  gravedad:         { type: byte, options: {0: "C1", 1: "C2", 2: "C3", 3: "C4", 4: "C5"}, _desc: ""Representa la gravedad del hallazgo. Complementa la severidad asociada a la cartilla"" }
+  fecha_respuesta:  { type: timestamp, required: false, _desc: ""Fecha de la respuesta del inspector"" }
   cartilla_item_id: { type: integer, foreignTable: cartilla_item, required: false, foreignReference: id, onDelete: setnull }
   usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: setnull }
 
 hallazgo_accion:
+  _desc: ""Representa las acciones tomadas para corregir un hallazgo detectado por un inspección, cada entrada representará una acción tomada para corregir un hallazgo""
   id:               ~
-  hallazgo_accion:  { type: varchar, size: 255 }
-  estado:           { type: byte }
-  fecha_accion:     { type: timestamp }
-  respuesta:        { type: varchar, size: 255, required: false }
-  fecha_respuesta:  { type: timestamp, required: false }
-  plazo:            { type: timestamp, required: false }
+  hallazgo_accion:  { type: varchar, size: 255, _desc: ""Descripción de la acción tomada para corregir el hallazgo"" }
+  estado:           { type: byte, _desc: ""Estado de la accion. Si esta pendiente esperando respuesta de planificador en caso de ser requerido, o si esta pendiente respuesta por parte de contraparte. (0: En revision, 1: Esperando respueesta de planificador, 2: Resuelta)"" }
+  fecha_accion:     { type: timestamp, _desc: ""Fecha de la acción tomada para corregir"" }
+  respuesta:        { type: varchar, size: 255, required: false, _desc: ""Descripción de la respuesta del inspector a la acción tomada"" }
+  fecha_respuesta:  { type: timestamp, required: false, _desc: ""Fecha de la respuesta del inspector"" }
+  plazo:            { type: timestamp, required: false, _desc: ""Plazo en días para resolucion"" }
   hallazgo_id:      { type: integer, foreignTable: hallazgo, required: true, foreignReference: id, onDelete: cascade }
   usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: setnull }
 
