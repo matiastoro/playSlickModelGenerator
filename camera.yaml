@@ -5,4 +5,4 @@ camera:
   url: { type:  varchar, size: 255 }
   orientation: { type:  varchar, size: 255 }
   description: { type:  varchar, size: 255 }
-  active:   {type: boolean, required: false}
+  active:   {type: boolean}
