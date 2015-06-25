@@ -1,5 +1,144 @@
 
 
+usuario:
+  id: ~
+  nombre:           { type: varchar, size: 255 }
+
+tipo_inspector:
+  id: ~
+  tipo:             { type: varchar, size: 255 }
+
+usuario_tipo_inspector:
+  id: ~
+  usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: cascade }
+  tipo_inspector:   { type: integer, foreignTable: tipo_inspector, required: false, foreignReference: id, onDelete: cascade }
+
+bloque_horario_tipo:
+  id: ~
+  tipo:             { type: varchar, size: 255 }
+
+bloque_horario:
+  id: ~
+  fecha_inicio:     { type: timestamp }
+  fecha_termino:    { type: timestamp }
+  bloque_horario_tipo_id:       { type: integer, foreignTable: bloque_horario_tipo, required: false, foreignReference: id, onDelete: setnull }
+
+
+tipo_actividad:
+  id: ~
+  tipo:             { type: varchar, size: 255 }
+
+actividad:
+  id: ~
+  actividad:        { type: varchar, size: 255 }
+  estado:           { type: integer }
+  orden:            { type: integer }
+  numero_inspectores: { type: integer }
+  programada:       { type: boolean }
+  bloque_horario_id:       { type: integer, foreignTable: bloque_horario, required: false, foreignReference: id, onDelete: setnull }
+  tipo_actividad_id:       { type: integer, foreignTable: tipo_actividad, required: false, foreignReference: id, onDelete: setnull }
+
+
+locacion:
+  id: ~
+  locacion:         { type: varchar, size: 255 }
+  factor:           { type: double }
+
+actividad_locacion:
+  id: ~
+  numero_dias:      { type: integer }
+  actividad_id:     { type: integer, foreignTable: actividad, required: false, foreignReference: id, onDelete: setnull }
+  locacion_id:      { type: integer, foreignTable: locacion, required: false, foreignReference: id, onDelete: setnull }
+
+usuario_bloque_horario:
+  id: ~
+  bloque_horario_id: { type: integer, foreignTable: bloque_horario, required: false, foreignReference: id, onDelete: setnull }
+  usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: cascade }
+
+usuario_actividad_solicitud:
+  id: ~
+  externa:          { type: boolean }
+  fecha_solicitud:  { type: timestamp }
+  usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: cascade }
+  actividad_id:     { type: integer, foreignTable: actividad, required: false, foreignReference: id, onDelete: setnull }
+
+usuario_actividad_inspector:
+  id: ~
+  es_jefe:          { type: boolean }
+  usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: cascade }
+  actividad_id:     { type: integer, foreignTable: actividad, required: false, foreignReference: id, onDelete: setnull }
+
+
+usuario_inspeccion:
+  id: ~
+  usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: cascade }
+  inspeccion_id:    { type: integer, foreignTable: inspeccion, required: false, foreignReference: id, onDelete: cascade }
+
+
+departamento:
+  id: ~
+  departamento:     { type: varchar, size: 255 }
+  departamento_id:  { type: integer, foreignTable: departamento, required: false, foreignReference: id, onDelete: setnull }
+
+categoria_inspeccion:
+  id: ~
+  categoria:        { type: varchar, size: 255 }
+
+programa:
+  id: ~
+  programa:         { type: varchar, size: 255 }
+  cantidad_mes:     { type: integer }
+  departamento_id:  { type: integer, foreignTable: departamento, required: false, foreignReference: id, onDelete: setnull }
+  categoria_inspeccion_id:  { type: integer, foreignTable: categoria_inspeccion, required: false, foreignReference: id, onDelete: setnull }
+  objeto_inspeccion_tipo_id:  { type: integer, foreignTable: objeto_inspeccion_tipo, required: false, foreignReference: id, onDelete: setnull }
+
+programa_tipo_inspector:
+  id: ~
+  programa_id:      { type: integer, foreignTable: programa, required: false, foreignReference: id, onDelete: setnull }
+  tipo_inspector:   { type: integer, foreignTable: tipo_inspector, required: false, foreignReference: id, onDelete: setnull }
+
+inspeccion:
+  id: ~
+  inspeccion:       { type: varchar, size: 255 }
+  fecha_inicio:     { type: timestamp }
+  fecha_termino:    { type: timestamp }
+  orden:            { type: integer }
+  programa_id:      { type: integer, foreignTable: programa, required: false, foreignReference: id, onDelete: setnull }
+  actividad_id:     { type: integer, foreignTable: actividad, required: false, foreignReference: id, onDelete: setnull }
+  objeto_inspeccion_id:  { type: integer, foreignTable: objeto_inspeccion, required: false, foreignReference: id, onDelete: setnull }
+  objeto_inspeccion_instancia_id:  { type: integer, foreignTable: objeto_inspeccion_instancia, required: false, foreignReference: id, onDelete: setnull }
+
+objeto_inspeccion_tipo:
+  id: ~
+  tipo:             { type: varchar, size: 255 }
+  cantidad_mes:     { type: integer }
+
+objeto_inspeccion:
+  id: ~
+  desc:             { type: varchar, size: 255 }
+  objeto_inspeccion_tipo_id:  { type: integer, foreignTable: objeto_inspeccion_tipo, required: false, foreignReference: id, onDelete: setnull }
+
+objeto_inspeccion_instancia:
+  id: ~
+  programa:         { type: varchar, size: 255 }
+  cantidad_mes:     { type: integer }
+  objeto_inspeccion_id:  { type: integer, foreignTable: objeto_inspeccion, required: false, foreignReference: id, onDelete: setnull }
+
+
+objeto_inspeccion_tipo_tipo_dato:
+  objeto_inspeccion_tipo_id: { type: integer, foreignTable: objeto_inspeccion_tipo, required: false, foreignReference: id, onDelete: cascade }
+  tipo_dato_id:     { type: integer, foreignTable: tipo_dato, required: false, foreignReference: id, onDelete: cascade }
+
+tipo_dato:
+  id: ~
+  categoria:        { type: varchar, size: 255 }
+
+foto_objeto_inspeccion_inspeccion:
+  id: ~
+  valor:            { type: varchar, size: 255 }
+  tipo_dato_id:     { type: integer, foreignTable: tipo_dato, required: false, foreignReference: id, onDelete: setnull }
+  inspeccion_id:     { type: integer, foreignTable: inspeccion, required: false, foreignReference: id, onDelete: setnull }
+
 
 hallazgo:
   _desc: ""Cada entrada en esta tabla representa la detección de un hallazgo o problema en algún objeto de inspección, el cual contiene todos los detalles de este""
@@ -7,8 +146,8 @@ hallazgo:
   hallazgo:         { type: varchar, size: 255, _desc: ""Descripción del hallazgo"" }
   fecha_deteccion:  { type: timestamp, _desc: ""Fecha de la detección del hallazgo"" }
   fecha_cierre:     { type: timestamp, required: false, _desc: ""Fecha de resolución del hallazgo"" }
-  estado:           { type: byte, _desc: ""Representa el estado del hallazgo, puede estar resuelto o no resuelto"" }
-  gravedad:         { type: byte, options: {0: "C1", 1: "C2", 2: "C3", 3: "C4", 4: "C5"}, _desc: ""Representa la gravedad del hallazgo. Complementa la severidad asociada a la cartilla"" }
+  estado:           { type: integer, _desc: ""Representa el estado del hallazgo, puede estar resuelto o no resuelto"" }
+  gravedad:         { type: integer, options: {0: "C1", 1: "C2", 2: "C3", 3: "C4", 4: "C5"}, _desc: ""Representa la gravedad del hallazgo. Complementa la severidad asociada a la cartilla"" }
   fecha_respuesta:  { type: timestamp, required: false, _desc: ""Fecha de la respuesta del inspector"" }
   cartilla_item_id: { type: integer, foreignTable: cartilla_item, required: false, foreignReference: id, onDelete: setnull }
   usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: setnull }
@@ -17,7 +156,7 @@ hallazgo_accion:
   _desc: ""Representa las acciones tomadas para corregir un hallazgo detectado por un inspección, cada entrada representará una acción tomada para corregir un hallazgo""
   id:               ~
   hallazgo_accion:  { type: varchar, size: 255, _desc: ""Descripción de la acción tomada para corregir el hallazgo"" }
-  estado:           { type: byte, _desc: ""Estado de la accion. Si esta pendiente esperando respuesta de planificador en caso de ser requerido, o si esta pendiente respuesta por parte de contraparte. (0: En revision, 1: Esperando respueesta de planificador, 2: Resuelta)"" }
+  estado:           { type: integer, _desc: ""Estado de la accion. Si esta pendiente esperando respuesta de planificador en caso de ser requerido, o si esta pendiente respuesta por parte de contraparte. (0: En revision, 1: Esperando respueesta de planificador, 2: Resuelta)"" }
   fecha_accion:     { type: timestamp, _desc: ""Fecha de la acción tomada para corregir"" }
   respuesta:        { type: varchar, size: 255, required: false, _desc: ""Descripción de la respuesta del inspector a la acción tomada"" }
   fecha_respuesta:  { type: timestamp, required: false, _desc: ""Fecha de la respuesta del inspector"" }
@@ -25,7 +164,25 @@ hallazgo_accion:
   hallazgo_id:      { type: integer, foreignTable: hallazgo, required: true, foreignReference: id, onDelete: cascade }
   usuario_id:       { type: integer, foreignTable: usuario, required: false, foreignReference: id, onDelete: setnull }
 
+hallazgo_clasificacion:
+  id: ~
+  hallazgo_clasificacion: { type: varchar, size: 255 }
+
+hallazgo_hallazgo_clasificacion:
+  id: ~
+  hallazgo_clasificacion_id: { type: integer, foreignTable: hallazgo_clasificacion, required: false, foreignReference: id, onDelete: cascade }
+  hallazgo_id:      { type: integer, foreignTable: hallazgo, required: true, foreignReference: id, onDelete: cascade }
+
+cartilla_item:
+  id: ~
+  cartilla:         { type: varchar, size: 255 }
+  codigo:           { type: varchar, size: 20 }
+  severidad:        { type: varchar, size: 1 }
+  programa_id:      { type: integer, foreignTable: programa, required: true, foreignReference: id, onDelete: setnull }
 
 
-
+programa_tipo_dato:
+  id: ~
+  programa_id:      { type: integer, foreignTable: programa, required: false, foreignReference: id, onDelete: cascade }
+  tipo_dato_id:     { type: integer, foreignTable: tipo_dato, required: false, foreignReference: id, onDelete: cascade }
 
