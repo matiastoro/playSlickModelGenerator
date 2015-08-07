@@ -1,0 +1,35 @@
+location:
+  id: ~
+  location:  { type:  varchar, size: 255 }
+  slug:      { type: varchar, size: 32 }
+  location_type:      { type: integer }
+  latitude:  { type: double }
+  longitude: { type: double }
+  altitude:  { type: double }
+  slug: {type: varchar, size:32}
+  observations: { type:  varchar, size: 255 }
+  countries: { type: oneToMany, foreignTable: location_country }
+  runways:   { type: oneToMany, foreignTable: runway }
+  locationDocuments:   { type: oneToMany, foreignTable: location_document }
+
+location_document:
+  id: ~
+  location_id:  {type: integer, foreignTable: location, foreignReference: id, onDelete: cascade}
+  name: {type: varchar, size: 255, required: true
+  url: {type: varchar, size: 255, required: true}
+  created_at: ~
+
+runway:
+  id: ~
+  location_id: {type: integer, foreignTable: location, required: true, foreignReference: id, onDelete: cascade}
+  magnetic_orientation: { type:  varchar, size: 32 }
+  runway_type: {type: integer}
+  resistance: { type:  varchar, size: 64 }
+  length: {type: integer, required: false}
+  width:  {type: integer, required: false}
+  inclination:  {type: integer, required: false}
+  ilumination_apch:   {type: boolean, required: false}
+  ilumination_thr:    {type: boolean, required: false}
+  ilumination_rwy:    {type: boolean, required: false}
+  ilumination_papi:	  {type: boolean, required: false}
+  papi_angle:        {type: double, required: false}
