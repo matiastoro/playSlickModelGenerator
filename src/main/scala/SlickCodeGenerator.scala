@@ -49,10 +49,13 @@ object parser {
   def main(args: Array[String]){
     println("USAGE: run (model|controller|view|config|all) filename [destination_folder] [submodule_name]")
     val buildType = args(0)
-    val reader = Source.fromFile(args(1)).getLines.mkString("\n")
+    val srcFileName = args(1)
+    val reader = Source.fromFile(srcFileName).getLines.mkString("\n")
     val pathName = if(args.size > 2) args(2) else "output"
     val submoduleName = if(args.size > 3) args(3) else ""
     val path = Paths.get(pathName)
+
+    println(s"Building $buildType from $srcFileName outputFolder $pathName submoduleName $submoduleName")
     val pathExtensions  = Paths.get(path+"/app/models/extensions")
     val pathControllers = Paths.get(path+"/app/controllers")
     val pathViews       = Paths.get(path+"/app/views/"+submoduleName)

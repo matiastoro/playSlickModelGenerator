@@ -61,17 +61,17 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
             var optional = false
             var fk: Option[ForeignKey] = None
             var synth = false
-            (props match{
+            props match{
               case ps: columnProps =>
                 optional = isOptional(ps)
                 fk = getForeignKey(ps)
                 getScalaType(col, ps,false) match{
-                  case Some(tpe) => Column(this, underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps))
+                  case Some(tpe) => Column(this, underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps), getLength(col, ps))
                   case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR").capitalize))
                 }
               case _ if col != "created_at" && col != "updated_at" => Column(this, underscoreToCamel(col), col, "Long", false, None, false)
               case _ => Column(this, underscoreToCamel(col), col, "DateTime", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
-            })
+            }
 
           }
         }
@@ -91,6 +91,15 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
 
   def getRawName(col: String, ps: ListMap[String,String]): String = {
     ps.getOrElse("rawName", col)
+  }
+
+  def getLength(col: String, ps: ListMap[String,String]): Option[Int] = {
+    val s = ps.getOrElse("type", "")
+    if("""varchar.*""".r.findFirstIn(s).isDefined){
+      """\d+""".r.findFirstIn(s).map(_.toInt)
+    }
+    else None
+
   }
 
   def getForeignKey(ps: ListMap[String, String]): Option[ForeignKey] = {
@@ -261,10 +270,11 @@ object Columns{
   )
 }
 
-case class Column(table: Table, override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None) extends AbstractColumn(name){
+case class Column(table: Table, override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, maxLength: Option[Int] = None) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
-  lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
+  lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))+(maxLength.map("(maxLength = "+_+")").getOrElse(""))
+
   lazy val formMapping: String = if(optional) "optional("+formMappingTpe+")" else formMappingTpe
 
   lazy val isId: Boolean = name.toLowerCase == "id"

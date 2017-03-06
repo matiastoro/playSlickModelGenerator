@@ -1,0 +1,77 @@
+aerodrome:
+  id: ~
+  name: {type: varchar(255), required: true }
+  iata_code: {type: varchar(3), required: true }
+company:
+  id: ~
+  company: {type: varchar(255), required: true }
+  iata_code: {type: varchar(3), required: true }
+boarding_pass:
+  id: ~
+  company: {type: varchar(3), required: true, _desc: ""IATA format"" }
+  aerodrome_from: {type: varchar(3), required: true, _desc: ""IATA format"" }
+  aerodrome_to: {type: varchar(3), required: true, _desc: ""IATA format"" }
+  passenger_name: {type: varchar(255), required: true }
+  time_utc:  { type: timestamp, required: false }
+  boarding_time_utc:  { type: timestamp, required: false }
+  security_time_utc:  { type: timestamp, required: false }
+  boarding_group:  { type:  varchar(4), required: false }
+  flight_number: { type:  varchar(8), required: true }
+  pnr_code: { type: varchar(7), required: true}
+  passenger_class:    { type: varchar(7), required: false}
+  document_number: { type: varchar(10), required: false}
+  gate: { type: varchar(7), required: false}
+  seat: { type: varchar(7), required: false}
+  date_of_issuance: { type: timestamp, required: false }
+  frequent_flyer_number: {type: varchar(16), required: false }
+  agent_issuer: {type: varchar(20), required: true }
+  ticket_number: {type: varchar(20), required: false }
+bcbp:
+  id: ~
+  created_at: ~
+  format_code:     { type: varchar(1), required: true }
+  number_of_legs:  { type: integer, required: true }
+  passenger_name:               {type: varchar(20), required: true}
+  electronic_ticket_indicator:  {type: varchar(1), required: true}
+  beginning_of_version_number:   {type: varchar(1), required: false}
+  version_number:   {type: varchar(1), required: false}
+  field_size_unique:   {type: varchar(2), required: false, _desc: ""HEX format"", display: hidden }
+  passenger_description:   {type: varchar(2), required: false }
+  source_of_checkin:   {type: varchar(1), required: false }
+  source_of_issuance:   {type: varchar(1), required: false }
+  date_of_issuance:   {type: varchar(4), required: false, _desc: ""Julian Date"" }
+  document_type:   {type: varchar(1), required: false }
+  airline_designator_bp_issuer:   {type: varchar(3), required: false }
+  baggage_tag_licence_plate_number1:   {type: varchar(13), required: false }
+  baggage_tag_licence_plate_number2:   {type: varchar(13), required: false }
+  baggage_tag_licence_plate_number3:   {type: varchar(13), required: false }
+bcbp_leg:
+  id: ~
+  bcbp_id: { type: integer, foreignTable: bcbp, foreignReference: id, onDelete: cascade, required: true}
+  mandatory:
+    operating_carrier_pnr_code: { type: varchar(7), required: true}
+    from_city_airport_code: { type: varchar, size: 3, required: true, _desc: ""IATA format"" }
+    to_city_airport_code:   { type: varchar, size: 3, required: true, _desc: ""IATA format"" }
+    operating_carrier_designator: { type: varchar(3), required: true }
+    flight_number: { type: varchar(5), required: true }
+    date_of_flight: { type: varchar(5), required: true, _desc: ""Julian Date"" }
+    compartment_code:  { type: varchar(1), required: true }
+    seat_number:  { type: varchar(4), required: true }
+    checkin_sequence_number:  { type: varchar(4), required: true }
+    passenger_status:  { type: varchar(1), required: true }
+    field_size_combined: {type: varchar(2), required: true, _desc: ""HEX format"", display: hidden}
+  conditional:
+    field_size_repeated: {type: varchar(2), required: false, _desc: ""HEX format"", display: hidden}
+    airline_numeric_code: {type: varchar(3), required: false }
+    document_sn: {type: varchar(10), required: false }
+    selectee_indicator: {type: varchar(1), required: false }
+    international_documenation_verification: {type: varchar(1), required: false }
+    marketing_carrier_designator: {type: varchar(3), required: false }
+    frequent_flyer_airline_designator: {type: varchar(3), required: false }
+    frequent_flyer_number: {type: varchar(16), required: false }
+    id_ad_indicator: {type: varchar(1), required: false }
+    free_baggage_allowance: {type: varchar(3), required: false }
+    fast_track: {type: varchar(1), required: false }
+    individual_airline_use: {type: varchar(255), required: false, display: hidden }
+
+
