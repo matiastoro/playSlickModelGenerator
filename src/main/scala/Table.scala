@@ -19,8 +19,8 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
   }
 
   println("TableNameDB; "+tableName)
-  val mappingName = className+"Mapping"
-  val queryName = className+"Query"
+  val mappingName = className+"Mapeo"
+  val queryName = className+"Consulta"
   val objName = tableName
   val viewsPackage = tableName
 
@@ -207,7 +207,7 @@ import GeneratorMappings._
 case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
   val className = underscoreToCamel(foreignTable).capitalize
   val objName = underscoreToCamel(foreignTable)
-  val queryName = className+"Query"
+  val queryName = className+"Consulta"
   def formHelper(submodulePackageString: String = "") =
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
@@ -304,6 +304,6 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
 }
 case class ForeignKey(table: String, reference: String, onDelete: Option[String]) extends CodeGenerator{
   val className = underscoreToCamel(table).capitalize
-  val queryName = className+"Query"
+  val queryName = className+"Consulta"
 }
 case class ColumnType(tpe: String)

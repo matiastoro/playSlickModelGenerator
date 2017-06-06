@@ -26,5 +26,5 @@ case class MessageGenerator(table: Table, tablesOneToMany: List[Table] = List(),
 """+table.viewsPackage+""".show.title = Show """+table.className+"""
 """
 
-
+//TODO: ZaepStep.related.add, ZaepStep.list
 }
