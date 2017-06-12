@@ -11,7 +11,7 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
   def generate: String = {
     val objectSignature = """object """+table.className+"""Controller extends Controller with Autorizacion {"""
 
-    val l = List(imports, objectSignature, jsonFormats(), index(), show(), form(), create, save, edit, delete, update)
+    val l = List(imports, objectSignature, jsonFormats(), index(), show(), form(), objectResponse, save, delete, update)
 
     val lMany = if(isMany) l ++ List(nestedForm,createNested, showByManies) else l
     println(table.columns)
@@ -27,7 +27,7 @@ import play.api.db.slick._
 import play.api.db.slick.Config.driver.simple._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.mvc._
+import play.api.mvc.Controller
 import play.api.Play.current
 import play.api.mvc.BodyParsers._
 import play.api.libs.json.Json
@@ -113,14 +113,13 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   }"""
   }
 
-  def create(): String = {
-    """
-  def create() = conUsuarioDB{ user =>  implicit request =>
-"""+fks+"""
-    Ok(views.html"""+submodulePackageString+"."+table.viewsPackage+""".create(form"""+params+"""))
-
-  }"""
+  def objectResponse = s"""
+  def objectResponse(id: Long)(implicit session: Session) = {
+    ${table.queryName}.porId(id).map{ ${table.objName} =>
+      Ok(Json.obj("obj" -> Json.toJson(${table.objName})))
+    }.getOrElse(NotFound)
   }
+"""
 
   def update = {
     val updateObj = if(table.hasOneToMany) "obj."+table.objName else "obj"
@@ -138,8 +137,8 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
      """+fks+"""
           BadRequest(views.html"""+submodulePackageString+"."+table.viewsPackage+""".edit(formWithErrors"""+params+""", """+table.objName+"""))
         }, formData => {
-          formData.update(formData.obj.copy(id = """+table.objName+""".id"""+createdAt+""")).map{ id =>
-            Redirect(controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.show("""+table.objName+""".id.get)).flashing("success" -> Messages("save.success"))
+          formData.update(formData.obj.copy(id = """+table.objName+""".id"""+createdAt+s""")).map{ id =>
+            objectResponse(id)
           }.getOrElse(NotFound)
         }
       )
@@ -158,10 +157,10 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     form.bindFromRequest.fold(
       formWithErrors => {
     """+fks+ """
-        BadRequest(views.html"""+submodulePackageString+"."+table.viewsPackage+""".create(formWithErrors"""+params+"""))
+        Ok(Json.obj("errors" -> formWithErrors.errorsAsJson))
       }, formData => {
         val id = formData.insert(formData.obj)
-        Redirect(controllers"""+submodulePackageString+""".routes."""+table.className+"""Controller.show(id)).flashing("success" -> Messages("save.success"))
+        objectResponse(id)
       }
     )
   }
@@ -173,9 +172,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     """
 GET         /"""+table.objName+"""/                  controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20)
 GET         /"""+table.objName+"""/show/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.show(id: Long)
-GET         /"""+table.objName+"""/edit/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.edit(id: Long)
 GET         /"""+table.objName+"""/delete/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.delete(id: Long)
-GET         /"""+table.objName+"""/create            controllers"""+submodulePackageString+"""."""+table.className+"""Controller.create()"""+nestedRoute+"""
 POST        /"""+table.objName+"""/save              controllers"""+submodulePackageString+"""."""+table.className+"""Controller.save()
 POST        /"""+table.objName+"""/update/:id        controllers"""+submodulePackageString+"""."""+table.className+"""Controller.update(id: Long)
 GET         /"""+table.objName+"""/:page/:pageLength controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int)

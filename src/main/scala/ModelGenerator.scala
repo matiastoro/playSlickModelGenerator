@@ -269,7 +269,7 @@ class """+className+"""ConsultaBase extends BaseDAO["""+className+"""] {
     val otms: String = if(table.oneToManies.size>0) ", "+table.oneToManies.map{otm => otm.foreignTable+"s: List["+otm.className+"FormData]"}.mkString(", ") else ""
     val otmsUpdates = table.oneToManies.map{otm =>
       "    //Delete elements that are not part of the form but they do exists in the database.\n"+
-      """    """+otm.queryName+""".by"""+table.className+"""Id(obj.id).filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.queryName+""".elimina(_)}"""+"\n"+
+      """    """+otm.queryName+""".by"""+table.className+"""Id(obj.id).filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.queryName+""".eliminar(_)}"""+"\n"+
       """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.tableName+"""Id = obj.id.get))}"""
     }.mkString("\n")
     val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.tableName+"""Id = id))}""" }.mkString("\n")
@@ -280,7 +280,7 @@ class """+className+"""ConsultaBase extends BaseDAO["""+className+"""] {
       }.mkString("\n")
       val otmsArgs = table.oneToManies.map{otm => otm.foreignTable+"s"}.mkString(", ")
 """object """+table.className+"""FormData{
-  def apply(obj: """+table.className+""") = {
+  def apply(obj: """+table.className+""")(implicit session: Session) = {
 """+otmsLists+"""
     new """+table.className+"""FormData(obj, """+otmsArgs+""")
   }

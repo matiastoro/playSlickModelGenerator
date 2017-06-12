@@ -278,6 +278,22 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     case _ => inputDefault(prefix)
   }
 
+  def inputDefaultReact(prefix: String) = {
+    val inputName = prefix+name
+    s"""<TextField ref={(i) => this._inputs["${inputName}"] = i} name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={this.state.readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
+  }
+  def formHelperReact(prefix: String = "") = tpe match {
+    case "Long" if foreignKey.isDefined => foreignKeyInput(prefix, foreignKey)
+    case "String" => inputDefaultReact(prefix)
+    case "Int" => inputDefaultReact(prefix)
+    case "Long" => inputDefaultReact(prefix)
+    case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+    case "Double" => inputDefaultReact(prefix)
+    case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+    case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+    case _ => inputDefaultReact(prefix)
+  }
+
   val defaultValue = {
     val d = if(defaultString.isDefined) defaultString.get else Columns.defaultValues.getOrElse(tpe, "0")
     tpe match {
