@@ -19,8 +19,8 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
   }
 
   println("TableNameDB; "+tableName)
-  val mappingName = className+"Mapping"
-  val queryName = className+"Query"
+  val mappingName = className+"Mapeo"
+  val queryName = className+"Consulta"
   val objName = tableName
   val viewsPackage = tableName
 
@@ -207,7 +207,7 @@ import GeneratorMappings._
 case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
   val className = underscoreToCamel(foreignTable).capitalize
   val objName = underscoreToCamel(foreignTable)
-  val queryName = className+"Query"
+  val queryName = className+"Consulta"
   def formHelper(submodulePackageString: String = "") =
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
@@ -278,6 +278,22 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     case _ => inputDefault(prefix)
   }
 
+  def inputDefaultReact(prefix: String) = {
+    val inputName = prefix+name
+    s"""<TextField ref={(i) => this._inputs["${inputName}"] = i} name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={this.state.readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
+  }
+  def formHelperReact(prefix: String = "") = tpe match {
+    case "Long" if foreignKey.isDefined => foreignKeyInput(prefix, foreignKey)
+    case "String" => inputDefaultReact(prefix)
+    case "Int" => inputDefaultReact(prefix)
+    case "Long" => inputDefaultReact(prefix)
+    case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+    case "Double" => inputDefaultReact(prefix)
+    case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+    case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+    case _ => inputDefaultReact(prefix)
+  }
+
   val defaultValue = {
     val d = if(defaultString.isDefined) defaultString.get else Columns.defaultValues.getOrElse(tpe, "0")
     tpe match {
@@ -304,6 +320,6 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
 }
 case class ForeignKey(table: String, reference: String, onDelete: Option[String]) extends CodeGenerator{
   val className = underscoreToCamel(table).capitalize
-  val queryName = className+"Query"
+  val queryName = className+"Consulta"
 }
 case class ColumnType(tpe: String)

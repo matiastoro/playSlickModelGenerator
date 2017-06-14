@@ -26,11 +26,11 @@ import play.api.data.format.Formats._
 
   def getters = table.foreignColumns.map{fc =>
     fc.foreignKey.map{ fk =>
-      """  def get"""+fk.className+""" = """+{
+      """  def get"""+fk.className+"""(implicit session: Session) = """+{
         if(!fc.optional)
-          fk.queryName+""".byId("""+fc.name+""")"""
+          fk.queryName+""".porId("""+fc.name+""")"""
         else
-          """if("""+fc.name+""".isDefined) """+fk.queryName+""".byId("""+fc.name+""".get) else None"""
+          """if("""+fc.name+""".isDefined) """+fk.queryName+""".porId("""+fc.name+""".get) else None"""
       }
     }.getOrElse("")
   }.mkString("\n")
@@ -125,7 +125,7 @@ import play.api.data.format.Formats._
 
             c.foreignKey.map{ fk =>
               val onDelete = fk.onDelete.map{od => ", onDelete=ForeignKeyAction."+od.capitalize}.getOrElse("")
-              colMap + "\n  def "+guessFkName(c.name)+" = foreignKey(\""+c.rawName+"_fk\", "+c.name+", "+underscoreToCamel(fk.table).capitalize+"Query.all)(_."+fk.reference+onDelete+")"
+              colMap + "\n  def "+guessFkName(c.name)+" = foreignKey(\""+c.rawName+"_fk\", "+c.name+", "+underscoreToCamel(fk.table).capitalize+"Consulta.tableQ)(_."+fk.reference+onDelete+")"
             }.getOrElse(colMap)
 
           }
@@ -162,14 +162,14 @@ import play.api.data.format.Formats._
 
     //def * = (id.?, fir, name, latitude, longitude) <> (Fir.tupled, Fir.unapply)
 
-    val tableClassHead = """class """+className+"""Mapping(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
+    val tableClassHead = """class """+className+"""Mapeo(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
     val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+star+ shaped + "\n}"
 
     val foreignKeyFilters = table.foreignColumns.map{ c =>
       c.foreignKey.map{fk =>
-        """  def by"""+fk.className+"""Id(id: Option[Long]) = database.withSession { implicit db: Session =>
+        """  def by"""+fk.className+"""Id(id: Option[Long])(implicit session: Session) = {
     id.map{i =>
-      all.filter(_."""+c.name+"""===i).list
+      tableQ.filter(_."""+c.name+"""===i).list
     }.getOrElse(List())
   }
                             """
@@ -178,10 +178,10 @@ import play.api.data.format.Formats._
 
     val objectHead ="""
 
-class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
-  type DBTable = """+className+"""Mapping
+class """+className+"""ConsultaBase extends BaseDAO["""+className+"""] {
+  type DBTable = """+className+"""Mapeo
 
-  private[models] val all = {
+  val tableQ = {
     TableQuery[DBTable]
   }
 """+foreignKeyFilters+"""
@@ -269,7 +269,7 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
     val otms: String = if(table.oneToManies.size>0) ", "+table.oneToManies.map{otm => otm.foreignTable+"s: List["+otm.className+"FormData]"}.mkString(", ") else ""
     val otmsUpdates = table.oneToManies.map{otm =>
       "    //Delete elements that are not part of the form but they do exists in the database.\n"+
-      """    """+otm.queryName+""".by"""+table.className+"""Id(obj.id).filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.queryName+""".delete(_)}"""+"\n"+
+      """    """+otm.queryName+""".by"""+table.className+"""Id(obj.id).filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.queryName+""".eliminar(_)}"""+"\n"+
       """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.tableName+"""Id = obj.id.get))}"""
     }.mkString("\n")
     val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.tableName+"""Id = id))}""" }.mkString("\n")
@@ -280,7 +280,7 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
       }.mkString("\n")
       val otmsArgs = table.oneToManies.map{otm => otm.foreignTable+"s"}.mkString(", ")
 """object """+table.className+"""FormData{
-  def apply(obj: """+table.className+""") = {
+  def apply(obj: """+table.className+""")(implicit session: Session) = {
 """+otmsLists+"""
     new """+table.className+"""FormData(obj, """+otmsArgs+""")
   }
@@ -289,12 +289,12 @@ class """+className+"""QueryBase extends DatabaseClient["""+className+"""] {
 
     """
 case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
-  def update(updatedObj: """+table.className+""" = obj) = {
+  def update(updatedObj: """+table.className+""" = obj)(implicit session: Session) = {
 """+otmsUpdates+"""
-    """+table.queryName+""".updateOrInsert(updatedObj)
+    """+table.queryName+""".actualizarOInsertar(updatedObj)
   }
-  def insert(insertedObj: """+table.className+""") = {
-    val id = """+table.queryName+""".insert(insertedObj)
+  def insert(insertedObj: """+table.className+""")(implicit session: Session) = {
+    val id = """+table.queryName+""".insertar(insertedObj)
 """+otmsInserts+"""
     id
   }
@@ -331,7 +331,7 @@ import models._
 
 $classesCode
 
-object ${className}Query extends ${className}QueryBase{
+object ${className}Consulta extends ${className}ConsultaBase{
 
 }
     """.trim

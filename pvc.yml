@@ -1,6 +1,44 @@
-presupuesto_tipo:
+
+actividad:
+  id:
+  actividad:        { type: varchar, size: 255 }
+  estado:           { type: integer }
+  orden:            { type: integer }
+  numero_inspectores: { type: integer }
+  programada:       { type: boolean }
+  bloque_horario_id: {type: integer, required: false}
+  duracion: {type: integer, required: false}
+  tipo_actividad_id: { type: integer, required: false}
+  mes: {type: integer, required: false}
+  anio: {type: integer, required: false}
+  observaciones: {type: varchar(255), required: false}
+  inspecciones: { type: oneToMany, foreignTable: inspeccion}
+
+inspeccion:
   id: ~
-  presupuesto_tipo: { type: varchar, size: 255 }
-  state: { type: integer }
+  inspeccion:       { type: varchar, size: 255 }
+  fecha_inicio:     { type: timestamp }
+  fecha_termino:    { type: timestamp }
+  orden:            { type: integer }
+  programa_id:      { type: integer, required: false}
+  actividad_id:     { type: integer, foreignTable: actividad, foreignReference: id, onDelete: cascade}
+  objeto_inspeccion_id:  { type: integer, required: false}
+  objeto_inspeccion_instancia_id:  { type: integer, required: false}
 
 
+tipo_inspector:
+  id: ~ 
+  tipo: {type: varchar, size:255}
+
+programa_tipo_inspector:
+  id: ~ 
+  programa_id: {type: integer,  required: false, foreignTable: programa, onDelete: cascade}
+  tipo_inspector_id: {type: integer,  required: false, foreignTable: tipo_inspector, onDelete: cascade}
+
+programa:
+  id: ~ 
+  programa: {type: varchar, size:255}
+  acronimo: {type: varchar, size:255}
+  departamentoId: {type: integer,  required: false, foreignTable: departamento, onDelete: cascade}
+  objeto_inspeccion_tipo_id: {type: integer,  required: false, foreignTable: objeto_tipo_inspeccion, onDelete: cascade}
+  programa_tipo_inspectores: { type: oneToMany,  required: false, foreignTable: programa_tipo_inspector}

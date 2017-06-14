@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets
 import via56.slickGenerator.crud.config.MessageGenerator
 import via56.slickGenerator.crud.controller.ControllerGenerator
 import via56.slickGenerator.crud.views._
+import via56.slickGenerator.crud.react._
 
 
 class SlickCodeGenerator extends JavaTokenParsers {
@@ -56,12 +57,15 @@ object parser {
     val pathExtensions  = Paths.get(path+"/app/models/extensions")
     val pathControllers = Paths.get(path+"/app/controllers")
     val pathViews       = Paths.get(path+"/app/views/"+submoduleName)
+    val pathReact       = Paths.get(path+"/app/react/"+submoduleName)
     YAMLParser.parse(reader).map{result =>
       Files.createDirectories(path)
       Files.createDirectories(pathExtensions)
       Files.createDirectories(pathControllers)
       Files.createDirectories(Paths.get(path + "/conf"))
       Files.createDirectories(pathViews)
+      Files.createDirectories(pathReact)
+
       if(buildType == "all" || buildType == "config") {
         Files.write(Paths.get(path + "/conf/messages.raw"), "".getBytes(StandardCharsets.UTF_8))
       }
@@ -115,7 +119,7 @@ object parser {
 
 
     /*extension*/
-    if(!Files.exists(Paths.get(path+"/app/models/extensions/"+fileName+"Extension.scala")) && (buildType == "all" || buildType == "model")){
+    if(/*!Files.exists(Paths.get(path+"/app/models/extensions/"+fileName+"Extension.scala")) && */(buildType == "all" || buildType == "model")){
       println("Creating Model Extension("+table.viewsPackage+"): "+path+"/app/models/extensions/"+fileName+"Extension.scala")
       Files.write(Paths.get(path+"/app/models/extensions/"+fileName+"Extension.scala"), mg.generateExtension.getBytes(StandardCharsets.UTF_8))
     }
@@ -131,6 +135,14 @@ object parser {
     if(buildType == "all" || buildType == "controller") {
       println("Building Controller("+table.viewsPackage+"): "+path + "/app/controllers/" + fileName + "Controller.scala")
       Files.write(Paths.get(path + "/app/controllers/" + fileName + "Controller.scala"), ControllerGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+    }
+
+    if(buildType == "all" || buildType == "react"){
+      println("Building React("+table.viewsPackage+"): "+path + "/react/*" + submodulePath + table.viewsPackage + "/")
+      val r = Files.createDirectories(Paths.get(path + "/react/" + submodulePath + table.viewsPackage))
+      println("creating directory", path + "/react/" + submodulePath + table.viewsPackage, r)
+
+      Files.write(Paths.get(path + "/react/" + submodulePath + table.viewsPackage +  s"/${table.className}Form.jsx"), ReactFormGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
     }
 
     /*views*/
