@@ -1,0 +1,6 @@
+presupuesto_tipo:
+  id: ~
+  presupuesto_tipo: { type: varchar, size: 255 }
+  state: { type: integer }
+
+
