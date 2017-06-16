@@ -13,8 +13,9 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
 
     val l = List(imports, objectSignature, jsonFormats(), index(), show(), form(), objectResponse, save, delete, update)
 
-    val lMany = if(isMany) l ++ List(nestedForm,createNested, showByManies) else l
+    val lMany = if(isMany) l ++ List(options) else l
     println(table.columns)
+    println("oneToMany", tablesOneToMany)
     lMany.mkString("\n")+"\n}"
   }
 
@@ -65,9 +66,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   def show(): String = {
     """
   def show(id: Long) = conUsuarioDB{ user =>  implicit request =>
-    """+table.queryName+""".porId(id).map{ """+table.objName+s""" =>
-      Ok(Json.toJson(${table.objName}))
-    }.getOrElse(NotFound)
+    objectResponse(id)
   }"""
   }
   def showView(): String = {
@@ -84,7 +83,10 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 
   }
   val fks = table.foreignKeys.map{fk =>
-    "    val "+fk.table+" = "+fk.className+"Query.getAll"
+    "    val "+fk.table+" = "+fk.className+"Consulta.todos"
+  }.mkString("\n")
+  val fksJson = table.foreignKeys.map{fk =>
+    "    val "+fk.table+"s = "+fk.className+"Consulta.todos.map(_.toJson)"
   }.mkString("\n")
   val params = table.foreignKeys.map{fk => ", "+fk.table}.mkString("")
 
@@ -108,18 +110,20 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   def delete(id: Long) = conUsuarioDB{ user =>  implicit request =>
     """+table.queryName+""".porId(id).map{ """+table.objName+ """ =>
       """+table.queryName+""".eliminar("""+table.objName+ """)
-      Redirect(controllers"""+submodulePackageString+""".routes.""" + table.className + """Controller.index(1,20)).flashing("success" -> Messages("delete.success"))
+      Ok("ok")
     }.getOrElse(NotFound)
   }"""
   }
 
-  def objectResponse = s"""
+  def objectResponse = {
+    s"""
   def objectResponse(id: Long)(implicit session: Session) = {
     ${table.queryName}.porId(id).map{ ${table.objName} =>
       Ok(Json.obj("obj" -> Json.toJson(${table.objName})))
     }.getOrElse(NotFound)
   }
 """
+  }
 
   def update = {
     val updateObj = if(table.hasOneToMany) "obj."+table.objName else "obj"
@@ -135,7 +139,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
       form.bindFromRequest.fold(
         formWithErrors => {
      """+fks+"""
-          BadRequest(views.html"""+submodulePackageString+"."+table.viewsPackage+""".edit(formWithErrors"""+params+""", """+table.objName+"""))
+          Ok(Json.obj("errors" -> formWithErrors.errorsAsJson))
         }, formData => {
           formData.update(formData.obj.copy(id = """+table.objName+""".id"""+createdAt+s""")).map{ id =>
             objectResponse(id)
@@ -175,6 +179,7 @@ GET         /"""+table.objName+"""/show/:id          controllers"""+submodulePac
 GET         /"""+table.objName+"""/delete/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.delete(id: Long)
 POST        /"""+table.objName+"""/save              controllers"""+submodulePackageString+"""."""+table.className+"""Controller.save()
 POST        /"""+table.objName+"""/update/:id        controllers"""+submodulePackageString+"""."""+table.className+"""Controller.update(id: Long)
+GET         /"""+table.objName+"""/options             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.options()
 GET         /"""+table.objName+"""/:page/:pageLength controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int)
 GET         /"""+table.objName+"""/:page             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20)
 """
@@ -186,11 +191,19 @@ GET         /"""+table.objName+"""/:page             controllers"""+submodulePac
   }"""
   }
 
+  def options() = {
+    val result = table.foreignKeys.map{fk => s""""${fk.table}s" -> ${fk.table}s"""}.mkString(", ")
+    s"""  def options() = conUsuarioDB{ user =>  implicit request =>
+${fksJson}
+    Ok(Json.obj(${result}))
+  }"""
+  }
+
 
   def createNested() = """
   def createNested() = conUsuarioDB{ user =>  implicit request =>
-    val i = request.getQueryString("i").getOrElse("0").toInt
-    val name = request.getQueryString("name").getOrElse(""""+table.objName+"""s")
+    val i = request.getConsultaString("i").getOrElse("0").toInt
+    val name = request.getConsultaString("name").getOrElse(""""+table.objName+"""s")
 """+fks+ """
     Ok(views.html"""+submodulePackageString+"."+table.viewsPackage+"""._nestedForm(Field(form, name+"["+i+"]", Seq(), None, Seq(), None)"""+params+"""))
   }"""

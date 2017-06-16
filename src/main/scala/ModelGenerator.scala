@@ -20,6 +20,7 @@ import extensions._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.format.Formats._
+import play.api.libs.json._
 
 """ /*TODO: only import classes relatives to the table*/
 
@@ -67,7 +68,21 @@ import play.api.data.format.Formats._
 
       val selectString = "  lazy val selectString = "+selectCol
 
-      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n"+{if(!isSubClass) getters else ""}+"\n}"
+      val toJson = {
+        val toJsonDef = if(table.oneToManies.length>0){
+          val otmsLists = table.oneToManies.map{otm =>
+            s"""     ("${otm.lstName}" -> Json.toJson(${otm.queryName}.by${table.className}Id(id).map(_.toJson)))"""
+          }.mkString("\n")
+
+          s"def toJson(implicit session: Session) = Json.toJson(this).as[JsObject] + \n ${otmsLists}"
+        } else
+          "def toJson = Json.toJson(this)"
+        s"""  implicit val jsonFormat = Json.format[${table.className}]
+           |  ${toJsonDef}
+         """.stripMargin
+      }
+
+      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+toJson+"\n\n"+selectString+"\n"+{if(!isSubClass) getters else ""}+"\n}"
 
 
       val subClasses = columns.collect{

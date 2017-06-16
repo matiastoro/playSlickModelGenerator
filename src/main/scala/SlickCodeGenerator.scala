@@ -95,7 +95,7 @@ object parser {
     } yield table
       println("LATABLAOEZI: "+t.className+" fks: "+fks+"  tab: "+tab)
     tab.filter(_.columns.exists{
-      case o: OneToMany if o.foreignTable == t.className => true
+      case o: OneToMany if o.foreignTable.capitalize == t.className => true
       //case c: Column if c.foreignKey.isDefined => true
       case _ => false
     })

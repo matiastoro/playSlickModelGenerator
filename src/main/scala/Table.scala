@@ -67,7 +67,7 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
                 fk = getForeignKey(ps)
                 getScalaType(col, ps,false) match{
                   case Some(tpe) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps))
-                  case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR").capitalize))
+                  case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR")))
                 }
               case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", false, None, false)
               case _ => Column(underscoreToCamel(col), col, "DateTime", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
@@ -207,8 +207,13 @@ import GeneratorMappings._
 case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
   val className = underscoreToCamel(foreignTable).capitalize
   val objName = underscoreToCamel(foreignTable)
+  val lstName = objName+"s"
   val queryName = className+"Consulta"
-  def formHelper(submodulePackageString: String = "") =
+  def formHelper(submodulePackageString: String = "", ref: Option[Table] = None) ={
+    println("TETETE",foreignTable)
+    ref.map{table =>
+      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${className}s" objs={obj.${classname}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} hide={["${table.objName}Id"]} />}/>"""
+    }.getOrElse{
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
               <h2>@Messages(""""+objName+""".list")</h2>
@@ -236,6 +241,8 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
                     });
               }
           </script>"""
+    }
+  }
 
 }
 
@@ -278,20 +285,27 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     case _ => inputDefault(prefix)
   }
 
+  val ref = (name: String) => s"""ref={(input) => this._inputs["${name}"] = input}"""
+
   def inputDefaultReact(prefix: String) = {
     val inputName = prefix+name
-    s"""<TextField ref={(i) => this._inputs["${inputName}"] = i} name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={this.state.readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
+    s"""<TextField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
   }
-  def formHelperReact(prefix: String = "") = tpe match {
-    case "Long" if foreignKey.isDefined => foreignKeyInput(prefix, foreignKey)
-    case "String" => inputDefaultReact(prefix)
-    case "Int" => inputDefaultReact(prefix)
-    case "Long" => inputDefaultReact(prefix)
-    case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
-    case "Double" => inputDefaultReact(prefix)
-    case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
-    case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
-    case _ => inputDefaultReact(prefix)
+  def formHelperReact(prefix: String = "", hidden: Boolean = false): String = {
+    if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={obj.${prefix+name} || ""} readOnly={this.state.readOnly} />"""
+    else{
+      tpe match {
+        case "Long" if foreignKey.isDefined => foreignKeyInputReact(prefix, foreignKey)
+        case "String" => inputDefaultReact(prefix)
+        case "Int" => inputDefaultReact(prefix)
+        case "Long" => inputDefaultReact(prefix)
+        case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+        case "Double" => inputDefaultReact(prefix)
+        case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+        case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+        case _ => inputDefaultReact(prefix)
+      }
+    }
   }
 
   val defaultValue = {
@@ -317,9 +331,20 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     }.getOrElse(inputDefault(prefix))
   }
 
+  def foreignKeyInputReact(prefix: String, foreignKey: Option[ForeignKey]) = {
+    foreignKey.map{ fk =>
+      //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
+      val inputName = prefix+name
+      println("a ver cual", fk)
+      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} />"""
+      s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
+    }.getOrElse(inputDefault(prefix))
+  }
+
 }
 case class ForeignKey(table: String, reference: String, onDelete: Option[String]) extends CodeGenerator{
   val className = underscoreToCamel(table).capitalize
   val queryName = className+"Consulta"
+  val toStringName = underscoreToCamel(table)
 }
 case class ColumnType(tpe: String)
