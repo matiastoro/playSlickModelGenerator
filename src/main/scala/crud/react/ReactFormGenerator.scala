@@ -44,6 +44,9 @@ ${inputs}
     val imports = s"""import React from 'react';
 import TextField from '../gforms/GTextField';
 import SelectField from '../gforms/GSelectField';
+import Checkbox from '../gforms/GCheckbox';
+import DateTime from '../gforms/GDateTime';
+import DatePicker from '../gforms/GDatePicker';
 import HiddenField from '../gforms/GHiddenField';
 import GForm from '../gforms/GForm';
 ${if(tablesOneToMany.length>0) "import {GFormInline} from '../gforms/GForm';" else ""}
@@ -51,7 +54,7 @@ ${if(tablesOneToMany.length>0) "import {GFormInline} from '../gforms/GForm';" el
 """
     val inputs = generateInputs(table.columns)
     val oneToMany = if(tablesOneToMany.length>0) generateOneToMany(inputs) else ""
-
+    val withOptions = table.foreignColumns.length>0
     val result =
       s"""$imports
 
@@ -65,12 +68,14 @@ export default class ${table.className}Form extends GForm{
     apiGetUrl =  '/${table.tableName}/show/'
     apiCreateUrl = '/${table.tableName}/save'
     apiUpdateUrl = '/${table.tableName}/update/'
+    ${if(withOptions) s"""apiOptionsUrl = "/${table.tableName}/options"""" else ""}
 
     objStr = '${table.className}'
     objGender = 'F'
 
     renderForm(obj, errors){
-        const readOnly = this.props.readOnly
+        const readOnly = this.state.readOnly
+        ${if(withOptions) "const hide = this.props.hide || []" else ""}
         return <div>
 ${inputs}
         </div>

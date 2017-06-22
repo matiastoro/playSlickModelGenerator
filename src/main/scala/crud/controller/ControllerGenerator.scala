@@ -13,7 +13,8 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
 
     val l = List(imports, objectSignature, jsonFormats(), index(), show(), form(), objectResponse, save, delete, update)
 
-    val lMany = if(isMany) l ++ List(options) else l
+
+    val lMany = if(table.foreignKeys.length>0) l ++ List(options) else l
     println(table.columns)
     println("oneToMany", tablesOneToMany)
     lMany.mkString("\n")+"\n}"
@@ -172,6 +173,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   }
 
   val nestedRoute = if(isMany) "\n"+"""GET         /"""+table.objName+"""/nested            controllers"""+submodulePackageString+"""."""+table.className+"""Controller.createNested()""" else ""
+
   def routes = {
     """
 GET         /"""+table.objName+"""/                  controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20)

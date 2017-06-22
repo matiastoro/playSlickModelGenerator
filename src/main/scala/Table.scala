@@ -212,7 +212,7 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
   def formHelper(submodulePackageString: String = "", ref: Option[Table] = None) ={
     println("TETETE",foreignTable)
     ref.map{table =>
-      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${className}s" objs={obj.${classname}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} hide={["${table.objName}Id"]} />}/>"""
+      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${className}s" objs={obj.${className}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} hide={["${table.objName}Id"]} />}/>"""
     }.getOrElse{
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
@@ -291,6 +291,19 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     val inputName = prefix+name
     s"""<TextField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
   }
+
+  def inputReact(control: String, prefix: String, extra: Option[String] = None) = {
+    val inputName = prefix + name
+    s"""<${control} ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} ${extra.getOrElse("")}/>"""
+  }
+
+  def inputDateReact(control: String, prefix: String, extra: Option[String] = None) = {
+    val inputName = prefix + name
+    s"""<${control} ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName}} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} ${extra.getOrElse("")}/>"""
+  }
+
+
+
   def formHelperReact(prefix: String = "", hidden: Boolean = false): String = {
     if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={obj.${prefix+name} || ""} readOnly={this.state.readOnly} />"""
     else{
@@ -299,10 +312,11 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
         case "String" => inputDefaultReact(prefix)
         case "Int" => inputDefaultReact(prefix)
         case "Long" => inputDefaultReact(prefix)
-        case "Boolean" => """@checkbox(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+        case "Boolean" => inputReact("Checkbox", prefix, Some("singlecontrol"))
         case "Double" => inputDefaultReact(prefix)
-        case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
-        case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
+        case "DateTime" => inputDateReact("DateTime", prefix)
+        case "Date" => inputDateReact("DatePicker", prefix)
+        case "LocalDate" => inputDateReact("DatePicker", prefix)
         case _ => inputDefaultReact(prefix)
       }
     }
