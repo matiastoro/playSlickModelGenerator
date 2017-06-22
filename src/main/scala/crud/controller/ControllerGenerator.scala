@@ -51,7 +51,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 /*"""+routes+"""*/
   def index(page: Int = 1, pageLength: Int = 20) = conUsuarioDB{ user =>  implicit request =>
     val pagination = """+table.queryName+""".paginate("""+table.queryName+""".todosConsulta,pageLength,page)
-    Ok(Json.toJson(Json.obj("results" -> pagination.results, "count" -> pagination.count, "page" -> page, "pageLength" -> pageLength)))
+    Ok(Json.toJson(Json.obj("results" -> pagination.results, "count" -> pagination.count, "page" -> pagination.page, "pageLength" -> pagination.pageLength)))
   }"""
   }
   def indexView(): String = {

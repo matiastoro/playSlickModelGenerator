@@ -89,6 +89,14 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
 
   }
 
+  def selectCol = columns.filter(_.name == objName).headOption.getOrElse{
+    columns.filter(c => c.name == "name" || c.name == "nombre").headOption.getOrElse{
+      columns.collect{case c: Column if c.tpe=="String" => c}.headOption.getOrElse{
+        columns.head
+      }
+    }
+  }.name
+
   def getRawName(col: String, ps: ListMap[String,String]): String = {
     ps.getOrElse("rawName", col)
   }
@@ -283,6 +291,15 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     case "DateTime" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
     case "Date" => """@inputDate(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
     case _ => inputDefault(prefix)
+  }
+
+  def showHelper = tpe match {
+    case "Long" if foreignKey.isDefined => {
+      val fk = foreignKey.get
+      println("FK", foreignKey.get)
+      s"""{obj.${name} && this.state.indexedOptions?this.state.indexedOptions.${fk.table}s[obj.${name}].${fk.table}:null}"""
+    }
+    case _ => s"""{obj.${name}}"""
   }
 
   val ref = (name: String) => s"""ref={(input) => this._inputs["${name}"] = input}"""

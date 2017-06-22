@@ -140,9 +140,9 @@ object parser {
     if(buildType == "all" || buildType == "react"){
       println("Building React("+table.viewsPackage+"): "+path + "/react/*" + submodulePath + table.viewsPackage + "/")
       val r = Files.createDirectories(Paths.get(path + "/react/" + submodulePath + table.viewsPackage))
-      println("creating directory", path + "/react/" + submodulePath + table.viewsPackage, r)
 
       Files.write(Paths.get(path + "/react/" + submodulePath + table.viewsPackage +  s"/${table.className}Form.jsx"), ReactFormGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path + "/react/" + submodulePath + table.viewsPackage +  s"/${table.className}List.jsx"), ReactListGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
     }
 
     /*views*/

@@ -58,13 +58,8 @@ import play.api.libs.json._
         case c: SubClass => c.name+": "+c.className
       }
 
-      val selectCol = columns.filter(_.name == table.objName).headOption.getOrElse{
-        columns.filter(c => c.name == "name" || c.name == "nombre").headOption.getOrElse{
-          columns.collect{case c: Column if c.tpe=="String" => c}.headOption.getOrElse{
-            columns.head
-          }
-        }
-      }.name
+      val selectCol = table.selectCol
+
 
       val selectString = "  lazy val selectString = "+selectCol
 

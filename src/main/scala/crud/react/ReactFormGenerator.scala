@@ -59,15 +59,18 @@ ${if(tablesOneToMany.length>0) "import {GFormInline} from '../gforms/GForm';" el
       s"""$imports
 
 /*
+<Route path="/${table.objName}/" component={${table.className}List} />
 <Route path="/${table.objName}/new" component={${table.className}Form} />
 <Route path="/${table.objName}/:id" component={${table.className}Form} />
-<Route path="/${table.objName}/:page/:pageLength" component={${table.className}Form} />
+<Route path="/${table.objName}/:page/:pageLength" component={${table.className}List} />
 */
 export default class ${table.className}Form extends GForm{
     showUrl =  '/${table.tableName}/'
+    listUrl =  '/${table.tableName}/'
     apiGetUrl =  '/${table.tableName}/show/'
     apiCreateUrl = '/${table.tableName}/save'
     apiUpdateUrl = '/${table.tableName}/update/'
+    apiDeleteUrl = '/${table.tableName}/delete/'
     ${if(withOptions) s"""apiOptionsUrl = "/${table.tableName}/options"""" else ""}
 
     objStr = '${table.className}'
