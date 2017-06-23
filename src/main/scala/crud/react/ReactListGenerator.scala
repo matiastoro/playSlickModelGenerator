@@ -11,9 +11,9 @@ case class ReactListGenerator(table: Table, tablesOneToMany: List[Table] = List(
     val tab = (" "*12)
 
     columns.collect{
-      case c: Column if !c.synthetic && c.display != DisplayType.Hidden && !c.isId =>
-        c.showHelper
-    }.mkString("\n")
+      case c: Column if !c.synthetic && c.display != DisplayType.Hidden && !c.isId && c.name != table.selectCol =>
+        tab+c.showHelper
+    }.mkString(" -- \n")
   }
 
 
@@ -25,6 +25,16 @@ import {grey400, darkBlack, lightBlack} from 'material-ui/styles/colors';
 """
     val inputs = generateInputs(table.columns)
     val withOptions = table.foreignColumns.length>0
+
+    val secondaryText = if(inputs.length>0)
+      s"""secondaryLines = 1
+    renderSecondaryText = (obj) => {
+        return <p>
+${inputs}
+        </p>
+    }
+       """
+    else ""
 
     val result =
       s"""$imports
@@ -47,11 +57,7 @@ export default class ${table.className}Form extends GList{
     renderPrimaryText = (obj) => {
         return obj.${table.selectCol}
     }
-    renderSecondaryText = (obj) => {
-        return <p>
-            ${inputs}
-        </p>
-    }
+    ${secondaryText}
     renderForm(obj, errors){
         const readOnly = this.state.readOnly
         ${if(withOptions) "const hide = this.props.hide || []" else ""}

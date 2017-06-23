@@ -218,9 +218,8 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
   val lstName = objName+"s"
   val queryName = className+"Consulta"
   def formHelper(submodulePackageString: String = "", ref: Option[Table] = None) ={
-    println("TETETE",foreignTable)
     ref.map{table =>
-      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${className}s" objs={obj.${className}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} hide={["${table.objName}Id"]} />}/>"""
+      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${className}s" readOnly={readOnly} objs={obj.${className}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} readOnly={readOnly} hide={["${table.objName}Id"]} />}/>"""
     }.getOrElse{
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
@@ -322,7 +321,7 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
 
 
   def formHelperReact(prefix: String = "", hidden: Boolean = false): String = {
-    if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={obj.${prefix+name} || ""} readOnly={this.state.readOnly} />"""
+    if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={obj.${prefix+name} || ""} readOnly={readOnly} />"""
     else{
       tpe match {
         case "Long" if foreignKey.isDefined => foreignKeyInputReact(prefix, foreignKey)

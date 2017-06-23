@@ -41,6 +41,19 @@ ${inputs}
   }
 
   def generate: String = {
+
+
+    val oneToManiesImps = table.oneToManies.map{c => {
+      s"""import {${c.className}FormInline} from '../${c.name}/${c.className}Form'"""
+    }}.mkString("\n")
+    val oneToManiesImports = if(table.oneToManies.length>0){
+      s"""import {GNestedForms} from '../gforms/GForm';
+        |${oneToManiesImps}
+      """.stripMargin
+    } else {
+      ""
+    }
+
     val imports = s"""import React from 'react';
 import TextField from '../gforms/GTextField';
 import SelectField from '../gforms/GSelectField';
@@ -50,6 +63,7 @@ import DatePicker from '../gforms/GDatePicker';
 import HiddenField from '../gforms/GHiddenField';
 import GForm from '../gforms/GForm';
 ${if(tablesOneToMany.length>0) "import {GFormInline} from '../gforms/GForm';" else ""}
+${oneToManiesImports}
 //inputs de nested
 """
     val inputs = generateInputs(table.columns)
