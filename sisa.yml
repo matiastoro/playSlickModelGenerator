@@ -1,0 +1,42 @@
+organizacion:
+  id: ~
+  organizacion: {type: varchar, size: 255}
+cargo:
+  id: ~
+  cargo: {type: varchar, size: 255}
+  codigo: {type: varchar, size: 255}
+  organizacion_id: { type: integer, foreignTable: organizacion, foreignReference: id, required: false}
+usuario:
+  id: ~
+  nombre: {type: varchar, size: 255}
+  email: {type: varchar, size: 255}
+  contrasena: {type: varchar, size: 255}
+  estado: {type: integer}
+  rut: {type: varchar, size: 255, required: false}
+  cargos: { type: oneToMany, foreignTable: usuario_cargo}
+usuario_cargo:
+  id: ~
+  cargo_id: {type: integer, foreignTable: cargo, required: true, foreignReference: id, onDelete: cascade} 
+  usuario_id: {type: integer, foreignTable: usuario, required: true, foreignReference: id, onDelete: cascade}
+  aerodromo: {type: varchar, size: 255, required: false}
+
+
+formulario:
+  id: ~
+  codigo: {type: varchar, size: 255, required: true}
+  schema: {type: varchar, size: 255, required: true}
+  organizacion_id: { type: integer, foreignTable: organizacion, foreignReference: id, required: false}
+  estado: {type: integer, required: false}
+
+formulario_instancia:
+  id: ~
+  formulario_id: { type: integer, foreignTable: formulario, foreignReference: id, required: true}
+  data: {type: longvarchar, required: true}
+  estado: {type: longvarchar}
+
+formulario_instancia_historia:
+  id: ~
+  formulario_id: { type: integer, foreignTable: formulario, foreignReference: id, required: true}
+  data: {type: longvarchar, required: true}
+  estado: {type: longvarchar}
+  created_at: {type: timestamp}
