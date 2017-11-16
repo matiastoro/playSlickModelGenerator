@@ -120,7 +120,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     s"""
   def objectResponse(id: Long)(implicit session: Session) = {
     ${table.queryName}.porId(id).map{ ${table.objName} =>
-      Ok(Json.obj("obj" -> Json.toJson(${table.objName})))
+      Ok(Json.obj("obj" -> ${table.objName}.toJson))
     }.getOrElse(NotFound)
   }
 """

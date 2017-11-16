@@ -85,15 +85,18 @@ object parser {
     }
   }
   def tablesOneToMany(t: Table, tables: List[Table]): List[Table] = {
+    println("calculating tablesOneToMay of ", t.yamlName, tables)
     val fks = t.columns.collect{ //collect all columns that have foreignKeys
       case c: Column if c.foreignKey.isDefined => c.foreignKey.get
     }
+    println("la tabla",t)
+    println("fks", fks)
 
     val tab = for{
       fk <- fks
       table <- tables if table.tableName == fk.table
     } yield table
-      println("LATABLAOEZI: "+t.className+" fks: "+fks+"  tab: "+tab)
+    println("LATABLAOEZI: "+t.className+" fks: "+fks+"  tab: "+tab)
     tab.filter(_.columns.exists{
       case o: OneToMany if o.foreignTable.capitalize == t.className => true
       //case c: Column if c.foreignKey.isDefined => true

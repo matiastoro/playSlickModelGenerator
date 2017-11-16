@@ -67,7 +67,7 @@ import play.api.libs.json._
         val toJsonDef = if(table.oneToManies.length>0){
           val otmsLists = table.oneToManies.map{otm =>
             s"""     ("${otm.lstName}" -> Json.toJson(${otm.queryName}.by${table.className}Id(id).map(_.toJson)))"""
-          }.mkString("\n")
+          }.mkString("+\n")
 
           s"def toJson(implicit session: Session) = Json.toJson(this).as[JsObject] + \n ${otmsLists}"
         } else

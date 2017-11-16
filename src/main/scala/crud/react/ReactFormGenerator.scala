@@ -7,6 +7,8 @@ import via56.slickGenerator.Table
 case class ReactFormGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String) extends CodeGenerator{
 
   def generateInputs(columns: List[AbstractColumn], prefix: String = ""): String = {
+    println("GENERATING REACT FORM ", table)
+    println("AA",tablesOneToMany)
     val groupTab = (" "*10)
     val tab = (" "*12)
 
@@ -25,12 +27,13 @@ case class ReactFormGenerator(table: Table, tablesOneToMany: List[Table] = List(
   def generateOneToMany(inputs: String): String ={
     s"""
 export class ${table.className}FormInline extends GFormInline{
-    apiOptionsUrl = "/usuarioCargo/options"
+    apiOptionsUrl = "/${table.tableName}/options"
     renderForm(){
         const obj = this.props.obj;
         const readOnly = this.props.readOnly
         const errors = this.props.errors
         const hide = this.props.hide || []
+        const i = this.props.i
         return <div>
 ${inputs}
         </div>

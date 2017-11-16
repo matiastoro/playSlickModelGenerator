@@ -219,7 +219,7 @@ case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
   val queryName = className+"Consulta"
   def formHelper(submodulePackageString: String = "", ref: Option[Table] = None) ={
     ref.map{table =>
-      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${className}s" readOnly={readOnly} objs={obj.${className}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} readOnly={readOnly} hide={["${table.objName}Id"]} />}/>"""
+      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${objName}s" readOnly={readOnly} objs={obj.${objName}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} readOnly={readOnly} hide={["${table.objName}Id"]} errors={errors} prefix="${objName}s"/>}/>"""
     }.getOrElse{
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
@@ -366,7 +366,7 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
       println("a ver cual", fk)
-      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} />"""
+      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors[this.props.prefix+"["+i+"].${inputName}"]} />"""
       s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
     }.getOrElse(inputDefault(prefix))
   }

@@ -1,3 +1,6 @@
+perfil:
+  id: ~
+  perfil: {type: varchar, size: 255}
 organizacion:
   id: ~
   organizacion: {type: varchar, size: 255}
@@ -14,16 +17,23 @@ usuario:
   estado: {type: integer}
   rut: {type: varchar, size: 255, required: false}
   cargos: { type: oneToMany, foreignTable: usuario_cargo}
+  perfiles: { type: oneToMany, foreignTable: perfil_usuario}
 usuario_cargo:
   id: ~
   cargo_id: {type: integer, foreignTable: cargo, required: true, foreignReference: id, onDelete: cascade} 
   usuario_id: {type: integer, foreignTable: usuario, required: true, foreignReference: id, onDelete: cascade}
   aerodromo: {type: varchar, size: 255, required: false}
+perfil_usuario:
+  id: ~
+  perfil_id: {type: integer, foreignTable: perfil, required: true, foreignReference: id, onDelete: cascade} 
+  usuario_id: {type: integer, foreignTable: usuario, required: true, foreignReference: id, onDelete: cascade}
 
 
 formulario:
   id: ~
+  nombre: {type: varchar, size: 255, required: true}
   codigo: {type: varchar, size: 255, required: true}
+  key: {type: varchar, size: 255, required: true}
   schema: {type: varchar, size: 255, required: true}
   organizacion_id: { type: integer, foreignTable: organizacion, foreignReference: id, required: false}
   estado: {type: integer, required: false}
@@ -33,10 +43,26 @@ formulario_instancia:
   formulario_id: { type: integer, foreignTable: formulario, foreignReference: id, required: true}
   data: {type: longvarchar, required: true}
   estado: {type: longvarchar}
+  files: {type: longvarchar, required: false}
+  adjuntos: {type: longvarchar, required: false}
+  designador_oaci: {type: varchar, size:255, required: false}
+  created_at: {type: timestamp}
+  updated_at: {type: timestamp, required: false}
 
 formulario_instancia_historia:
   id: ~
   formulario_id: { type: integer, foreignTable: formulario, foreignReference: id, required: true}
   data: {type: longvarchar, required: true}
   estado: {type: longvarchar}
+  files: {type: longvarchar, required: false}
+  adjuntos: {type: longvarchar, required: false}
+  usuario_id: { type: integer, foreignTable: usuario, foreignReference: id, required: true}
   created_at: {type: timestamp}
+
+
+attachment:
+  id: ~
+  attachment: {type: varchar, size: 255, required: false}
+  estado: {type: integer, required: false}
+  target_table: {type: varchar, size: 255, required: true}
+  d: {type: varchar, size: 255, required: true}
