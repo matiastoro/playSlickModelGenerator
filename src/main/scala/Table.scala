@@ -4,7 +4,7 @@ import via56.slickGenerator.DisplayType.DisplayType
 
 import scala.collection.immutable.ListMap
 
-case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGenerator{
+case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash: Map[String,String]) extends CodeGenerator{
   val tableName = underscoreToCamel(yamlName)
   val className = tableName.capitalize
 
@@ -20,7 +20,7 @@ case class Table(yamlName: String, args: ListMap[String, Any]) extends CodeGener
 
   println("TableNameDB; "+tableName)
   val mappingName = className+"Mapeo"
-  val queryName = className+"Consulta"
+  val queryName = className+langHash("Query")
   val objName = tableName
   val viewsPackage = tableName
 

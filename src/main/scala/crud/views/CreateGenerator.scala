@@ -23,6 +23,7 @@ case class CreateGenerator(table: Table, submodulePackageString: String) extends
 }
     """
 
+
     html
   }
 }

@@ -6,7 +6,7 @@ import via56.slickGenerator.Column
 import via56.slickGenerator.SubClass
 import via56.slickGenerator.Table
 
-case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String) extends CodeGenerator{
+case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String)(implicit langHash: Map[String, String]) extends CodeGenerator{
   val isMany = tablesOneToMany.size>0
   def generate: String = {
     val objectSignature = """object """+table.className+"""Controller extends Controller with Autorizacion {"""
@@ -50,7 +50,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     """
 /*"""+routes+"""*/
   def index(page: Int = 1, pageLength: Int = 20) = conUsuarioDB{ user =>  implicit request =>
-    val pagination = """+table.queryName+""".paginate("""+table.queryName+""".todosConsulta,pageLength,page)
+    val pagination = """+table.queryName+""".paginate("""+table.queryName+s""".${langHash("allQuery")},pageLength,page)
     Ok(Json.toJson(Json.obj("results" -> pagination.results, "count" -> pagination.count, "page" -> pagination.page, "pageLength" -> pagination.pageLength)))
   }"""
   }
@@ -59,7 +59,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     """
 /*"""+routes+"""*/
   def index(page: Int = 1, pageLength: Int = 20) = conUsuarioDB{ user =>  implicit request =>
-    val pagination = """+table.queryName+""".paginate("""+table.queryName+""".todosConsulta,pageLength,page)
+    val pagination = """+table.queryName+""".paginate("""+table.queryName+s""".${langHash("allQuery")},pageLength,page)
     Ok(views.html"""+submodulePackageString+"""."""+table.viewsPackage+""".index(pagination.results, pagination.count, page, pageLength))
   }"""
   }
@@ -73,7 +73,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   def showView(): String = {
     """
   def show(id: Long) = conUsuarioDB{ user =>  implicit request =>
-    """+table.queryName+""".porId(id).map{ """+table.objName+s""" =>
+    """+table.queryName+s""".${langHash("byId")}(id).map{ """+table.objName+s""" =>
       Ok(views.html"""+submodulePackageString+"."+table.viewsPackage+""".show("""+table.objName+"""))
     }.getOrElse(NotFound)
   }"""
@@ -84,10 +84,10 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 
   }
   val fks = table.foreignKeys.map{fk =>
-    "    val "+fk.table+" = "+fk.className+"Consulta.todos"
+    "    val "+fk.table+" = "+fk.className+s"${langHash("Query")}.${langHash("getAll")}"
   }.mkString("\n")
   val fksJson = table.foreignKeys.map{fk =>
-    "    val "+fk.table+"s = "+fk.className+"Consulta.todos.map(_.toJson)"
+    "    val "+fk.table+"s = "+fk.className+s"${langHash("Query")}.${langHash("getAll")}.map(_.toJson)"
   }.mkString("\n")
   val params = table.foreignKeys.map{fk => ", "+fk.table}.mkString("")
 
@@ -97,7 +97,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     //}  else table.objName
     """
   def edit(id: Long) = conUsuarioDB{ user =>  implicit request =>
-    """+table.queryName+""".porId(id).map{ """+table.objName+ """ =>
+    """+table.queryName+s""".${langHash("byId")}(id).map{ """+table.objName+ """ =>
   """+fks+"""
       Ok(views.html"""+submodulePackageString+"."+table.viewsPackage+""".edit(form.fill("""+fillObj+""")"""+params+""", """+table.objName+"""))
     }.getOrElse(NotFound)
@@ -109,8 +109,8 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     //}  else table.objName
     """
   def delete(id: Long) = conUsuarioDB{ user =>  implicit request =>
-    """+table.queryName+""".porId(id).map{ """+table.objName+ """ =>
-      """+table.queryName+""".eliminar("""+table.objName+ """)
+    """+table.queryName+s""".${langHash("byId")}(id).map{ """+table.objName+ """ =>
+      """+table.queryName+s""".${langHash("delete")}("""+table.objName+ """)
       Ok("ok")
     }.getOrElse(NotFound)
   }"""
@@ -119,7 +119,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   def objectResponse = {
     s"""
   def objectResponse(id: Long)(implicit session: Session) = {
-    ${table.queryName}.porId(id).map{ ${table.objName} =>
+    ${table.queryName}.${langHash("byId")}(id).map{ ${table.objName} =>
       Ok(Json.obj("obj" -> ${table.objName}.toJson))
     }.getOrElse(NotFound)
   }
@@ -136,7 +136,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     }.mkString("\n")*/
     """
   def update(id: Long) = conUsuarioDB{ user =>  implicit request =>
-    """+table.queryName+""".porId(id).map{ """+table.objName+""" =>
+    """+table.queryName+s""".${langHash("byId")}(id).map{ """+table.objName+""" =>
       form.bindFromRequest.fold(
         formWithErrors => {
      """+fks+"""

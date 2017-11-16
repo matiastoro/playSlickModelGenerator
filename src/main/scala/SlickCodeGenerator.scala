@@ -49,10 +49,24 @@ import scala.io.Source
 object parser {
   def main(args: Array[String]){
     println("USAGE: run (model|controller|view|config|all) filename [destination_folder] [submodule_name]")
+
     val buildType = args(0)
     val reader = Source.fromFile(args(1)).getLines.mkString("\n")
     val pathName = if(args.size > 2) args(2) else "output"
     val submoduleName = if(args.size > 3) args(3) else ""
+    implicit val lang: String = if(args.size > 4) args(4) else "en"
+    implicit val langHash: Map[String, String] = Map(
+      "Query" -> {if(lang=="es") "Consulta" else "Query"},
+      "allQuery" -> {if(lang=="es") "todosConsulta" else "allQuery"},
+      "getAll" -> {if(lang=="es") "todos" else "getAll"},
+      "byId" -> {if(lang=="es") "porId" else "byId"},
+      "delete" -> {if(lang=="es") "eliminar" else "delete"},
+      "Mapping" -> {if(lang=="es") "Mapeo" else "s"},
+      "updateOrInsert" -> {if(lang=="es") "actualizarOInsertar" else "updateOrInsert"},
+      "insert" -> {if(lang=="es") "insertar" else "insert"}
+
+    )
+
     val path = Paths.get(pathName)
     val pathExtensions  = Paths.get(path+"/app/models/extensions")
     val pathControllers = Paths.get(path+"/app/controllers")
@@ -105,7 +119,8 @@ object parser {
 
   }
 
-  def writeToFile(path: String, submoduleName: String, table: Table, tablesOneToMany: List[Table], buildType: String) = {
+  def writeToFile(path: String, submoduleName: String, table: Table, tablesOneToMany: List[Table], buildType: String)(implicit langHash: Map[String,String]) = {
+
     val submodulePath = if (submoduleName == "") "" else submoduleName + "/"
     val submodulePackageString = if (submoduleName == "") "" else "." + submoduleName
 

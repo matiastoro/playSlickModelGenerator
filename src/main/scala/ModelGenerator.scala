@@ -5,7 +5,7 @@ import scala.collection.immutable.ListMap
 /**
  * Created by matias on 1/26/15.
  */
-case class ModelGenerator(table: Table, tablesOneToMany: List[Table] = List()) extends CodeGenerator {
+case class ModelGenerator(table: Table, tablesOneToMany: List[Table] = List())(implicit langHash: Map[String,String]) extends CodeGenerator {
 
 
   def imports(className: String) = s"""package models
@@ -29,9 +29,9 @@ import play.api.libs.json._
     fc.foreignKey.map{ fk =>
       """  def get"""+fk.className+"""(implicit session: Session) = """+{
         if(!fc.optional)
-          fk.queryName+""".porId("""+fc.name+""")"""
+          fk.queryName+s""".${langHash("byId")}("""+fc.name+""")"""
         else
-          """if("""+fc.name+""".isDefined) """+fk.queryName+""".porId("""+fc.name+""".get) else None"""
+          """if("""+fc.name+""".isDefined) """+fk.queryName+s""".${langHash("byId")}("""+fc.name+""".get) else None"""
       }
     }.getOrElse("")
   }.mkString("\n")
@@ -135,7 +135,7 @@ import play.api.libs.json._
 
             c.foreignKey.map{ fk =>
               val onDelete = fk.onDelete.map{od => ", onDelete=ForeignKeyAction."+od.capitalize}.getOrElse("")
-              colMap + "\n  def "+guessFkName(c.name)+" = foreignKey(\""+c.rawName+"_fk\", "+c.name+", "+underscoreToCamel(fk.table).capitalize+"Consulta.tableQ)(_."+fk.reference+onDelete+")"
+              colMap + "\n  def "+guessFkName(c.name)+" = foreignKey(\""+c.rawName+"_fk\", "+c.name+", "+underscoreToCamel(fk.table).capitalize+s"${langHash("Query")}.tableQ)(_."+fk.reference+onDelete+")"
             }.getOrElse(colMap)
 
           }
@@ -172,7 +172,7 @@ import play.api.libs.json._
 
     //def * = (id.?, fir, name, latitude, longitude) <> (Fir.tupled, Fir.unapply)
 
-    val tableClassHead = """class """+className+"""Mapeo(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
+    val tableClassHead = """class """+className+s"""${langHash("Mapping")}(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
     val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+star+ shaped + "\n}"
 
     val foreignKeyFilters = table.foreignColumns.map{ c =>
@@ -188,7 +188,7 @@ import play.api.libs.json._
 
     val objectHead ="""
 
-class """+className+"""ConsultaBase extends BaseDAO["""+className+"""] {
+class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"""] {
   type DBTable = """+className+"""Mapeo
 
   val tableQ = {
@@ -301,10 +301,10 @@ class """+className+"""ConsultaBase extends BaseDAO["""+className+"""] {
 case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
   def update(updatedObj: """+table.className+""" = obj)(implicit session: Session) = {
 """+otmsUpdates+"""
-    """+table.queryName+""".actualizarOInsertar(updatedObj)
+    """+table.queryName+s""".${langHash("updateOrInsert")}(updatedObj)
   }
   def insert(insertedObj: """+table.className+""")(implicit session: Session) = {
-    val id = """+table.queryName+""".insertar(insertedObj)
+    val id = """+table.queryName+s""".${langHash("insert")}(insertedObj)
 """+otmsInserts+"""
     id
   }
@@ -341,7 +341,7 @@ import models._
 
 $classesCode
 
-object ${className}Consulta extends ${className}ConsultaBase{
+object ${className}${langHash("Query")} extends ${className}${langHash("Query")}Base{
 
 }
     """.trim
