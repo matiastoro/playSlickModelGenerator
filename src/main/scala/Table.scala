@@ -4,7 +4,7 @@ import via56.slickGenerator.DisplayType.DisplayType
 
 import scala.collection.immutable.ListMap
 
-case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash: Map[String,String]) extends CodeGenerator{
+case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash: Map[String,String], lang: String) extends CodeGenerator{
   val tableName = underscoreToCamel(yamlName)
   val className = tableName.capitalize
 
@@ -42,7 +42,23 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     ps.getOrElse("required", "true") != "true"
   }
 
-  def getColumns(columnsMap: ListMap[String, Any]): List[AbstractColumn] = {
+
+  def getOptions(ps: ListMap[String,Any]): Map[String, String] = {
+
+    ps.get("options") match {
+      case Some(opts: List[Map[String, String]]) => opts.flatMap{l =>
+        (l.get("key"), l.get("value")) match {
+          case (Some(key), Some(value)) => Some((key -> value))
+          case _ => None
+        }
+      }.toMap
+      case _ => Map[String, String]()
+    }
+    //println("options", o)
+
+  }
+
+  def getColumns(columnsMap: ListMap[String, Any])(implicit lang:String): List[AbstractColumn] = {
     columnsMap.map{
       case (col, props) =>
 
@@ -61,17 +77,17 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
             var optional = false
             var fk: Option[ForeignKey] = None
             var synth = false
-            (props match{
+            props match{
               case ps: columnProps =>
                 optional = isOptional(ps)
                 fk = getForeignKey(ps)
                 getScalaType(col, ps,false) match{
-                  case Some(tpe) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps))
+                  case Some(tpe) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps), getOptions(ps))
                   case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR")))
                 }
               case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", false, None, false)
               case _ => Column(underscoreToCamel(col), col, "DateTime", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
-            })
+            }
 
           }
         }
@@ -105,7 +121,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     for{
       foreignTable <- ps.get("foreignTable")
       foreignReference <- ps.get("foreignReference")
-    } yield ForeignKey(foreignTable, foreignReference, onDelete = ps.get("onDelete"))
+    } yield ForeignKey(foreignTable, foreignReference, onDelete = ps.get("onDelete"), displayField = ps.get("displayField"))
   }
 
   val columns: List[AbstractColumn] = getColumns(args.filterNot(pair => pair._1 == "_attributes")) //omit _attributes, its not a column
@@ -212,11 +228,12 @@ object GeneratorMappings {
 }
 import GeneratorMappings._
 
-case class OneToMany(foreignTable: String) extends AbstractColumn(foreignTable){
+case class OneToMany(foreignTable: String)(implicit lang:String) extends AbstractColumn(foreignTable){
+
   val className = underscoreToCamel(foreignTable).capitalize
   val objName = underscoreToCamel(foreignTable)
   val lstName = objName+"s"
-  val queryName = className+"Consulta"
+  val queryName = className+{if(lang=="es") "Consulta" else "Query"}
   def formHelper(submodulePackageString: String = "", ref: Option[Table] = None) ={
     ref.map{table =>
       s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${objName}s" readOnly={readOnly} objs={obj.${objName}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} readOnly={readOnly} hide={["${table.objName}Id"]} errors={errors} prefix="${objName}s"/>}/>"""
@@ -270,7 +287,7 @@ object Columns{
   )
 }
 
-case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None) extends AbstractColumn(name){
+case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, options: Map[String, String] = Map()) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
   lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
@@ -323,10 +340,13 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
   def formHelperReact(prefix: String = "", hidden: Boolean = false): String = {
     if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={obj.${prefix+name} || ""} readOnly={readOnly} />"""
     else{
+      if(name =="fueling"){
+        println("fueling",tpe, options)
+      }
       tpe match {
         case "Long" if foreignKey.isDefined => foreignKeyInputReact(prefix, foreignKey)
         case "String" => inputDefaultReact(prefix)
-        case "Int" => inputDefaultReact(prefix)
+        case "Int" => if(options.nonEmpty) optionsInputReact(prefix) else inputDefaultReact(prefix)
         case "Long" => inputDefaultReact(prefix)
         case "Boolean" => inputReact("Checkbox", prefix, Some("singlecontrol"))
         case "Double" => inputDefaultReact(prefix)
@@ -361,6 +381,17 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     }.getOrElse(inputDefault(prefix))
   }
 
+  def optionsInputReact(prefix: String) = {
+
+      //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
+      val inputName = prefix+name
+      println("a ver cual options", name)
+      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={[${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}]} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} />"""
+      //s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
+      s"""${select}"""
+
+  }
+
   def foreignKeyInputReact(prefix: String, foreignKey: Option[ForeignKey]) = {
     foreignKey.map{ fk =>
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
@@ -372,9 +403,9 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
   }
 
 }
-case class ForeignKey(table: String, reference: String, onDelete: Option[String]) extends CodeGenerator{
+case class ForeignKey(table: String, reference: String, onDelete: Option[String], displayField: Option[String])(implicit lang:String) extends CodeGenerator{
   val className = underscoreToCamel(table).capitalize
-  val queryName = className+"Consulta"
-  val toStringName = underscoreToCamel(table)
+  val queryName = className+{if(lang=="es") "Consulta" else "Query"}
+  val toStringName = underscoreToCamel(displayField.getOrElse(table))
 }
 case class ColumnType(tpe: String)

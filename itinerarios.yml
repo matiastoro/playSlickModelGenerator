@@ -1,0 +1,83 @@
+aircraft:
+  id: ~
+  model:  {type: varchar, size: 255}
+
+parking:
+  id: ~
+  name: {type: varchar, size: 255}
+  aerodromeId:  {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade, displayField: model}
+  length: { type: double }
+  width: { type: double }
+  available: { type: boolean }
+  boardingType: { type: integer, options:[{key: 1, value: Por Puente}, {key: 2, value: Vía Remota}] }
+  fueling: { type: integer, options:[{key: 1, value: Pits de Combustible}, {key: 2, value:  Cabinet}, {key: 3 , value: Sin abastecimiento}] }
+  aircrafts: { type: oneToMany, foreignTable: aircraft_parking}
+
+aircraft_parking:
+  id: ~
+  aircraft_id: {type: integer, foreignTable: aircraft, required: true, foreignReference: id, onDelete: cascade, displayField: model}
+  parking_id: {type: integer, foreignTable: parking, required: true, foreignReference: id, onDelete: cascade}
+
+
+aerodrome:
+  id: ~
+  name: { type: varchar, size: 255}
+  icao_code: {type: varchar, size: 4, required: true }
+  iata_code: {type: varchar, size: 3, required: false}
+  latitude: { type: double, required: false }
+  longitude: { type: double, required: false }
+  parking_capacity: { type: integer,  required: false }
+  service_hour_from: {type: varchar, size: 4,  required: false}
+  service_hour_to: {type: varchar, size: 4,  required: false}
+  public: { type: boolean,  required: false }
+  controlled:  { type: boolean,  required: false }
+  operation_capacity: {type: integer,  required: false }
+  limited_operation_capacity: { type: varchar, size: 255,  required: false}
+  parkings: { type: oneToMany, foreignTable: parking }
+  platforms: { type: oneToMany, foreignTable: itinerary_platform }
+  taxiways: { type: oneToMany, foreignTable: itinerary_taxiway }
+  runways: { type: oneToMany, foreignTable: itinerary_runway }
+
+itinerary_aerodrome_services:
+  id: ~
+  aerodrome_id : ~
+  ATS: { type: boolean,  required: true }
+  AFIS: { type: boolean,  required: true }
+  SSEI: { type: boolean,  required: true }
+  meteorological: { type: boolean,  required: true }
+  AVSEC: { type: boolean,  required: true }
+  customs: { type: boolean,  required: true }
+  SAG: { type: boolean,  required: true }
+  internationalPolice: { type: boolean,  required: true }
+  SSEICategory: { type: integer,  required: true }
+
+itinerary_platform:
+  id: ~
+  aerodromeId: {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade, displayField: model}
+  name: {type: varchar, size: 255, required: true}
+  length: { type: double, required: true }
+  width: { type: double, required: true }
+  resistance: { type: varchar, size: 255, required: true }
+
+itinerary_taxiway:
+  id: ~
+  aerodromeId: {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade, displayField: model}
+  name: {type: varchar, size: 255, required: true}
+  length: { type: double, required: true }
+  width: { type: double, required: true }
+  resistance: { type: varchar, size: 255, required: true }
+
+itinerary_runway:
+  id: ~
+  aerodromeId: {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade, displayField: model}
+  name: {type: varchar, size: 255, required: true}
+  length: { type: double, required: true }
+  width: { type: double, required: true }
+  resistance: { type: varchar, size: 255, required: true }
+  max_acn: {type: integer,  required: true }
+
+company:
+  id: ~
+  company:  {type: varchar, size: 255, required: true}
+  code:  {type: varchar, size: 255, required: true}
+  image:  {type: varchar, size: 255, required: false}
