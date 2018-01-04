@@ -1,0 +1,72 @@
+profile:
+  id: ~
+  profile: {type: varchar, size: 255}
+
+user:
+  id: ~
+  username: {type: varchar, size: 255}
+  password: {type: varchar, size: 255}
+  name: {type: varchar, size: 255}
+  email: {type: varchar, size: 255}
+  army_id: {type: integer, foreignTable: army, required: true, foreignReference: id}
+  army: {type: varchar, size: 255}
+  background: {type: longvarchar}
+  observations: {type: longvarchar}
+  color: {type: varchar, size: 255}
+  icon: {type: varchar, size: 255}
+  profiles: { type: oneToMany, foreignTable: profile_user}
+
+profile_user:
+  id: ~
+  profile_id: {type: integer, foreignTable: profile, required: true, foreignReference: id, onDelete: cascade}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+
+army:
+  id: ~
+  army: {type: varchar, size: 255}
+
+character:
+  id: ~
+  character: {type: varchar, size: 255}
+  background: {type: longvarchar}
+  observations: {type: longvarchar}
+  leader: {type: boolean}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+  q: {type: integer}
+  r: {type: integer}
+  s: {type: integer}
+
+turn:
+  id: ~
+  turn: {type: integer}
+  observations: {type: longvarchar}
+  created_at: ~
+  updated_by: ~
+
+action:
+  id: ~
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+  turn_id: {type: integer, foreignTable: turn, required: true, foreignReference: id, onDelete: cascade}
+  character_id: {type: integer, foreignTable: character, required: true, foreignReference: id, onDelete: cascade}
+  from_q: {type: integer}
+  from_r: {type: integer}
+  from_s: {type: integer}
+  to_q: {type: integer}
+  to_r: {type: integer}
+  to_s: {type: integer}
+  created_by: ~
+  updated_by: ~
+
+hex:
+  id: ~
+  q: {type: integer}
+  r: {type: integer}
+  s: {type: integer}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+
+obj:
+  id: ~
+  type: {type: integer}
+  q: {type: integer}
+  r: {type: integer}
+  s: {type: integer}
