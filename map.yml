@@ -32,6 +32,7 @@ character:
   observations: {type: longvarchar}
   leader: {type: boolean}
   user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+  number: {type: integer}
   q: {type: integer}
   r: {type: integer}
   s: {type: integer}
@@ -66,7 +67,7 @@ hex:
 
 obj:
   id: ~
-  type: {type: integer}
+  tpe: {type: integer}
   q: {type: integer}
   r: {type: integer}
   s: {type: integer}

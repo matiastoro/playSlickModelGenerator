@@ -61,7 +61,7 @@ object parser {
       "getAll" -> {if(lang=="es") "todos" else "getAll"},
       "byId" -> {if(lang=="es") "porId" else "byId"},
       "delete" -> {if(lang=="es") "eliminar" else "delete"},
-      "Mapping" -> {if(lang=="es") "Mapeo" else "s"},
+      "Mapping" -> {if(lang=="es") "Mapeo" else "Table"},
       "updateOrInsert" -> {if(lang=="es") "actualizarOInsertar" else "updateOrInsert"},
       "insert" -> {if(lang=="es") "insertar" else "insert"}
 
@@ -133,6 +133,7 @@ object parser {
     if (currentContent.size != content.size && (buildType == "all" || buildType == "model")) {
       println("Building Model("+table.viewsPackage+"): "+path + "/app/models/" + fileName + ".scala")
       Files.write(Paths.get(path + "/app/models/" + fileName + ".scala"), content.getBytes(StandardCharsets.UTF_8))
+      Files.write(Paths.get(path + "/app/models/" + fileName + "Repository.scala"), mg.generateRepository.getBytes(StandardCharsets.UTF_8))
     }
 
 

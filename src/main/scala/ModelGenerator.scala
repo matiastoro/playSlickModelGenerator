@@ -10,26 +10,31 @@ case class ModelGenerator(table: Table, tablesOneToMany: List[Table] = List())(i
 
   def imports(className: String) = s"""package models
 import models.extensions.${className}Extension
-import play.api.db.slick.Config.driver.simple._
+import play.api.libs.json._
+import scala.concurrent.{ExecutionContext, Future}
+import play.api.data.Form
+import play.api.data.Forms._
+import play.api.data.format.Formats._
+
+/*import play.api.db.slick.Config.driver.simple._
 import com.github.tototoshi.slick.JdbcJodaSupport._
 import org.joda.time.{DateTime, LocalDate}
 import play.api.db._
 import play.api.Play.current
 import extensions._
 
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.data.format.Formats._
-import play.api.libs.json._
+
+import play.api.libs.json._*/
 
 """ /*TODO: only import classes relatives to the table*/
 
 
   def getters = table.foreignColumns.map{fc =>
     fc.foreignKey.map{ fk =>
-      """  def get"""+fk.className+"""(implicit session: Session) = """+{
+      s"""  val ${fc.name}s = TableQuery[${}Table]"""
+      """  def get"""+fk.className+s"""(obj: ${table.className}) = """+{
         if(!fc.optional)
-          fk.queryName+s""".${langHash("byId")}("""+fc.name+""")"""
+          fk.table+s"""Repository.${langHash("byId")}(obj."""+fc.name+""")"""
         else
           """if("""+fc.name+""".isDefined) """+fk.queryName+s""".${langHash("byId")}("""+fc.name+""".get) else None"""
       }
@@ -63,7 +68,7 @@ import play.api.libs.json._
 
       val selectString = "  lazy val selectString = "+selectCol
 
-      val toJson = {
+      /*val toJson = {
         val toJsonDef = if(table.oneToManies.length>0){
           val otmsLists = table.oneToManies.map{otm =>
             s"""     ("${otm.lstName}" -> Json.toJson(${otm.queryName}.by${table.className}Id(id).map(_.toJson)))"""
@@ -75,16 +80,19 @@ import play.api.libs.json._
         s"""  implicit val jsonFormat = Json.format[${table.className}]
            |  ${toJsonDef}
          """.stripMargin
-      }
+      }*/
 
-      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+toJson+"\n\n"+selectString+"\n"+{if(!isSubClass) getters else ""}+"\n}"
+      val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s") extends ${className}Extension{\n"+selectString+"\n}"//{if(!isSubClass) getters else ""}+"\n}"
 
 
       val subClasses = columns.collect{
         case c: SubClass => c
       }
 
-      generatedClass + "\n\n"+subClasses.map{sc => generateClass(sc.className, sc.cols, true)}.mkString("\n\n")
+      val objectClass = s"""object ${table.className} {
+  implicit val userFormat = Json.format[${table.className}]
+}"""
+      generatedClass + "\n\n"+objectClass + "\n\n" +subClasses.map{sc => generateClass(sc.className, sc.cols, true)}.mkString("\n\n")
     }
 
 
@@ -100,10 +108,7 @@ import play.api.libs.json._
     def generateStars(columns: List[AbstractColumn]): String ={
       "("+columns.collect{col => col match{
         case c: Column =>
-          if(c.name == "id")
-            "id.?"
-          else
-            c.name
+          c.name
         case s: SubClass => s.name+"Cols"
       }}.mkString(", ")+")"
     }
@@ -197,7 +202,7 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 """+foreignKeyFilters+"""
 }"""
 
-    baseClass+"\n\n"+tableClass + objectHead + formData() + form()
+    baseClass+"\n\n"+formData()+form()//+tableClass + objectHead + formData() + form()
   }
 
   def isColumnOneToManyMap(c: Column): Boolean = {
@@ -279,10 +284,10 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
     val otms: String = if(table.oneToManies.size>0) ", "+table.oneToManies.map{otm => otm.foreignTable+"s: List["+otm.className+"FormData]"}.mkString(", ") else ""
     val otmsUpdates = table.oneToManies.map{otm =>
       "    //Delete elements that are not part of the form but they do exists in the database.\n"+
-      """    """+otm.queryName+""".by"""+table.className+"""Id(obj.id).filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.queryName+""".eliminar(_)}"""+"\n"+
-      """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.tableName+"""Id = obj.id.get))}"""
+      """    """+otm.foreignTable+"""Repo.by"""+table.className+"""Id(obj.id).map{ l =>  l.filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.queryName+""".delete(_)}}"""+"\n"+
+      """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.tableName+"""Id = obj.id))}"""
     }.mkString("\n")
-    val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.tableName+"""Id = id))}""" }.mkString("\n")
+    val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.tableName+"""Id = id))}""" }.mkString("++")
 
     val alternativeConstructor = if(table.oneToManies.size>0){
       val otmsLists = table.oneToManies.map{otm =>
@@ -297,16 +302,25 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 }"""
     } else ""
 
+    val otmsRepos = if(table.oneToManies.length>0){
+      ", "+table.oneToManies.map { otm =>
+        otm.foreignTable+"Repo: "+otm.className+"Repository"
+      }.mkString(", ")
+    } else ""
+
     """
 case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
-  def update(updatedObj: """+table.className+""" = obj)(implicit session: Session) = {
+  def update(updatedObj: """+table.className+s""" = obj)(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
 """+otmsUpdates+"""
-    """+table.queryName+s""".${langHash("updateOrInsert")}(updatedObj)
+    """+s"""repo.${langHash("updateOrInsert")}(updatedObj)
   }
-  def insert(insertedObj: """+table.className+""")(implicit session: Session) = {
-    val id = """+table.queryName+s""".${langHash("insert")}(insertedObj)
-"""+otmsInserts+"""
-    id
+  def insert(insertedObj: """+table.className+s""")(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
+    repo.${langHash("insert")}(insertedObj).map{ id=>
+  """+(if(otmsInserts.length>0){ s"""Future.sequence(${otmsInserts}).map{ x =>
+        id
+      }.getOrElse(id)
+    """} else {"""id"""}) + """
+    }
   }
 }
 """+alternativeConstructor
@@ -341,10 +355,164 @@ import models._
 
 $classesCode
 
-object ${className}${langHash("Query")} extends ${className}${langHash("Query")}Base{
-
+trait ${className}${langHash("Query")}{
+  this: DatabaseClient[${className}] =>
 }
     """.trim
 
+  }
+
+  def generateStars(columns: List[AbstractColumn]): String ={
+    "("+columns.collect{col => col match{
+      case c: Column =>
+        if(c.name=="id")
+          "id.?"
+        else
+          c.name
+      case s: SubClass => s.name+"Cols"
+    }}.mkString(", ")+")"
+  }
+
+
+
+  def generateRepository: String = {
+    var hasSubClasses = false
+    def guessFkName(name: String): String = {
+      val pos = name.indexOf("Id")
+      if(pos>0)
+        name.substring(0,pos)
+      else
+        name+"Rel"
+    }
+    def generateColumnsTagTable(columns: List[AbstractColumn]): String = {
+      columns.collect{ col => col match{
+        case c: Column =>
+          if(c.name=="id"){
+            "  def id = column[Long](\"id\", O.PrimaryKey, O.AutoInc)"
+          } else {
+
+            val colMap = "  def "+c.name+" = column["+c.tpeWithOption+"](\""+c.rawName+"\""+(
+              if(c.optional)
+                ", O.Default(None)"
+              else
+                c.default match{
+                  case Some(x) => ", O.Default("+x+")"
+                  case _ => ""
+                }
+              )+")"
+
+            /*c.foreignKey.map{ fk =>
+              val onDelete = fk.onDelete.map{od => ", onDelete=ForeignKeyAction."+od.capitalize}.getOrElse("")
+              colMap + "\n  def "+guessFkName(c.name)+" = foreignKey(\""+c.rawName+"_fk\", "+c.name+", "+underscoreToCamel(fk.table).capitalize+s"${langHash("Query")}.tableQ)(_."+fk.reference+onDelete+")"
+            }.getOrElse(colMap)*/
+            colMap
+
+          }
+        case s: SubClass =>
+          hasSubClasses = true
+          "\n"+generateColumnsTagTable(s.cols)+"\n  val "+s.name+"Cols = "+generateStars(s.cols)+"\n"
+      }
+      }.mkString("\n")
+    }
+
+    val className = table.className
+    val columns: List[AbstractColumn] = table.columns
+
+    val tableCols = generateColumnsTagTable(columns)
+
+
+    val star = "  def * = "+generateStars(columns)
+
+    val shaped = ".shaped <> " +
+      (if(hasSubClasses){
+        val fields = "("+columns.collect{
+          case s: Column => s.name
+          case s: SubClass => s.name
+        }.mkString(", ")+") =>\n"
+        val obj = className+"("+columns.collect{
+          case c: Column => c.name
+          case s: SubClass => s.name.capitalize+".tupled.apply("+s.name+")"
+        }.mkString(", ")+")"
+        val unapplies = "      Some((" + columns.collect{
+          case c: Column => "o."+c.name
+          case s: SubClass => s.name.capitalize+".unapply(o."+s.name+").get"
+        }.mkString(",")+"))"
+        "\n    ({\n      case "+fields + "      "+obj+"\n    }, {o: "+className+" =>\n"+unapplies+"\n    })"
+      }
+      else
+        "("+className+".tupled, "+className+".unapply)")
+
+
+    val tableClassHead = """class """+className+s"""${langHash("Mapping")}(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
+    val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+"""/**
+* This is the tables default "projection".
+*
+* It defines how the columns are converted to and from the User object.
+*
+* In this case, we are simply passing the id, name and page parameters to the User case classes
+* apply and unapply methods.
+*/"""+"\n"+star+ shaped + "\n}"
+
+    val foreignKeyFilters = table.foreignColumns.map{ c =>
+      c.foreignKey.map{fk =>
+        """  def by"""+fk.className+"""Id(id: Long) = db.run{
+      all.filter(_."""+c.name+"""===id).result
+  }
+                            """
+      }.getOrElse("")
+    }.mkString("\n\n")
+
+    val objectHead ="""
+
+class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"""] {
+  type DBTable = """+className+"""Mapeo
+
+  val tableQ = {
+    TableQuery[DBTable]
+  }
+"""+foreignKeyFilters+"""
+}"""
+
+    val fkRepositories = if(table.foreignColumns.length>0){
+      s""", """+table.foreignColumns.map { fc =>
+        fc.foreignKey.map { fk =>
+          fk.table + "Repo: " +fk.className+"Repository"
+        }.getOrElse("")
+      }.mkString(", ")
+
+    } else ""
+
+
+    val dbTables = s"""  /**
+  * The starting point for all queries on the people table.
+  */
+  type DBTable = UserTable
+  val all = TableQuery[UserTable]
+
+${foreignKeyFilters}
+"""
+
+    s"""package models
+
+import javax.inject.{ Inject, Singleton }
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
+
+import scala.concurrent.{ Future, ExecutionContext }
+import models.extensions._
+
+@Singleton
+class ${className}Repository @Inject() (dbConfigProvider: DatabaseConfigProvider${fkRepositories})(implicit ec: ExecutionContext) extends DatabaseClient[${className}] with ${className}${langHash("Query")}{
+
+  // We want the JdbcProfile for this provider
+  val dbConfig = dbConfigProvider.get[JdbcProfile]
+
+  // These imports are important, the first one brings db into scope, which will let you do the actual db operations.
+  // The second one brings the Slick DSL into scope, which lets you define the table and other queries.
+  import dbConfig._
+  import profile.api._
+""" +"\n\n"+
+    tableClass.split("\n").map{s => "  "+s}.mkString("\n") + "\n\n"+ dbTables + "\n\n"+getters+"\n"+
+    """}"""
   }
 }
