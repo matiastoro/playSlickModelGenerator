@@ -63,7 +63,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
       case (col, props) =>
 
         if(col=="id"){
-          Column("id", "id", "Long", false)
+          Column("id", "id", "Long", true)
         } else {
           if(isSubClass(props)){
             props match{

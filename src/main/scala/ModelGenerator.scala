@@ -15,6 +15,11 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.format.Formats._
+import org.joda.time.{DateTime, LocalDate}
+//import com.github.tototoshi.slick.H2JodaSupport._
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
+
 
 /*import play.api.db.slick.Config.driver.simple._
 import com.github.tototoshi.slick.JdbcJodaSupport._
@@ -31,12 +36,11 @@ import play.api.libs.json._*/
 
   def getters = table.foreignColumns.map{fc =>
     fc.foreignKey.map{ fk =>
-      s"""  val ${fc.name}s = TableQuery[${}Table]"""
       """  def get"""+fk.className+s"""(obj: ${table.className}) = """+{
         if(!fc.optional)
-          fk.table+s"""Repository.${langHash("byId")}(obj."""+fc.name+""")"""
+          fk.table+s"""Repo.${langHash("byId")}(obj."""+fc.name+""")"""
         else
-          """if("""+fc.name+""".isDefined) """+fk.queryName+s""".${langHash("byId")}("""+fc.name+""".get) else None"""
+          """if(obj."""+fc.name+""".isDefined) """+fk.table+s"""Repo.${langHash("byId")}(obj."""+fc.name+""".get) else None"""
       }
     }.getOrElse("")
   }.mkString("\n")
@@ -90,7 +94,8 @@ import play.api.libs.json._*/
       }
 
       val objectClass = s"""object ${table.className} {
-  implicit val userFormat = Json.format[${table.className}]
+  implicit val format = Json.format[${table.className}]
+  val tupled = (this.apply _).tupled
 }"""
       generatedClass + "\n\n"+objectClass + "\n\n" +subClasses.map{sc => generateClass(sc.className, sc.cols, true)}.mkString("\n\n")
     }
@@ -284,29 +289,35 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
     val otms: String = if(table.oneToManies.size>0) ", "+table.oneToManies.map{otm => otm.foreignTable+"s: List["+otm.className+"FormData]"}.mkString(", ") else ""
     val otmsUpdates = table.oneToManies.map{otm =>
       "    //Delete elements that are not part of the form but they do exists in the database.\n"+
-      """    """+otm.foreignTable+"""Repo.by"""+table.className+"""Id(obj.id).map{ l =>  l.filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.queryName+""".delete(_)}}"""+"\n"+
-      """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.tableName+"""Id = obj.id))}"""
+      """    """+otm.foreignTable+"""Repo.by"""+table.className+"""Id(obj.id).map{ l =>  l.filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.foreignTable+"""Repo.delete(_)}}"""+"\n"+
+      """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.tableName+"""Id = obj.id.get))}"""
     }.mkString("\n")
     val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.tableName+"""Id = id))}""" }.mkString("++")
-
-    val alternativeConstructor = if(table.oneToManies.size>0){
-      val otmsLists = table.oneToManies.map{otm =>
-        """    val """+otm.foreignTable+"""s = """+otm.queryName+""".by"""+table.className+"""Id(obj.id).map("""+otm.className+"""FormData(_))"""
-      }.mkString("\n")
-      val otmsArgs = table.oneToManies.map{otm => otm.foreignTable+"s"}.mkString(", ")
-"""object """+table.className+"""FormData{
-  def apply(obj: """+table.className+""")(implicit session: Session) = {
-"""+otmsLists+"""
-    new """+table.className+"""FormData(obj, """+otmsArgs+""")
-  }
-}"""
-    } else ""
 
     val otmsRepos = if(table.oneToManies.length>0){
       ", "+table.oneToManies.map { otm =>
         otm.foreignTable+"Repo: "+otm.className+"Repository"
       }.mkString(", ")
     } else ""
+
+
+    val alternativeConstructor = if(table.oneToManies.size>0){
+      val otmsLists = table.oneToManies.map{otm =>
+        """      """+otm.foreignTable+"""s <- """+otm.foreignTable+"""Repo.by"""+table.className+"""Id(obj.id).map(l => l.map("""+otm.className+"""FormData(_)))"""
+      }.mkString("\n")
+      val otmsArgs = table.oneToManies.map{otm => otm.foreignTable+"s.toList"}.mkString(", ")
+"""object """+table.className+"""FormData{
+  def apply(obj: """+table.className+s""")(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
+    for{
+"""+otmsLists+"""
+    } yield{
+      new """+table.className+"""FormData(obj, """+otmsArgs+""")
+    }
+  }
+}"""
+    } else ""
+
+
 
     """
 case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
@@ -315,11 +326,11 @@ case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
     """+s"""repo.${langHash("updateOrInsert")}(updatedObj)
   }
   def insert(insertedObj: """+table.className+s""")(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
-    repo.${langHash("insert")}(insertedObj).map{ id=>
+    repo.${langHash("insert")}(insertedObj).flatMap{ id=>
   """+(if(otmsInserts.length>0){ s"""Future.sequence(${otmsInserts}).map{ x =>
         id
-      }.getOrElse(id)
-    """} else {"""id"""}) + """
+      }
+    """} else {"""Future{id}"""}) + """
     }
   }
 }
@@ -455,9 +466,9 @@ trait ${className}${langHash("Query")}{
 
     val foreignKeyFilters = table.foreignColumns.map{ c =>
       c.foreignKey.map{fk =>
-        """  def by"""+fk.className+"""Id(id: Long) = db.run{
+        """  def by"""+fk.className+"""Id(id: Option[Long]) = id.map{id => db.run{
       all.filter(_."""+c.name+"""===id).result
-  }
+  }}.getOrElse{Future(List())}
                             """
       }.getOrElse("")
     }.mkString("\n\n")
@@ -473,21 +484,49 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 """+foreignKeyFilters+"""
 }"""
 
-    val fkRepositories = if(table.foreignColumns.length>0){
-      s""", """+table.foreignColumns.map { fc =>
+    var fkRepositories: List[String] = if(table.foreignColumns.length>0){
+      table.foreignColumns.map { fc =>
         fc.foreignKey.map { fk =>
           fk.table + "Repo: " +fk.className+"Repository"
         }.getOrElse("")
-      }.mkString(", ")
+      }
+    } else List()
 
+    /*val toJson = {
+      if(table.oneToManies.length>0){
+        val forOtmsLists = table.oneToManies.map { otm =>
+          val name = otm.foreignTable + "Repo: " +otm.className+"Repository"
+          if(!fkRepositories.contains(name))
+            fkRepositories = fkRepositories ++ List(name)
+          s"""      ${otm.foreignTable}s <- ${otm.foreignTable}Repo.by${table.className}Id(obj.id)"""
+        }.mkString("\n")
+
+        val otmsLists = table.oneToManies.map{otm =>
+          s"""     ("${otm.lstName}" -> Future.sequence(${otm.foreignTable}s.map{l => ${otm.foreignTable}Repo.toJson(l)}).map{z => z})"""
+        }.mkString("+\n")
+
+
+        s"""  def toJson(obj: ${className}) = {
+    for{
+${forOtmsLists}
+    } yield{
+      Json.toJson(obj).as[JsObject] +
+${otmsLists}
+    }
+  }
+          """
+      } else
+        s"def toJson(obj: ${className}) = Future{ Json.toJson(obj) }"
+    }*/
+
+    val repos = if(fkRepositories.length>0){
+      s""", """+fkRepositories.mkString(", ")
     } else ""
-
-
     val dbTables = s"""  /**
   * The starting point for all queries on the people table.
   */
-  type DBTable = UserTable
-  val all = TableQuery[UserTable]
+  type DBTable = ${className}Table
+  val all = TableQuery[${className}Table]
 
 ${foreignKeyFilters}
 """
@@ -497,12 +536,15 @@ ${foreignKeyFilters}
 import javax.inject.{ Inject, Singleton }
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
+import play.api.libs.json._
 
 import scala.concurrent.{ Future, ExecutionContext }
 import models.extensions._
+import org.joda.time.{DateTime, LocalDate}
+import com.github.tototoshi.slick.H2JodaSupport._
 
 @Singleton
-class ${className}Repository @Inject() (dbConfigProvider: DatabaseConfigProvider${fkRepositories})(implicit ec: ExecutionContext) extends DatabaseClient[${className}] with ${className}${langHash("Query")}{
+class ${className}Repository @Inject() (dbConfigProvider: DatabaseConfigProvider${repos})(implicit ec: ExecutionContext) extends DatabaseClient[${className}] with ${className}${langHash("Query")}{
 
   // We want the JdbcProfile for this provider
   val dbConfig = dbConfigProvider.get[JdbcProfile]
@@ -512,7 +554,7 @@ class ${className}Repository @Inject() (dbConfigProvider: DatabaseConfigProvider
   import dbConfig._
   import profile.api._
 """ +"\n\n"+
-    tableClass.split("\n").map{s => "  "+s}.mkString("\n") + "\n\n"+ dbTables + "\n\n"+getters+"\n"+
+    tableClass.split("\n").map{s => "  "+s}.mkString("\n") + "\n\n"+ dbTables + "\n\n"+getters+"\n"+ //+toJson+"\n"+
     """}"""
   }
 }

@@ -8,13 +8,14 @@ user:
   password: {type: varchar, size: 255}
   name: {type: varchar, size: 255}
   email: {type: varchar, size: 255}
-  army_id: {type: integer, foreignTable: army, required: true, foreignReference: id}
-  army: {type: varchar, size: 255}
-  background: {type: longvarchar}
-  observations: {type: longvarchar}
-  color: {type: varchar, size: 255}
-  icon: {type: varchar, size: 255}
+  army_id: {type: integer, foreignTable: army, required: false, foreignReference: id}
+  army: {type: varchar, size: 255, required: false}
+  background: {type: longvarchar, required: false}
+  observations: {type: longvarchar, required: false}
+  color: {type: varchar, size: 255, required: false}
+  icon: {type: varchar, size: 255, required: false}
   profiles: { type: oneToMany, foreignTable: profile_user}
+  characters: {type: oneToMany, foreignTable: character}
 
 profile_user:
   id: ~
@@ -42,7 +43,7 @@ turn:
   turn: {type: integer}
   observations: {type: longvarchar}
   created_at: ~
-  updated_by: ~
+  updated_at: ~
 
 action:
   id: ~
@@ -55,8 +56,8 @@ action:
   to_q: {type: integer}
   to_r: {type: integer}
   to_s: {type: integer}
-  created_by: ~
-  updated_by: ~
+  created_at: ~
+  updated_at: ~
 
 hex:
   id: ~
