@@ -223,6 +223,7 @@ object GeneratorMappings {
     "Boolean" -> "boolean",
     "Double" -> "of(doubleFormat)",
     "DateTime" -> "jodaDate",
+    "LocalDate" -> "jodaDate",
     "Date" -> "jodaDate"
   )
 }
@@ -367,6 +368,7 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
       case "Boolean" => d
       case "Double" => d
       case "DateTime" => "new DateTime("+d+")"
+      case "LocalDate" => "new LocalDate()"
       case "Date" => "new Date("+d+")"
       case _ => d
     }

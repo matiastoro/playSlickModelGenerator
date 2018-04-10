@@ -8,14 +8,7 @@ user:
   password: {type: varchar, size: 255}
   name: {type: varchar, size: 255}
   email: {type: varchar, size: 255}
-  army_id: {type: integer, foreignTable: army, required: false, foreignReference: id}
-  army: {type: varchar, size: 255, required: false}
-  background: {type: longvarchar, required: false}
-  observations: {type: longvarchar, required: false}
-  color: {type: varchar, size: 255, required: false}
-  icon: {type: varchar, size: 255, required: false}
   profiles: { type: oneToMany, foreignTable: profile_user}
-  characters: {type: oneToMany, foreignTable: character}
 
 profile_user:
   id: ~
@@ -23,3 +16,35 @@ profile_user:
   user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
 
 
+
+reporting_entity:
+  id: ~
+  reporting_entity: {type: varchar, size: 255, required: true}
+  reporting_entity_id: {type: integer, foreignTable: reporting_entity, required: false, foreignReference: id, onDelete: cascade}
+
+organization:
+  id: ~
+  organization: {type: varchar, size: 255, required: true}
+
+state_area:
+  id: ~
+  state_area: {type: varchar, size: 255, required: true}
+  state_area_id: {type: integer, foreignTable: state_area, required: false, foreignReference: id, onDelete: cascade}
+
+language:
+  id: ~
+  language: {type: varchar, size: 255, required: true}
+
+neo_aerodrome:
+  id: ~
+  reporting_entity_id: {type: integer, foreignTable: country, required: true, foreignReference: id, onDelete: cascade}
+  reporting_entity_name: {type: varchar, size: 255, required: true}
+  when: {type: timestamp, required: true}
+  when_local: {type: timestamp, required: false}
+  where_state_area: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: cascade}
+  where_location_name: {type: varchar, size: 255, required: true}
+  where_latitude_occ: {type: varchar, size: 255, required: false}
+  where_longitude_occ: {type: varchar, size: 255, required: false}
+  what_headline: {type: varchar, size: 255, required: true}
+  what_narrative_languaje: {type: varchar, size: 255, required: true}
+  what_narrative: {type: longvarchar, required: true}

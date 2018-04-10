@@ -11,8 +11,9 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
   def generate: String = {
     val rels = (table.foreignKeys.map{fk => (fk.table, fk.className)} ++
     table.oneToManies.map{otm => (otm.foreignTable, otm.className)}).toSet
-    val otmsRepos = if(rels.size>0){
-      ", "+rels.map { r =>
+    val frels = rels.filter(r => r._2 != table.className)
+    val otmsRepos = if(frels.size>0){
+      ", "+frels.map { r =>
         r._1+"Repo: "+r._2+"Repository"
       }.mkString(", ")
     } else ""
@@ -97,7 +98,8 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 
   def fksJson(body: String) = {
     val rows = table.foreignKeys.map{fk =>
-    "      "+fk.table+"s <- "+fk.table+s"Repo.${langHash("getAll")}"
+      val fkTable = if(fk.table == table.yamlName) "repo" else (fk.table+"Repo")
+    "      "+fk.table+"s <- "+fkTable+s".${langHash("getAll")}"
   }.mkString("\n")
     if(table.foreignKeys.length>0){
       s"""    for{
