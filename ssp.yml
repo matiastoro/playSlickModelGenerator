@@ -35,6 +35,68 @@ language:
   id: ~
   language: {type: varchar, size: 255, required: true}
 
+
+
+aerodrome_status:
+  id: ~
+  status: {type: varchar, size: 255, required: true}
+
+aerodrome_type:
+  id: ~
+  type: {type: varchar, size: 255, required: true}
+
+
+runway_surface_type:
+  id: ~
+  surface_type: {type: varchar, size: 255, required: true}
+
+runway:
+  id: ~
+  runway: {type: varchar, size: 255, required: true}
+  runway_surface_type_id: {type: integer, foreignTable: runway_surface_type, required: true, foreignReference: id, onDelete: set null}
+
+helicopter_landing_area_surface_type:
+  id: ~
+  surface_type: {type: varchar, size: 255, required: true}
+
+helicopter_landing_area_type:
+  id: ~
+  landing_area_type: {type: varchar, size: 255, required: true}
+
+helicopter_landing_area_area_configuration:
+  id: ~
+  area_configuration: {type: varchar, size: 255, required: true}
+
+helicopter_landing_area_area_type:
+  id: ~
+  helicopter_landing_area: {type: varchar, size: 255, required: true}
+  helicopter_landing_area_type_id: {type: integer, foreignTable: helicopter_landing_area_type, required: true, foreignReference: id, onDelete: set null}
+  helicopter_landing_area_area_configuration_id: {type: integer, foreignTable: helicopter_landing_area_area_configuration, required: true, foreignReference: id, onDelete: set null}
+  helicopter_landing_area_surface_type_id: {type: integer, foreignTable: helicopter_landing_area_surface_type, required: true, foreignReference: id, onDelete: set null}
+
+
+
+helicopter_landing_area:
+  id: ~
+  helicopter_landing_area: {type: varchar, size: 255, required: true}
+
+
+aerodrome:
+  id: ~
+  icaoCode: {type: varchar, size: 255}
+  aerodrome_status_id: {type: integer, foreignTable: aerodrome_status, required: true, foreignReference: id, onDelete: set null}
+  aerodrome_type_id: {type: integer, foreignTable: aerodrome_type, required: true, foreignReference: id, onDelete: set null}
+  latitude: {type: varchar, size: 30}
+  longitude: {type: varchar, size: 30}
+  runways: { type: oneToMany, foreignTable: runway}
+  helicopter_landing_areas: { type: oneToMany, foreignTable: helicopter_landing_area}
+
+aerodrome_location:
+  id: ~
+  location: {type: varchar, size: 255, required: true}
+
+
+
 neo_aerodrome:
   id: ~
   reporting_entity_id: {type: integer, foreignTable: reporting_entity, required: true, foreignReference: id, onDelete: cascade}
@@ -48,3 +110,14 @@ neo_aerodrome:
   what_headline: {type: varchar, size: 255, required: true}
   what_narrative_languaje: {type: varchar, size: 255, required: true}
   what_narrative: {type: longvarchar, required: true}
+  aerodrome_id:  {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade}
+  aerodrome_location_id: {type: integer, foreignTable: aerodrome_location, required: true, foreignReference: id, onDelete: set null}
+  aerodrome_status_id: {type: integer, foreignTable: aerodrome_status, required: true, foreignReference: id, onDelete: set null}
+  aerodrome_type_id: {type: integer, foreignTable: aerodrome_type, required: true, foreignReference: id, onDelete: set null}
+  latitude: {type: varchar, size: 30}
+  longitude: {type: varchar, size: 30}
+  runway_id: {type: integer, foreignTable: runway_surface_type, required: true, foreignReference: id, onDelete: set null}
+  runway_surface_type_id: {type: integer, foreignTable: runway_surface_type, required: true, foreignReference: id, onDelete: set null}
+  helicopter_landing_area_type_id: {type: integer, foreignTable: helicopter_landing_area_type, required: true, foreignReference: id, onDelete: set null}
+  helicopter_landing_area_area_configuration_id: {type: integer, foreignTable: helicopter_landing_area_area_configuration, required: true, foreignReference: id, onDelete: set null}
+  helicopter_landing_area_surface_type_id: {type: integer, foreignTable: helicopter_landing_area_surface_type, required: true, foreignReference: id, onDelete: set null}

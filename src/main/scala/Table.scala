@@ -44,8 +44,8 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
 
 
   def getOptions(ps: ListMap[String,Any]): Map[String, String] = {
-
-    ps.get("options") match {
+    (if(ps.getOrElse("type", "") == "longvarchar") Map[String, String]("longvarchar" -> "true") else Map[String, String]()) ++
+      (ps.get("options") match {
       case Some(opts: List[Map[String, String]]) => opts.flatMap{l =>
         (l.get("key"), l.get("value")) match {
           case (Some(key), Some(value)) => Some((key -> value))
@@ -53,7 +53,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
         }
       }.toMap
       case _ => Map[String, String]()
-    }
+    })
     //println("options", o)
 
   }
@@ -218,11 +218,12 @@ object GeneratorMappings {
   )
   val formMappings = Map[String, String](
     "String" -> "nonEmptyText",
+    "Text" -> "nonEmptyText",
     "Int" -> "number",
     "Long" -> "longNumber",
     "Boolean" -> "boolean",
     "Double" -> "of(doubleFormat)",
-    "DateTime" -> "jodaDate",
+    "DateTime" -> """jodaDate("YYYY-MM-dd HH:mm")""",
     "LocalDate" -> "jodaDate",
     "Date" -> "jodaDate"
   )
@@ -280,6 +281,7 @@ object Columns{
   val defaultValues = Map[String, String](
    "Long" -> "0",
    "String" -> "",
+   "Text" -> "",
    "Int" -> "0",
    "Boolean" -> "false",
    "Double" -> "0",
@@ -326,6 +328,11 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     s"""<TextField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
   }
 
+  def inputTextareaReact(prefix: String) = {
+    val inputName = prefix+name
+    s"""<TextField ${ref(inputName)} multiLine rows={3} name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
+  }
+
   def inputReact(control: String, prefix: String, extra: Option[String] = None) = {
     val inputName = prefix + name
     s"""<${control} ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} ${extra.getOrElse("")}/>"""
@@ -346,7 +353,8 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
       }
       tpe match {
         case "Long" if foreignKey.isDefined => foreignKeyInputReact(prefix, foreignKey)
-        case "String" => inputDefaultReact(prefix)
+        case "String" => if(options.isDefinedAt("longvarchar")) inputTextareaReact(prefix) else inputDefaultReact(prefix)
+        case "Text" => inputTextareaReact(prefix) //deprecated
         case "Int" => if(options.nonEmpty) optionsInputReact(prefix) else inputDefaultReact(prefix)
         case "Long" => inputDefaultReact(prefix)
         case "Boolean" => inputReact("Checkbox", prefix, Some("singlecontrol"))
@@ -364,6 +372,7 @@ case class Column(override val name: String, rawName: String, tpe: String, optio
     tpe match {
       case "Long" => d
       case "String" => "\""+d+"\""
+      case "Text" => "\""+d+"\""
       case "Int" => d
       case "Boolean" => d
       case "Double" => d
