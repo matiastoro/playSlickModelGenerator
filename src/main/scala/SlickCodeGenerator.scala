@@ -97,6 +97,8 @@ object parser {
             writeToFile(pathName, submoduleName, t, tablesOneToMany(t, tables), buildType)
           }
 
+          writeSql(tables, pathName, submoduleName, buildType)
+
         case _ : List[Any] => println("lala2")
         case _ => println("no")
       }
@@ -123,14 +125,41 @@ object parser {
 
   }
 
-  val sqlFilename = "1.sql"
+
+
+  def writeSql(tables: List[Table], path: String, submoduleName: String, buildType: String)(implicit langHash: Map[String,String]): Unit ={
+    /*sql*/
+    val generators = tables.map(table => SqlGenerator(table, tablesOneToMany(table, tables)))
+
+    val tableUps = generators.map(g => g.generateTableUps).mkString("\n")
+    val tableDowns = generators.map(g => g.generateTableDowns).mkString("\n")
+
+    val indexesUp = generators.map(g => g.generateIndexesUp).mkString("\n")
+    val indexesDown = generators.map(g => g.generateIndexesDown).mkString("\n")
+    val constraintsUp = generators.map(g => g.generateConstraintsUp).mkString("\n")
+    val constraintsDown = generators.map(g => g.generateConstraintsDown).mkString("\n")
+
+    val sql = s"""
+          |# --- !Ups
+         |$tableUps
+         |$indexesUp
+         |$constraintsUp
+
+         |# --- !Downs
+         |$constraintsDown
+         |$indexesDown
+         |$tableDowns
+
+       """.stripMargin
+    if(buildType == "all" || buildType == "sql") {
+      println("Appending SQL:  "+path + "/database.sql")
+      Files.write(Paths.get(path + "/database.sql"), sql.getBytes(StandardCharsets.UTF_8))
+    }
+  }
+
 
   def writeToFile(path: String, submoduleName: String, table: Table, tablesOneToMany: List[Table], buildType: String)(implicit langHash: Map[String,String]) = {
-    /*sql*/
-    if(buildType == "all" || buildType == "sql") {
-      println("Appending Config("+table.viewsPackage+"):  "+path + "/conf/messages.raw")
-      Files.write(Paths.get(path + "/conf/messages.raw"), SqlGenerator(table, tablesOneToMany).generate.getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.APPEND)
-    }
+
 
 
 

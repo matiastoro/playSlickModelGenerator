@@ -85,8 +85,8 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
                   case (Some(tpe), Some(postgresTpe)) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, postgresTpe, optional, fk, false, getDisplayType(ps), getDefault(ps), getOptions(ps))
                   case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR")))
                 }
-              case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", "TIMESTAMP WITH TIMEZONE", false, None, false)
-              case _ => Column(underscoreToCamel(col), col, "DateTime", "TIMESTAMP WITH TIMEZONE", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
+              case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", "TIMESTAMP WITH TIME ZONE", false, None, false)
+              case _ => Column(underscoreToCamel(col), col, "DateTime", "TIMESTAMP WITH TIME ZONE", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
             }
 
           }
@@ -187,7 +187,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     else if("""double.*""".r.findFirstIn(s).isDefined)
       "DOUBLE PRECISION"
     else if("""timestamp.*""".r.findFirstIn(s).isDefined)
-      "TIMESTAMP WITH TIMEZONE"
+      "TIMESTAMP WITH TIME ZONE"
     else if("""date.*""".r.findFirstIn(s).isDefined)
       "DATE"
     else if("""oneToMany.*""".r.findFirstIn(s).isDefined)

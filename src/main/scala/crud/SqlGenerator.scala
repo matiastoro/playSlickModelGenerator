@@ -7,58 +7,112 @@ import via56.slickGenerator._
   */
 case class SqlGenerator(table: Table, tablesOneToMany: List[Table] = List())(implicit langHash: Map[String,String]) extends CodeGenerator {
 
-  def generate: String = {
+  def generateTableUps: String = {
 
-    val className = table.className
     val columns: List[AbstractColumn] = table.columns
-
-    val cols = generateColumnsTagTable(columns)
-    val constraints = generateConstraints(columns, table.tableNameDB)
+    val cols = generateColumnsUpTagTable(columns)
     s"""
-      CREATE TABLE ${table.tableNameDB} (
-        $cols,
-
-      );
-    """.stripMargin
+       |
+       |CREATE TABLE "${table.tableNameDB}" (
+       |  $cols
+       |);
+""".stripMargin
 
   }
+  
+  def generateTableDowns: String = {
+    s"""DROP TABLE IF EXISTS "${table.tableNameDB}";""".stripMargin
+  }
 
+  def generateIndexesUp: String = {
 
-  def generateConstraints(columns: List[AbstractColumn], tableName: String): String = {
-    columns.collect{
+    table.columns.flatMap{
       case c: Column => {
-        if (c.name == "id") {
-          s"CONSTRAINT ${tableName}_pkey PRIMARY KEY (id)"
+        if (c.rawName == "id") {
+          None
         } else {
 
 
+
           c.foreignKey.map { fk =>
-            s"""CONSTRAINT itinerary_company_fk FOREIGN KEY (company_id)
-            REFERENCES compania_aerea (id) MATCH SIMPLE
-            ON UPDATE NO ACTION ON DELETE NO ACTION"""
-            //val onDelete = fk.onDelete.map { od => ", onDelete=ForeignKeyAction." + od.capitalize }.getOrElse("")
-            //colMap + "\n  def " + guessFkName(c.name) + " = foreignKey(\"" + c.rawName + "_fk\", " + c.name + ", " + underscoreToCamel(fk.table).capitalize + s"${langHash("Query")}.tableQ)(_." + fk.reference + onDelete + ")"
-          }
+
+
+            s"""CREATE INDEX "${table.tableNameDB}_${c.rawName}_idx"
+              |  ON "${table.tableNameDB}"
+              |  USING btree
+              |  ("${c.rawName}");
+              |""".stripMargin
+            }
           //colMap
 
         }
       }
-      /*case s: SubClass =>
-        hasSubClasses = true
-        "\n"+generateColumnsTagTable(s.cols)+"\n  val "+s.name+"Cols = "+generateStars(s.cols)+"\n"*/
+      case _ => None
 
-    }.mkString(",\n")
+    }.mkString("\n")
+  }
+
+  def generateIndexesDown: String = {
+
+    table.columns.flatMap{
+      case c: Column => {
+        if (c.rawName == "id") {
+          None
+        } else {
+          c.foreignKey.map { fk => s"""DROP INDEX IF EXISTS "${table.tableNameDB}_${c.rawName}_idx";""".stripMargin}
+        }
+      }
+      case _ => None
+    }.mkString("\n")
+  }
+
+  def generateConstraintsUp: String = {
+    table.columns.flatMap{
+      case c: Column => {
+        if (c.rawName == "id") {
+          Some(s"""ALTER TABLE "${table.tableNameDB}" ADD CONSTRAINT "${table.tableNameDB}_pkey" PRIMARY KEY (id);""")
+        } else {
+          c.foreignKey.map { fk =>
+            val onDelete = fk.onDelete match{
+              case Some("cascade") => "CASCADE"
+              case _ => "SET NULL"
+            }
+              s"""ALTER TABLE "${table.tableNameDB}" ADD CONSTRAINT "${table.tableNameDB}_${fk.table}_fk" FOREIGN KEY ("${c.rawName}")
+                  |  REFERENCES "${fk.table}" ("${fk.reference}") MATCH SIMPLE
+                  |  ON UPDATE NO ACTION ON DELETE $onDelete;""".stripMargin
+          }
+        }
+      }
+      case _ => None
+
+    }.mkString("\n")
+  }
+
+  def generateConstraintsDown: String = {
+    table.columns.flatMap{
+      case c: Column => {
+        if (c.rawName == "id") {
+          None//Some(s"""ALTER TABLE "${table.tableNameDB}" DROP CONSTRAINT IF EXISTS "${table.tableNameDB}_pkey";""")
+        } else {
+          c.foreignKey.map { fk =>
+              s"""ALTER TABLE "${table.tableNameDB}" DROP CONSTRAINT IF EXISTS  "${table.tableNameDB}_${fk.table}_fk";""".stripMargin
+          }
+        }
+      }
+      case _ => None
+
+    }.reverse.mkString("\n")
   }
 
 
-  def generateColumnsTagTable(columns: List[AbstractColumn]): String = {
+  def generateColumnsUpTagTable(columns: List[AbstractColumn]): String = {
     columns.collect{
       case c: Column => {
-        if (c.name == "id") {
-          "  id bigserial NOT NULL,"
+        if (c.rawName == "id") {
+          "  id bigserial NOT NULL"
         } else {
 
-          val colMap = s"${c.name} ${c.sqlTpe} ${if(c.optional){"NULL"}else{"NOT NULL"}}"
+          val colMap = s"""  "${c.rawName}" ${c.sqlTpe} ${if(c.optional){"NULL"}else{"NOT NULL"}}"""
           colMap
 
         }
