@@ -111,11 +111,11 @@ import play.api.libs.json._*/
     val baseClass = imports(className)+generateClass(className, columns)
 
     def generateStars(columns: List[AbstractColumn]): String ={
-      "("+columns.collect{col => col match{
+      "("+columns.collect{
         case c: Column =>
           c.name
         case s: SubClass => s.name+"Cols"
-      }}.mkString(", ")+")"
+      }.mkString(", ")+")"
     }
 
     var hasSubClasses = false
@@ -127,7 +127,7 @@ import play.api.libs.json._*/
         name+"Rel"
     }
     def generateColumnsTagTable(columns: List[AbstractColumn]): String = {
-      columns.collect{ col => col match{
+      columns.collect{
         case c: Column =>
           if(c.name=="id"){
             "  def id = column[Long](\"id\", O.PrimaryKey, O.AutoInc)"
@@ -152,7 +152,7 @@ import play.api.libs.json._*/
         case s: SubClass =>
           hasSubClasses = true
           "\n"+generateColumnsTagTable(s.cols)+"\n  val "+s.name+"Cols = "+generateStars(s.cols)+"\n"
-      }
+
       }.mkString("\n")
     }
 

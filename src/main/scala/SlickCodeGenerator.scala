@@ -1,10 +1,13 @@
 package via56.slickGenerator
 
 import _root_.crud.views.NestedFormGenerator
+
 import scala.util.parsing.combinator._
 import collection.immutable.ListMap
-import java.nio.file.{Paths, Files}
+import java.nio.file.{Files, Paths}
 import java.nio.charset.StandardCharsets
+
+import via56.slickGenerator.crud.SqlGenerator
 import via56.slickGenerator.crud.config.MessageGenerator
 import via56.slickGenerator.crud.controller.ControllerGenerator
 import via56.slickGenerator.crud.views._
@@ -93,6 +96,7 @@ object parser {
           tables.map{t =>
             writeToFile(pathName, submoduleName, t, tablesOneToMany(t, tables), buildType)
           }
+
         case _ : List[Any] => println("lala2")
         case _ => println("no")
       }
@@ -119,7 +123,16 @@ object parser {
 
   }
 
+  val sqlFilename = "1.sql"
+
   def writeToFile(path: String, submoduleName: String, table: Table, tablesOneToMany: List[Table], buildType: String)(implicit langHash: Map[String,String]) = {
+    /*sql*/
+    if(buildType == "all" || buildType == "sql") {
+      println("Appending Config("+table.viewsPackage+"):  "+path + "/conf/messages.raw")
+      Files.write(Paths.get(path + "/conf/messages.raw"), SqlGenerator(table, tablesOneToMany).generate.getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.APPEND)
+    }
+
+
 
     val submodulePath = if (submoduleName == "") "" else submoduleName + "/"
     val submodulePackageString = if (submoduleName == "") "" else "." + submoduleName

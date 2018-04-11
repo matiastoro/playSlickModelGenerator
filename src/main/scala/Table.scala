@@ -63,7 +63,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
       case (col, props) =>
 
         if(col=="id"){
-          Column("id", "id", "Long", true)
+          Column("id", "id", "Long",  "BIGSERIAL", true)
         } else {
           if(isSubClass(props)){
             props match{
@@ -81,12 +81,12 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
               case ps: columnProps =>
                 optional = isOptional(ps)
                 fk = getForeignKey(ps)
-                getScalaType(col, ps,false) match{
-                  case Some(tpe) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, optional, fk, false, getDisplayType(ps), getDefault(ps), getOptions(ps))
+                (getScalaType(col, ps,false), getPostgresType(col, ps)) match{
+                  case (Some(tpe), Some(postgresTpe)) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, postgresTpe, optional, fk, false, getDisplayType(ps), getDefault(ps), getOptions(ps))
                   case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR")))
                 }
-              case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", false, None, false)
-              case _ => Column(underscoreToCamel(col), col, "DateTime", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
+              case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", "TIMESTAMP WITH TIMEZONE", false, None, false)
+              case _ => Column(underscoreToCamel(col), col, "DateTime", "TIMESTAMP WITH TIMEZONE", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
             }
 
           }
@@ -141,6 +141,8 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
 
     val tpe = (if("""varchar.*""".r.findFirstIn(s).isDefined)
       "String"
+    else if("""longvarchar.*""".r.findFirstIn(s).isDefined)
+      "String"
     else if("""integer.*""".r.findFirstIn(s).isDefined){
       if(ps.isDefinedAt("foreignTable"))
         "Long"
@@ -168,6 +170,37 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     })
 
   }
+
+  def getPostgresType(col: String, ps: ListMap[String,String]): Option[String] = {
+    val s = ps.getOrElse("type", "")
+
+    val tpe = if("""varchar.*""".r.findFirstIn(s).isDefined)
+      "VARCHAR(255)"
+    else if("""integer.*""".r.findFirstIn(s).isDefined){
+      if(ps.isDefinedAt("foreignTable"))
+        "BIGINT"
+      else
+        "INTEGER"
+    }
+    else if("""boolean.*""".r.findFirstIn(s).isDefined)
+      "BOOLEAN"
+    else if("""double.*""".r.findFirstIn(s).isDefined)
+      "DOUBLE PRECISION"
+    else if("""timestamp.*""".r.findFirstIn(s).isDefined)
+      "TIMESTAMP WITH TIMEZONE"
+    else if("""date.*""".r.findFirstIn(s).isDefined)
+      "DATE"
+    else if("""oneToMany.*""".r.findFirstIn(s).isDefined)
+      "OneToMany"
+    else
+      throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'")
+
+    if(tpe == "OneToMany") None
+    else Some(tpe)
+
+  }
+
+
 
   def getForeignKeys(cols: List[AbstractColumn]): List[ForeignKey] = {
     val list = cols.map{
@@ -287,7 +320,7 @@ object Columns{
   )
 }
 
-case class Column(override val name: String, rawName: String, tpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, options: Map[String, String] = Map()) extends AbstractColumn(name){
+case class Column(override val name: String, rawName: String, tpe: String, sqlTpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, options: Map[String, String] = Map()) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
   lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
