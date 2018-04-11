@@ -76,6 +76,9 @@ ${oneToManiesImports}
       s"""$imports
 
 /*
+import ${table.className}Form from './components/${table.objName}/${table.className}Form'
+import ${table.className}List from './components/${table.objName}/${table.className}List'
+
 <Route path="/${table.objName}/" component={${table.className}List} />
 <Route path="/${table.objName}/new" component={${table.className}Form} />
 <Route path="/${table.objName}/:id" component={${table.className}Form} />

@@ -250,12 +250,13 @@ object GeneratorMappings {
     ("updatedAt", "DateTime") -> "jodaDate"
   )
   val formMappings = Map[String, String](
-    "String" -> "text",
+    "String" -> "nonEmptyText",
     "Int" -> "number",
     "Long" -> "longNumber",
     "Boolean" -> "boolean",
     "Double" -> "of(doubleFormat)",
     "DateTime" -> "jodaDate",
+    "LocalDate" -> "jodaDate",
     "Date" -> "jodaDate"
   )
 }
@@ -400,6 +401,7 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
       case "Boolean" => d
       case "Double" => d
       case "DateTime" => "new DateTime("+d+")"
+      case "LocalDate" => "new LocalDate()"
       case "Date" => "new Date("+d+")"
       case _ => d
     }
@@ -430,7 +432,8 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
       println("a ver cual", fk)
-      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors[this.props.prefix+"["+i+"].${inputName}"]} />"""
+      //val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors[this.props.prefix+"["+i+"].${inputName}"]} />"""
+      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} />"""
       s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
     }.getOrElse(inputDefault(prefix))
   }

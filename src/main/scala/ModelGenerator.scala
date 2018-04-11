@@ -14,12 +14,13 @@ import play.api.libs.json._
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.data.Form
 import play.api.data.Forms._
+//support for joda is now a separate project
+import play.api.data.JodaForms._
 import play.api.data.format.Formats._
 import org.joda.time.{DateTime, LocalDate}
 //import com.github.tototoshi.slick.H2JodaSupport._
 import play.api.libs.json.JodaWrites._
 import play.api.libs.json.JodaReads._
-
 
 /*import play.api.db.slick.Config.driver.simple._
 import com.github.tototoshi.slick.JdbcJodaSupport._
@@ -37,10 +38,11 @@ import play.api.libs.json._*/
   def getters = table.foreignColumns.map{fc =>
     fc.foreignKey.map{ fk =>
       """  def get"""+fk.className+s"""(obj: ${table.className}) = """+{
+        val fkTable = if(fk.table == table.yamlName) "this" else fk.table+"Repo"
         if(!fc.optional)
-          fk.table+s"""Repo.${langHash("byId")}(obj."""+fc.name+""")"""
+          fkTable+s""".${langHash("byId")}(obj."""+fc.name+""")"""
         else
-          """if(obj."""+fc.name+""".isDefined) """+fk.table+s"""Repo.${langHash("byId")}(obj."""+fc.name+""".get) else None"""
+          """if(obj."""+fc.name+""".isDefined) """+fkTable+s""".${langHash("byId")}(obj."""+fc.name+""".get) else None"""
       }
     }.getOrElse("")
   }.mkString("\n")
@@ -485,7 +487,7 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 }"""
 
     var fkRepositories: List[String] = if(table.foreignColumns.length>0){
-      table.foreignColumns.map { fc =>
+      table.foreignColumns.filter(fc => fc.foreignKey.map{fk => fk.className != table.className}.getOrElse(false)).map { fc =>
         fc.foreignKey.map { fk =>
           fk.table + "Repo: " +fk.className+"Repository"
         }.getOrElse("")
