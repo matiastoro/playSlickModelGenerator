@@ -7,6 +7,13 @@ import scala.collection.immutable.ListMap
 case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash: Map[String,String], lang: String) extends CodeGenerator{
   val tableName = underscoreToCamel(yamlName)
   val className = tableName.capitalize
+  lazy val label = {
+    val tokens = yamlName.split("_").map(_.capitalize)
+    (if(tokens.last == "Id")
+      tokens.dropRight(1)
+    else tokens).mkString(" ")
+
+  }
 
   val attributes = args.getOrElse("_attributes", ListMap[String, Any]())
   val tableNameDB: String = attributes match{
@@ -69,7 +76,11 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
             props match{
               case ps: subClass =>
                 //println("SubClass: "+ps)
-                SubClass(underscoreToCamel(col), getColumns(ps))
+                val s = SubClass(underscoreToCamel(col), getColumns(ps))
+                s.copy(cols = s.cols.map{
+                  case c: Column => c.copy(subClass = Some(s))
+                  case c => c
+                })
               case _ => throw new Exception("parsing error")
             }
           }
@@ -82,8 +93,8 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
                 optional = isOptional(ps)
                 fk = getForeignKey(ps)
                 (getScalaType(col, ps,false), getPostgresType(col, ps)) match{
-                  case (Some(tpe), Some(postgresTpe)) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, postgresTpe, optional, fk, false, getDisplayType(ps), getDefault(ps), getOptions(ps))
-                  case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR")))
+                  case (Some(tpe), Some(postgresTpe)) => Column(underscoreToCamel(col), getRawName(col, ps), tpe, postgresTpe, optional, fk, false, getDisplayType(ps), getDefault(ps), getOptions(ps), None,  ps.get("primaryString").isDefined)
+                  case _ => OneToMany(underscoreToCamel(ps.getOrElse("foreignTable", "ERROR")), ps.getOrElse("foreignTable", "ERROR"))
                 }
               case _ if col != "created_at" && col != "updated_at" => Column(underscoreToCamel(col), col, "Long", "TIMESTAMP WITH TIME ZONE", false, None, false)
               case _ => Column(underscoreToCamel(col), col, "DateTime", "TIMESTAMP WITH TIME ZONE", true, None, true, DisplayType.Hidden) //createdAt: ~, updatedAt: ~
@@ -263,7 +274,7 @@ object GeneratorMappings {
 }
 import GeneratorMappings._
 
-case class OneToMany(foreignTable: String)(implicit lang:String) extends AbstractColumn(foreignTable){
+case class OneToMany(foreignTable: String, rawForeignTable: String)(implicit lang:String) extends AbstractColumn(foreignTable){
 
   val className = underscoreToCamel(foreignTable).capitalize
   val objName = underscoreToCamel(foreignTable)
@@ -271,7 +282,9 @@ case class OneToMany(foreignTable: String)(implicit lang:String) extends Abstrac
   val queryName = className+{if(lang=="es") "Consulta" else "Query"}
   def formHelper(submodulePackageString: String = "", ref: Option[Table] = None) ={
     ref.map{table =>
-      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${className}s" prefix="${objName}s" readOnly={readOnly} objs={obj.${objName}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id},nobj)} ref={(input) => refFunc(input)} readOnly={readOnly} hide={["${table.objName}Id"]} errors={errors} prefix="${objName}s"/>}/>"""
+      val label = rawForeignTable.split("_").map(_.capitalize).mkString(" ")
+      val description = (if(lang=="es") "Lista de " else "List of ")+label+"s"
+      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${description}" prefix="${objName}s" readOnly={readOnly} objs={obj.${objName}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id?obj.id:-1},nobj)} ref={(input) => refFunc(input)} readOnly={readOnly} hide={["${table.objName}Id"]} errors={errors} prefix="${objName}s"/>}/>"""
     }.getOrElse{
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
@@ -323,13 +336,21 @@ object Columns{
   )
 }
 
-case class Column(override val name: String, rawName: String, tpe: String, sqlTpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, options: Map[String, String] = Map()) extends AbstractColumn(name){
+case class Column(override val name: String, rawName: String, tpe: String, sqlTpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, options: Map[String, String] = Map(), subClass: Option[SubClass] = None, primaryString: Boolean = false) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
   lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
   lazy val formMapping: String = if(optional) "optional("+formMappingTpe+")" else formMappingTpe
 
   lazy val isId: Boolean = name.toLowerCase == "id"
+
+  lazy val label = {
+    val tokens = rawName.split("_").map(_.capitalize)
+    (if(tokens.last == "Id")
+      tokens.dropRight(1)
+    else tokens).mkString(" ")
+
+  }
 
   def inputDefault(prefix: String) = """@myInputText(frm(""""+prefix+name+""""), '_label -> """"+name.capitalize+"""")"""
   /* it was generated with a Map but we are choosing this ways giving that probably every helper is going to receive different parameters*/
@@ -358,32 +379,30 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
 
   def inputDefaultReact(prefix: String) = {
     val inputName = prefix+name
-    s"""<TextField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
+    s"""<TextField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")}/>"""
   }
 
   def inputTextareaReact(prefix: String) = {
     val inputName = prefix+name
-    s"""<TextField ${ref(inputName)} multiLine rows={3} name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}}/>"""
+    s"""<TextField ${ref(inputName)} multiLine rows={3} name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")}/>"""
   }
 
   def inputReact(control: String, prefix: String, extra: Option[String] = None) = {
     val inputName = prefix + name
-    s"""<${control} ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} ${extra.getOrElse("")}/>"""
+    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
   }
 
   def inputDateReact(control: String, prefix: String, extra: Option[String] = None) = {
     val inputName = prefix + name
-    s"""<${control} ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName}} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} ${extra.getOrElse("")}/>"""
+    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}")} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
   }
 
 
 
-  def formHelperReact(prefix: String = "", hidden: Boolean = false): String = {
-    if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={obj.${prefix+name} || ""} readOnly={readOnly} />"""
+  def formHelperReact(prefix: String = "", hidden: Boolean = false)(implicit inline: Boolean = false): String = {
+    val inputName = prefix + name
+    if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={this.getAttr(obj, "${inputName}", "")} readOnly={readOnly} />"""
     else{
-      if(name =="fueling"){
-        println("fueling",tpe, options)
-      }
       tpe match {
         case "Long" if foreignKey.isDefined => foreignKeyInputReact(prefix, foreignKey)
         case "String" => if(options.isDefinedAt("longvarchar")) inputTextareaReact(prefix) else inputDefaultReact(prefix)
@@ -430,19 +449,21 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
       println("a ver cual options", name)
-      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={[${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}]} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} />"""
+      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={[${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}]} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
       //s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
       s"""${select}"""
 
   }
 
-  def foreignKeyInputReact(prefix: String, foreignKey: Option[ForeignKey]) = {
+  def foreignKeyInputReact(prefix: String, foreignKey: Option[ForeignKey])(implicit inline: Boolean = false) = {
     foreignKey.map{ fk =>
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
       println("a ver cual", fk)
-      //val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors[this.props.prefix+"["+i+"].${inputName}"]} />"""
-      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" defaultValue={obj.${inputName} || ""} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${name.capitalize}" readOnly={readOnly} required={${!optional}} errors={errors && errors.${inputName}} />"""
+      val select =  if(inline)
+        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
+      else
+        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
       s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
     }.getOrElse(inputDefault(prefix))
   }

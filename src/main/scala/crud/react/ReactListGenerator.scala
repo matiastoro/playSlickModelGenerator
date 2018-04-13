@@ -52,7 +52,7 @@ export default class ${table.className}Form extends GList{
     apiDeleteUrl = '/${table.tableName}/delete/'
     ${if(withOptions) s"""apiOptionsUrl = '/${table.tableName}/options'""" else ""}
 
-    objsStr = '${table.className}s'
+    objsStr = '${table.label}s'
 
     renderPrimaryText = (obj) => {
         return obj.${table.selectCol}

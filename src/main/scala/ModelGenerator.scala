@@ -9,7 +9,8 @@ case class ModelGenerator(table: Table, tablesOneToMany: List[Table] = List())(i
 
 
   def imports(className: String) = s"""package models
-import models.extensions.${className}Extension
+//import models.extensions.${className}Extension
+import extensions._
 import play.api.libs.json._
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.data.Form
@@ -39,10 +40,11 @@ import play.api.libs.json._*/
     fc.foreignKey.map{ fk =>
       """  def get"""+fk.className+s"""(obj: ${table.className}) = """+{
         val fkTable = if(fk.table == table.yamlName) "this" else fk.table+"Repo"
+        val fcname = (fc.subClass.map{sc => sc.name+"."}.getOrElse("")+fc.name)
         if(!fc.optional)
-          fkTable+s""".${langHash("byId")}(obj."""+fc.name+""")"""
+          fkTable+s""".${langHash("byId")}(obj."""+fcname+""")"""
         else
-          """if(obj."""+fc.name+""".isDefined) """+fkTable+s""".${langHash("byId")}(obj."""+fc.name+""".get) else None"""
+          """if(obj."""+fcname+""".isDefined) """+fkTable+s""".${langHash("byId")}(obj."""+fcname+""".get) else None"""
       }
     }.getOrElse("")
   }.mkString("\n")
@@ -72,7 +74,7 @@ import play.api.libs.json._*/
       val selectCol = table.selectCol
 
 
-      val selectString = "  lazy val selectString = "+selectCol
+      val selectString = "" //  lazy val selectString = "+selectCol
 
       /*val toJson = {
         val toJsonDef = if(table.oneToManies.length>0){
@@ -95,11 +97,11 @@ import play.api.libs.json._*/
         case c: SubClass => c
       }
 
-      val objectClass = s"""object ${table.className} {
-  implicit val format = Json.format[${table.className}]
+      val objectClass = s"""object ${className} {
+  implicit val format = Json.format[${className}]
   val tupled = (this.apply _).tupled
 }"""
-      generatedClass + "\n\n"+objectClass + "\n\n" +subClasses.map{sc => generateClass(sc.className, sc.cols, true)}.mkString("\n\n")
+      subClasses.map{sc => generateClass(sc.className, sc.cols, true)}.mkString("\n\n")+ "\n\n"+ generatedClass + "\n\n"+objectClass + "\n\n"
     }
 
 

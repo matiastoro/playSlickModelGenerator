@@ -1,0 +1,166 @@
+
+reporting_entity:
+  id: ~
+  reporting_entity: {type: varchar, size: 255, required: true}
+  reporting_entity_id: {type: integer, foreignTable: reporting_entity, required: false, foreignReference: id, onDelete: cascade}
+
+organization:
+  id: ~
+  organization: {type: varchar, size: 255, required: true}
+
+state_area:
+  id: ~
+  state_area: {type: varchar, size: 255, required: true}
+  state_area_id: {type: integer, foreignTable: state_area, required: false, foreignReference: id, onDelete: cascade}
+
+language:
+  id: ~
+  language: {type: varchar, size: 255, required: true}
+
+
+
+aerodrome_status:
+  id: ~
+  status: {type: varchar, size: 255, required: true}
+
+aerodrome_type:
+  id: ~
+  tpe: {type: varchar, size: 255, required: true}
+
+
+runway_surface_type:
+  id: ~
+  surface_type: {type: varchar, size: 255, required: true}
+
+runway:
+  id: ~
+  runway: {type: varchar, size: 255, required: true}
+  runway_surface_type_id: {type: integer, foreignTable: runway_surface_type, required: true, foreignReference: id, onDelete: set null}
+  aerodrome_id: {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade}
+
+helicopter_landing_area_surface_type:
+  id: ~
+  surface_type: {type: varchar, size: 255, required: true}
+
+helicopter_landing_area_type:
+  id: ~
+  landing_area_type: {type: varchar, size: 255, required: true}
+
+helicopter_landing_area_area_configuration:
+  id: ~
+  area_configuration: {type: varchar, size: 255, required: true}
+
+helicopter_landing_area_area_type:
+  id: ~
+  helicopter_landing_area: {type: varchar, size: 255, required: true}
+  helicopter_landing_area_type_id: {type: integer, foreignTable: helicopter_landing_area_type, required: true, foreignReference: id, onDelete: set null}
+  helicopter_landing_area_area_configuration_id: {type: integer, foreignTable: helicopter_landing_area_area_configuration, required: true, foreignReference: id, onDelete: set null}
+  helicopter_landing_area_surface_type_id: {type: integer, foreignTable: helicopter_landing_area_surface_type, required: true, foreignReference: id, onDelete: set null}
+
+
+
+helicopter_landing_area:
+  id: ~
+  helicopter_landing_area: {type: varchar, size: 255, required: true}
+  aerodrome_id: {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade}
+
+aerodrome:
+  id: ~
+  icaoCode: {type: varchar, size: 255, primaryString: true}
+  aerodrome_status_id: {type: integer, foreignTable: aerodrome_status, required: true, foreignReference: id, onDelete: set null}
+  aerodrome_type_id: {type: integer, foreignTable: aerodrome_type, required: true, foreignReference: id, onDelete: set null}
+  latitude: {type: varchar, size: 30, required: false}
+  longitude: {type: varchar, size: 30, required: false}
+  elevation_above_msl: {type: double, required: false}
+  runways: { type: oneToMany, foreignTable: runway}
+  helicopter_landing_areas: { type: oneToMany, foreignTable: helicopter_landing_area}
+
+aerodrome_location:
+  id: ~
+  location: {type: varchar, size: 255, required: true}
+
+
+
+ocurrence_class:
+  id: ~
+  ocurrence_class: {type: varchar, size: 255, required: true}
+
+detection_phase:
+  id: ~
+  detection_phase: {type: varchar, size: 255, required: true}
+
+ocurrence_category:
+  id: ~
+  code: {type: varchar, size: 20, required: true}
+  ocurrence_category: {type: varchar, size: 255, required: true}
+
+neo_aerodrome_ocurrence_category:
+  id: ~
+  neo_aerodrome_id: {type: integer, foreignTable: neo_aerodrome, required: true, foreignReference: id, onDelete: cascade}
+  ocurrence_category_id: {type: integer, foreignTable: ocurrence_category, required: true, foreignReference: id, onDelete: cascade}
+
+neo_event_type:
+  id: ~
+  event_type: {type: varchar, size: 255, required: true}
+
+phase:
+  id: ~
+  phase: {type: varchar, size: 255, required: true}
+  phase_id: {type: integer, foreignTable: phase, required: false, foreignReference: id, onDelete: cascade}
+
+neo_event_type_phase:
+  id: ~
+  neo_aerodrome_id: {type: integer, foreignTable: neo_aerodrome, required: true, foreignReference: id, onDelete: cascade}
+  neo_event_type_id: {type: integer, foreignTable: neo_event_type, required: true, foreignReference: id, onDelete: cascade, displayField: event_type}
+  phase_id: {type: integer, foreignTable: phase, required: true, foreignReference: id, onDelete: cascade, displayField: phase}
+
+
+
+neo_report_status:
+  id: ~
+  report_status: {type: varchar, size: 255, required: true}
+
+neo_aerodrome:
+  id: ~
+  reporting_entity_id: {type: integer, foreignTable: reporting_entity, required: true, foreignReference: id, onDelete: cascade}
+  reporting_entity_name: {type: varchar, size: 255, required: true}
+  general_information:
+    when: {type: timestamp, required: true}
+    when_local: {type: timestamp, required: false}
+    where_state_area_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: cascade}
+    where_location_name: {type: varchar, size: 255, required: true}
+    where_latitude_occ: {type: varchar, size: 255, required: false}
+    where_longitude_occ: {type: varchar, size: 255, required: false}
+    what_headline: {type: varchar, size: 255, required: true}
+    what_narrative_languaje: {type: varchar, size: 255, required: true}
+    what_narrative: {type: longvarchar, required: true}
+  aerodrome_description:
+    aerodrome_id:  {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade, displayField: icaoCode}
+    aerodrome_location_id: {type: integer, foreignTable: aerodrome_location, required: true, foreignReference: id, onDelete: set null, displayField: location}
+    aerodrome_status_id: {type: integer, foreignTable: aerodrome_status, required: true, foreignReference: id, onDelete: set null, displayField: status}
+    aerodrome_type_id: {type: integer, foreignTable: aerodrome_type, required: true, foreignReference: id, onDelete: set null, displayField: tpe}
+    latitude: {type: varchar, size: 30, required: false}
+    longitude: {type: varchar, size: 30, required: false}
+    runway_id: {type: integer, foreignTable: runway, required: false, foreignReference: id, onDelete: set null}
+    runway_surface_type_id: {type: integer, foreignTable: runway_surface_type, required: false, foreignReference: id, onDelete: set null, displayField: surface_type}
+    helicopter_landing_area_type_id: {type: integer, foreignTable: helicopter_landing_area_type, required: false, foreignReference: id, onDelete: set null, displayField: landing_area_type}
+    helicopter_landing_area_area_configuration_id: {type: integer, foreignTable: helicopter_landing_area_area_configuration, required: false, foreignReference: id, onDelete: set null, displayField: area_configuration}
+    helicopter_landing_area_surface_type_id: {type: integer, foreignTable: helicopter_landing_area_surface_type, required: false, foreignReference: id, onDelete: set null, displayField: surface_type}
+  classification:
+    ocurrence_class_id: {type: integer, foreignTable: ocurrence_class, required: true, foreignReference: id, onDelete: set null}
+    detection_phase_id: {type: integer, foreignTable: detection_phase, required: true, foreignReference: id, onDelete: set null}
+  ocurrence_categories: { type: oneToMany, foreignTable: neo_aerodrome_ocurrence_category}
+  event_type_phases: { type: oneToMany, foreignTable: neo_event_type_phase}
+  risk:
+    risk_classification: {type: varchar, size: 255, required: true}
+    risk_methodology: {type: varchar, size: 255, required: false}
+    risk_assessment: {type: longvarchar, required: false}
+  assessment:
+    analysis_follow_up: {type: longvarchar, size: 255, required: false}
+    corrective_actions: {type: longvarchar, size: 255, required: false}
+    conclusions: {type: longvarchar, size: 255, required: false}
+  report_management:
+    report_status_id: {type: integer, foreignTable: neo_report_status, required: false, foreignReference: id, onDelete: set null, displayField: report_status}
+    report_version: {type: longvarchar, size: 255, required: false}
+  attachments: { type: longvarchar, required: false}
+

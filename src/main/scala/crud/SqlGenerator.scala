@@ -24,9 +24,9 @@ case class SqlGenerator(table: Table, tablesOneToMany: List[Table] = List())(imp
     s"""DROP TABLE IF EXISTS "${table.tableNameDB}";""".stripMargin
   }
 
-  def generateIndexesUp: String = {
+  def generateIndexesUp(columns: List[AbstractColumn]): String = {
 
-    table.columns.flatMap{
+    columns.flatMap{
       case c: Column => {
         if (c.rawName == "id") {
           None
@@ -47,14 +47,15 @@ case class SqlGenerator(table: Table, tablesOneToMany: List[Table] = List())(imp
 
         }
       }
+      case s: SubClass => Some(generateIndexesUp(s.cols))
       case _ => None
 
     }.mkString("\n")
   }
 
-  def generateIndexesDown: String = {
+  def generateIndexesDown(columns: List[AbstractColumn]): String = {
 
-    table.columns.flatMap{
+    columns.flatMap{
       case c: Column => {
         if (c.rawName == "id") {
           None
@@ -62,43 +63,48 @@ case class SqlGenerator(table: Table, tablesOneToMany: List[Table] = List())(imp
           c.foreignKey.map { fk => s"""DROP INDEX IF EXISTS "${table.tableNameDB}_${c.rawName}_idx";""".stripMargin}
         }
       }
+      case s: SubClass => Some(generateIndexesDown(s.cols))
       case _ => None
     }.mkString("\n")
   }
 
-  def generateConstraintsUp: String = {
-    table.columns.flatMap{
+  def generateConstraintsUp(columns: List[AbstractColumn]): String = {
+    columns.flatMap{
       case c: Column => {
         if (c.rawName == "id") {
-          Some(s"""ALTER TABLE "${table.tableNameDB}" ADD CONSTRAINT "${table.tableNameDB}_pkey" PRIMARY KEY (id);""")
+          //Some(s"""ALTER TABLE IF EXISTS "${table.tableNameDB}" ADD CONSTRAINT "${table.tableNameDB}_pkey" PRIMARY KEY (id);""")
+          None
         } else {
           c.foreignKey.map { fk =>
             val onDelete = fk.onDelete match{
               case Some("cascade") => "CASCADE"
               case _ => "SET NULL"
             }
-              s"""ALTER TABLE "${table.tableNameDB}" ADD CONSTRAINT "${table.tableNameDB}_${fk.table}_fk" FOREIGN KEY ("${c.rawName}")
+              s"""ALTER TABLE IF EXISTS "${table.tableNameDB}" ADD CONSTRAINT "${table.tableNameDB}_${fk.table}_fk" FOREIGN KEY ("${c.rawName}")
                   |  REFERENCES "${fk.table}" ("${fk.reference}") MATCH SIMPLE
                   |  ON UPDATE NO ACTION ON DELETE $onDelete;""".stripMargin
           }
         }
       }
+      case s: SubClass => Some(generateConstraintsUp(s.cols))
       case _ => None
 
     }.mkString("\n")
   }
 
-  def generateConstraintsDown: String = {
-    table.columns.flatMap{
+  def generateConstraintsDown(columns: List[AbstractColumn]): String = {
+    columns.flatMap{
       case c: Column => {
         if (c.rawName == "id") {
           None//Some(s"""ALTER TABLE "${table.tableNameDB}" DROP CONSTRAINT IF EXISTS "${table.tableNameDB}_pkey";""")
         } else {
           c.foreignKey.map { fk =>
-              s"""ALTER TABLE "${table.tableNameDB}" DROP CONSTRAINT IF EXISTS  "${table.tableNameDB}_${fk.table}_fk";""".stripMargin
+              s"""ALTER TABLE IF EXISTS "${table.tableNameDB}" DROP CONSTRAINT IF EXISTS  "${table.tableNameDB}_${fk.table}_fk";""".stripMargin
           }
         }
       }
+
+      case s: SubClass => Some(generateConstraintsDown(s.cols))
       case _ => None
 
     }.reverse.mkString("\n")
@@ -109,7 +115,7 @@ case class SqlGenerator(table: Table, tablesOneToMany: List[Table] = List())(imp
     columns.collect{
       case c: Column => {
         if (c.rawName == "id") {
-          "  id bigserial NOT NULL"
+          "  id bigserial NOT NULL primary key"
         } else {
 
           val colMap = s"""  "${c.rawName}" ${c.sqlTpe} ${if(c.optional){"NULL"}else{"NOT NULL"}}"""
@@ -117,9 +123,9 @@ case class SqlGenerator(table: Table, tablesOneToMany: List[Table] = List())(imp
 
         }
       }
-      /*case s: SubClass =>
-        hasSubClasses = true
-        "\n"+generateColumnsTagTable(s.cols)+"\n  val "+s.name+"Cols = "+generateStars(s.cols)+"\n"*/
+
+      case s: SubClass =>
+        generateColumnsUpTagTable(s.cols)
 
     }.mkString(",\n")
   }

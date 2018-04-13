@@ -93,6 +93,7 @@ object parser {
             Table(table._1, table._2)
           }.toList
 
+          println("TABLES ARE ", tables.map{_.className})
           tables.map{t =>
             writeToFile(pathName, submoduleName, t, tablesOneToMany(t, tables), buildType)
           }
@@ -105,23 +106,28 @@ object parser {
     }
   }
   def tablesOneToMany(t: Table, tables: List[Table]): List[Table] = {
-    println("calculating tablesOneToMay of ", t.yamlName, tables)
+    println("calculating tablesOneToMay of ", t.yamlName, t.className)
     val fks = t.columns.collect{ //collect all columns that have foreignKeys
       case c: Column if c.foreignKey.isDefined => c.foreignKey.get
     }
-    println("la tabla",t)
+    //println("la tabla",t)
     println("fks", fks)
 
     val tab = for{
       fk <- fks
-      table <- tables if table.tableName == fk.table
+      table <- tables if table.yamlName == fk.table
     } yield table
+    println("tablenames", tables.map{_.yamlName}, fks.map{_.table})
     println("LATABLAOEZI: "+t.className+" fks: "+fks+"  tab: "+tab)
-    tab.filter(_.columns.exists{
+    println("BOMBINBOMBOM", tab.map(_.columns))
+    val esto = tab.filter(_.columns.exists{
       case o: OneToMany if o.foreignTable.capitalize == t.className => true
       //case c: Column if c.foreignKey.isDefined => true
       case _ => false
     })
+
+    println("resultado, ", esto)
+    esto
 
   }
 
@@ -134,10 +140,10 @@ object parser {
     val tableUps = generators.map(g => g.generateTableUps).mkString("\n")
     val tableDowns = generators.map(g => g.generateTableDowns).mkString("\n")
 
-    val indexesUp = generators.map(g => g.generateIndexesUp).mkString("\n")
-    val indexesDown = generators.map(g => g.generateIndexesDown).mkString("\n")
-    val constraintsUp = generators.map(g => g.generateConstraintsUp).mkString("\n")
-    val constraintsDown = generators.map(g => g.generateConstraintsDown).mkString("\n")
+    val indexesUp = generators.map(g => g.generateIndexesUp(g.table.columns)).mkString("\n")
+    val indexesDown = generators.map(g => g.generateIndexesDown(g.table.columns)).mkString("\n")
+    val constraintsUp = generators.map(g => g.generateConstraintsUp(g.table.columns)).mkString("\n")
+    val constraintsDown = generators.map(g => g.generateConstraintsDown(g.table.columns)).mkString("\n")
 
     val sql = s"""
           |# --- !Ups
