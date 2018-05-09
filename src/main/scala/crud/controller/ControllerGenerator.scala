@@ -6,17 +6,35 @@ import via56.slickGenerator.Column
 import via56.slickGenerator.SubClass
 import via56.slickGenerator.Table
 
-case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String)(implicit langHash: Map[String, String]) extends CodeGenerator{
+case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String, tables: List[Table])(implicit langHash: Map[String, String]) extends CodeGenerator{
   val isMany = tablesOneToMany.size>0
+
+  def getOneToManyRepos(otm: OneToMany): List[(String, String)] = {
+    //search for table
+    val otms = tables.find(t => t.yamlName == otm.rawForeignTable).map{ t =>
+      if(t.oneToManies.length>0){
+        t.oneToManies.flatMap { otm =>
+          getOneToManyRepos(otm)
+        }
+      } else List()
+    }.getOrElse(List())
+    //println("para ", otm, "encontre, ",otms)
+    (List((otm.foreignTable, otm.className)) ++ otms).toSet.toList
+  }
+
+
   def generate: String = {
     val rels = (table.foreignKeys.map{fk => (fk.table, fk.className)} ++
-    table.oneToManies.map{otm => (otm.foreignTable, otm.className)}).toSet
+    table.oneToManies.flatMap{otm => getOneToManyRepos(otm)}).toSet
     val frels = rels.filter(r => r._2 != table.className)
+
     val otmsRepos = if(frels.size>0){
       ", "+frels.map { r =>
         r._1+"Repo: "+r._2+"Repository"
       }.mkString(", ")
     } else ""
+
+    //println("controller, ", otmsRepos)
 
     val objectSignature = """class """+table.className+s"""Controller @Inject()(cc: MessagesControllerComponents)(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) extends MessagesAbstractController(cc) with Autorization {"""
 
@@ -24,8 +42,8 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
 
 
     val lMany = if(table.foreignKeys.length>0) l ++ List(options) else l
-    println(table.columns)
-    println("oneToMany", tablesOneToMany)
+    //println(table.columns)
+    //println("oneToMany", tablesOneToMany)
     lMany.mkString("\n")+"\n}"
   }
 
@@ -99,7 +117,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   def fksJson(body: String) = {
     val rows = table.foreignKeys.map{fk =>
       val fkTable = if(fk.table == table.yamlName) "repo" else (fk.table+"Repo")
-    "      "+fk.table+"s <- "+fkTable+s".${langHash("getAll")}"
+    "      "+fk.tableName+"s <- "+fkTable+s".${langHash("getAll")}"
   }.mkString("\n")
     if(table.foreignKeys.length>0){
       s"""    for{
@@ -258,7 +276,7 @@ GET         /"""+table.objName+"""/:page             controllers"""+submodulePac
   }
 
   def options() = {
-    val result = table.foreignKeys.map{fk => s""""${fk.table}s" -> Json.toJson(${fk.table}s)"""}.mkString(", ")
+    val result = table.foreignKeys.map{fk => s""""${fk.tableName}s" -> Json.toJson(${fk.tableName}s)"""}.mkString(", ")
     s"""  def options() = withUserAsync{ user =>  implicit request =>
 ${fksJson(s"""Ok(Json.obj(${result}))""")}
   }"""

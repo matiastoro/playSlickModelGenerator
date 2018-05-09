@@ -68,7 +68,8 @@ case class SqlGenerator(table: Table, tablesOneToMany: List[Table] = List())(imp
     }.mkString("\n")
   }
 
-  def generateConstraintsUp(columns: List[AbstractColumn]): String = {
+  def generateConstraintsUp(columns: List[AbstractColumn], nRefs: scala.collection.mutable.Map[String, Int] = scala.collection.mutable.Map [String, Int]()): String = {
+
     columns.flatMap{
       case c: Column => {
         if (c.rawName == "id") {
@@ -80,31 +81,35 @@ case class SqlGenerator(table: Table, tablesOneToMany: List[Table] = List())(imp
               case Some("cascade") => "CASCADE"
               case _ => "SET NULL"
             }
-              s"""ALTER TABLE IF EXISTS "${table.tableNameDB}" ADD CONSTRAINT "${table.tableNameDB}_${fk.table}_fk" FOREIGN KEY ("${c.rawName}")
+
+            nRefs += (fk.table -> (nRefs.getOrElse(fk.table, 0)+1))
+            s"""ALTER TABLE IF EXISTS "${table.tableNameDB}" ADD CONSTRAINT "${table.tableNameDB}_${fk.table}_fk_${nRefs.getOrElse(fk.table,0)}" FOREIGN KEY ("${c.rawName}")
                   |  REFERENCES "${fk.table}" ("${fk.reference}") MATCH SIMPLE
                   |  ON UPDATE NO ACTION ON DELETE $onDelete;""".stripMargin
           }
         }
       }
-      case s: SubClass => Some(generateConstraintsUp(s.cols))
+      case s: SubClass => Some(generateConstraintsUp(s.cols, nRefs))
       case _ => None
 
     }.mkString("\n")
   }
 
-  def generateConstraintsDown(columns: List[AbstractColumn]): String = {
+  def generateConstraintsDown(columns: List[AbstractColumn], nRefs: scala.collection.mutable.Map[String, Int] = scala.collection.mutable.Map [String, Int]()): String = {
+
     columns.flatMap{
       case c: Column => {
         if (c.rawName == "id") {
           None//Some(s"""ALTER TABLE "${table.tableNameDB}" DROP CONSTRAINT IF EXISTS "${table.tableNameDB}_pkey";""")
         } else {
           c.foreignKey.map { fk =>
-              s"""ALTER TABLE IF EXISTS "${table.tableNameDB}" DROP CONSTRAINT IF EXISTS  "${table.tableNameDB}_${fk.table}_fk";""".stripMargin
+            nRefs += (fk.table -> (nRefs.getOrElse(fk.table, 0)+1))
+            s"""ALTER TABLE IF EXISTS "${table.tableNameDB}" DROP CONSTRAINT IF EXISTS  "${table.tableNameDB}_${fk.table}_fk_${nRefs.getOrElse(fk.table,0)}";""".stripMargin
           }
         }
       }
 
-      case s: SubClass => Some(generateConstraintsDown(s.cols))
+      case s: SubClass => Some(generateConstraintsDown(s.cols, nRefs))
       case _ => None
 
     }.reverse.mkString("\n")

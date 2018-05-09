@@ -7,8 +7,8 @@ import via56.slickGenerator.Table
 case class ReactFormGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String) extends CodeGenerator{
 
   def generateInputs(columns: List[AbstractColumn], prefix: String = "")(implicit inline: Boolean = false): String = {
-    println("GENERATING REACT FORM ", table)
-    println("AA",tablesOneToMany)
+    //println("GENERATING REACT FORM ", table)
+    //println("AA",tablesOneToMany)
     val groupTab = (" "*10)
     val tab = (" "*12)
 

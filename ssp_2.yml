@@ -164,3 +164,216 @@ neo_aerodrome:
     report_version: {type: longvarchar, size: 255, required: false}
   attachments: { type: longvarchar, required: false}
 
+
+
+
+aircraft_manufacturer_model:
+  id: ~
+  manufacturer_model: {type: varchar, size: 255, required: true}
+  aircraft_manufacturer_model_id: {type: integer, foreignTable: aircraft_manufacturer_model, required: false, foreignReference: id, onDelete: cascade, displayField: manufacturer_model}
+
+aircraft_category:
+  id: ~
+  category: {type: varchar, size: 255, required: true}
+  aircraft_category_id: {type: integer, foreignTable: aircraft_category, required: false, foreignReference: id, onDelete: cascade, displayField: category}
+
+aircraft_mass_group:
+  id: ~
+  mass_group: {type: varchar, size: 255, required: true}
+
+aircraft_propulsion_type:
+  id: ~
+  propulsion_type: {type: varchar, size: 255, required: true}
+
+aircraft_wake_turb_category:
+  id: ~
+  wake_turb_category: {type: varchar, size: 255, required: true}
+
+aircraft_landing_gear_type:
+  id: ~
+  landing_gear_type: {type: varchar, size: 255, required: true}
+  aircraft_landing_gear_type_id: {type: integer, foreignTable: aircraft_landing_gear_type, required: false, foreignReference: id, onDelete: cascade, displayField: landing_gear_type}
+
+operator:
+  id: ~
+  operator: {type: varchar, size: 255, required: true}
+  operator_type_id: {type: integer, foreignTable: operator_type, required: false, foreignReference: id, onDelete: cascade}
+
+operator_type:
+  id: ~
+  operator_type: {type: varchar, size: 255, required: true}
+  operator_type_id: {type: integer, foreignTable: operator_type, required: false, foreignReference: id, onDelete: cascade}
+
+operation_type:
+  id: ~
+  operation_type: {type: varchar, size: 255, required: true}
+  operation_type_id: {type: integer, foreignTable: operation_type, required: false, foreignReference: id, onDelete: cascade}
+
+type_of_airspeed:
+  id: ~
+  type_of_airspeed: {type: varchar, size: 255, required: true}
+
+flight_rule:
+  id: ~
+  flight_rule: {type: varchar, size: 255, required: true}
+
+traffic_type:
+  id: ~
+  traffic_type: {type: varchar, size: 255, required: true}
+
+instrument_appr_type:
+  id: ~
+  instrument_appr_type: {type: varchar, size: 255, required: true}
+
+flight_crew_category:
+  id: ~
+  category: {type: varchar, size: 255, required: true}
+
+
+license_type:
+  id: ~
+  license_type: {type: varchar, size: 255, required: true}
+  license_type_id: {type: integer, foreignTable: license_type, required: false, foreignReference: id, onDelete: cascade}
+
+license_issued_by:
+  id: ~
+  license_issued_by: {type: varchar, size: 255, required: true}
+  license_issued_by_id: {type: integer, foreignTable: license_issued_by, required: false, foreignReference: id, onDelete: cascade}
+
+
+license_validity:
+  id: ~
+  license_validity: {type: varchar, size: 255, required: true}
+
+license_ratings:
+  id: ~
+  license_ratings: {type: varchar, size: 255, required: true}
+
+
+
+flight_crew_license:
+  id: ~
+  flight_crew_id: {type: integer, foreignTable: flight_crew, required: true, foreignReference: id, onDelete: cascade}
+  license_type_id: {type: integer, foreignTable: license_type, required: true, foreignReference: id, onDelete: set null}
+  license_issued_by_id: {type: integer, foreignTable: license_issued_by, required: false, foreignReference: id, onDelete: cascade}
+  date_of_license: {type: date, required: false}
+  license_validity_id: {type: integer, foreignTable: license_validity, required: false, foreignReference: id, onDelete: set null}
+  license_ratings_id: {type: integer, foreignTable: license_ratings, required: false, foreignReference: id, onDelete: set null}
+
+
+
+flight_crew:
+  id: ~
+  neo_flight_operation_id: {type: integer, foreignTable: neo_flight_operation, required: true, foreignReference: id, onDelete: cascade}
+  category_id: {type: integer, foreignTable: flight_crew_category, required: true, foreignReference: id, onDelete: cascade, displayField: category}
+  experience_this: {type: double, required: false}
+  experience_all: {type: double, required: false}
+  duty_last_24_hours: {type: double, required: false}
+  rest_before_duty: {type: double, required: false}
+  licenses: {type: oneToMany, foreignTable: flight_crew_license}
+
+neo_flight_operation_ocurrence_category:
+  id: ~
+  neo_flight_operation_id: {type: integer, foreignTable: neo_flight_operation, required: true, foreignReference: id, onDelete: cascade}
+  ocurrence_category_id: {type: integer, foreignTable: ocurrence_category, required: true, foreignReference: id, onDelete: cascade}
+
+neo_flight_operation_event_type_phase:
+  id: ~
+  neo_flight_operation_id: {type: integer, foreignTable: neo_flight_operation, required: true, foreignReference: id, onDelete: cascade}
+  neo_event_type_id: {type: integer, foreignTable: neo_event_type, required: true, foreignReference: id, onDelete: cascade, displayField: event_type}
+  phase_id: {type: integer, foreignTable: phase, required: true, foreignReference: id, onDelete: cascade, displayField: phase}
+
+
+neo_flight_operation:
+  id: ~
+  reporting_entity_id: {type: integer, foreignTable: reporting_entity, required: true, foreignReference: id, onDelete: cascade}
+  reporting_entity_name: {type: varchar, size: 255, required: true}
+  general_information:
+    when: {type: timestamp, required: true}
+    when_local: {type: timestamp, required: false}
+    where_state_area_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: cascade}
+    where_location_name: {type: varchar, size: 255, required: true}
+    where_latitude_occ: {type: varchar, size: 255, required: false}
+    where_longitude_occ: {type: varchar, size: 255, required: false}
+    what_headline: {type: varchar, size: 255, required: true}
+    what_narrative_languaje: {type: varchar, size: 255, required: true}
+    what_narrative: {type: longvarchar, required: true}
+  aircraft_identification:
+    state_of_registry_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: set null}
+    registration: {type: varchar, size: 255, required: true}
+    manufacturer_model_id: {type: integer, foreignTable: aircraft_manufacturer_model, required: true, foreignReference: id, onDelete: set null, displayField: manufacturer_model}
+    serial_number: {type: varchar, size: 255, required: true}
+    year_built: {type: integer, required: false}
+  aircraft_description:
+    category_id: {type: integer, foreignTable: aircraft_category, required: true, foreignReference: id, onDelete: set null, displayField: category}
+    mass_group_id: {type: integer, foreignTable: aircraft_mass_group, required: true, foreignReference: id, onDelete: set null, displayField: mass_group}
+    propulsion_type_id: {type: integer, foreignTable: aircraft_propulsion_type, required: true, foreignReference: id, onDelete: set null, displayField: propulsion_type}
+    wake_turb_category_id: {type: integer, foreignTable: aircraft_wake_turb_category, required: false, foreignReference: id, onDelete: set null, displayField: wake_turb_category}
+    number_of_engines: {type: integer, required: false}
+    landing_gear_type_id: {type: integer, foreignTable: aircraft_landing_gear_type, required: false, foreignReference: id, onDelete: set null, displayField: landing_gear_type}
+    maximum_mass: {type: double, required: false}
+  flight_details:
+    departure_id: {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: set null, displayField: icaoCode}
+    destination_id:  {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: set null, displayField: icaoCode}
+    phase_id: {type: integer, foreignTable: phase, required: true, foreignReference: id, onDelete: set null, displayField: phase}
+    operator_id: {type: integer, foreignTable: operator, required: true, foreignReference: id, onDelete: set null}
+    operation_type_id: {type: integer, foreignTable: operation_type, required: true, foreignReference: id, onDelete: set null}
+    callsign: {type: varchar, size: 255, required: true}
+    flight_number: {type: varchar, size: 255, required: false}
+    number_persons: {type: integer, required: false}
+  operational_information:
+    aircraft_altitude: {type: double, required: false}
+    aircraft_flight_level: {type: varchar, size: 255, required: false}
+    speed: {type: double, required: false}
+    type_of_airspeed_id: {type: integer, foreignTable: type_of_airspeed, required: false, foreignReference: id, onDelete: set null, displayField: type_of_airspeed}
+    flight_rule_id: {type: integer, foreignTable: flight_rule, required: false, foreignReference: id, onDelete: set null}
+    traffic_type_id: {type: integer, foreignTable: traffic_type, required: false, foreignReference: id, onDelete: set null}
+    instrument_appr_type_id: {type: integer, foreignTable: instrument_appr_type, required: false, foreignReference: id, onDelete: set null}
+  flight_crews: {type: oneToMany, foreignTable: flight_crew}
+  classification:
+    ocurrence_class_id: {type: integer, foreignTable: ocurrence_class, required: true, foreignReference: id, onDelete: set null}
+    detection_phase_id: {type: integer, foreignTable: detection_phase, required: true, foreignReference: id, onDelete: set null}
+  ocurrence_categories: { type: oneToMany, foreignTable: neo_flight_operation_ocurrence_category}
+  event_type_phases: { type: oneToMany, foreignTable: neo_flight_operation_event_type_phase}
+  risk:
+    risk_classification: {type: varchar, size: 255, required: true}
+    risk_methodology: {type: varchar, size: 255, required: false}
+    risk_assessment: {type: longvarchar, required: false}
+  assessment:
+    analysis_follow_up: {type: longvarchar, size: 255, required: false}
+    corrective_actions: {type: longvarchar, size: 255, required: false}
+    conclusions: {type: longvarchar, size: 255, required: false}
+  report_management:
+    report_status_id: {type: integer, foreignTable: neo_report_status, required: false, foreignReference: id, onDelete: set null, displayField: report_status}
+    report_version: {type: longvarchar, size: 255, required: false}
+  attachments: { type: longvarchar, required: false}
+
+
+eccairs_ocurrence_category:
+  id: ~
+  eccairs_id: {type: integer, foreignTable: eccairs, required: true, foreignReference: id, onDelete: cascade}
+  ocurrence_category_id: {type: integer, foreignTable: ocurrence_category, required: true, foreignReference: id, onDelete: cascade}
+
+injury_level:
+  id: ~
+  injury_level: {type: varchar, size: 255, required: true}
+
+weather_condition:
+  id: ~
+  weather_condition: {type: varchar, size: 255, required: true}
+
+eccairs:
+  id: ~
+  number: {type: varchar, size: 255, required: true}
+  date: {type: date, required: true}
+  state_area_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: set null}
+  ocurrence_class_id: {type: integer, foreignTable: ocurrence_class, required: true, foreignReference: id, onDelete: set null}
+  ocurrence_categories: { type: oneToMany, foreignTable: eccairs_ocurrence_category}
+  injury_level_id: {type: integer, foreignTable: injury_level, required: false, foreignReference: id, onDelete: set null}
+  mass_group_id: {type: integer, foreignTable: aircraft_mass_group, required: false, foreignReference: id, onDelete: set null, displayField: mass_group}
+  category_id: {type: integer, foreignTable: aircraft_category, required: false, foreignReference: id, onDelete: set null, displayField: category}
+  registry: {type: varchar, size: 255, required: false}
+  operation_type_id: {type: integer, foreignTable: operation_type, required: false, foreignReference: id, onDelete: set null}
+  operator_type_id: {type: integer, foreignTable: operator_type, required: false, foreignReference: id, onDelete: set null}
+  operator_id: {type: integer, foreignTable: operator, required: false, foreignReference: id, onDelete: set null}
+  weather_condition_id: {type: integer, foreignTable: weather_condition, required: false, foreignReference: id, onDelete: set null}

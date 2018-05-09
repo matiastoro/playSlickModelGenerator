@@ -15,7 +15,7 @@ case class NestedFormGenerator(table: Table, tablesOneToMany: List[Table] = List
           tab+hiddenInput(c)
         else{
           c.foreignKey.map{fk =>
-            println(table, "SOy foreign key ", fk, " tables one to many ", tablesOneToMany, tablesOneToMany.exists{t => t.tableName == fk.table})
+            //println(table, "SOy foreign key ", fk, " tables one to many ", tablesOneToMany, tablesOneToMany.exists{t => t.tableName == fk.table})
             if(tablesOneToMany.exists{t => t.tableName == fk.table})
               tab+hiddenInput(c)
             else formGroup(tab+c.formHelper(prefix), groupTab)

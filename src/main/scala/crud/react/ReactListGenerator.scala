@@ -45,7 +45,7 @@ ${inputs}
 <Route path="/${table.objName}/:id" component={${table.className}Form} />
 <Route path="/${table.objName}/:page/:pageLength" component={${table.className}List} />
 */
-export default class ${table.className}Form extends GList{
+export default class ${table.className}List extends GList{
     showUrl =  '/${table.tableName}/'
     apiGetUrl =  '/${table.tableName}/'
     apiCreateUrl = '/${table.tableName}/save'
@@ -58,13 +58,6 @@ export default class ${table.className}Form extends GList{
         return obj.${table.selectCol}
     }
     ${secondaryText}
-    renderForm(obj, errors){
-        const readOnly = this.state.readOnly
-        ${if(withOptions) "const hide = this.props.hide || []" else ""}
-        return <div>
-
-        </div>
-    }
 
 }
       """

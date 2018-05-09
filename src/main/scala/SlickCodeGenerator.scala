@@ -44,14 +44,14 @@ import java.io.FileReader
 object ParseJSON extends SlickCodeGenerator {
   def main(args: Array[String]) {
     val reader = new FileReader(args(0))
-    println(parseAll(column, reader))
+    //println(parseAll(column, reader))
   }
 }*/
 
 import scala.io.Source
 object parser {
   def main(args: Array[String]){
-    println("USAGE: run (model|controller|view|config|all) filename [destination_folder] [submodule_name]")
+    //println("USAGE: run (model|controller|view|config|all) filename [destination_folder] [submodule_name]")
 
     val buildType = args(0)
     val reader = Source.fromFile(args(1)).getLines.mkString("\n")
@@ -89,44 +89,44 @@ object parser {
       result match{
         case tbles : ListMap[String, ListMap[String, Any]] =>
           val tables = tbles.map{ table =>
-            println("Table: "+table._1)
+            //println("Table: "+table._1)
             Table(table._1, table._2)
           }.toList
 
-          println("TABLES ARE ", tables.map{_.className})
+          //println("TABLES ARE ", tables.map{_.className})
           tables.map{t =>
-            writeToFile(pathName, submoduleName, t, tablesOneToMany(t, tables), buildType)
+            writeToFile(pathName, submoduleName, t, tablesOneToMany(t, tables), buildType, tables)
           }
 
           writeSql(tables, pathName, submoduleName, buildType)
 
-        case _ : List[Any] => println("lala2")
-        case _ => println("no")
+        case _ : List[Any] => //println("lala2")
+        case _ => //println("no")
       }
     }
   }
   def tablesOneToMany(t: Table, tables: List[Table]): List[Table] = {
-    println("calculating tablesOneToMay of ", t.yamlName, t.className)
+    //println("calculating tablesOneToMay of ", t.yamlName, t.className)
     val fks = t.columns.collect{ //collect all columns that have foreignKeys
       case c: Column if c.foreignKey.isDefined => c.foreignKey.get
     }
     //println("la tabla",t)
-    println("fks", fks)
+    //println("fks", fks)
 
     val tab = for{
       fk <- fks
       table <- tables if table.yamlName == fk.table
     } yield table
-    println("tablenames", tables.map{_.yamlName}, fks.map{_.table})
-    println("LATABLAOEZI: "+t.className+" fks: "+fks+"  tab: "+tab)
-    println("BOMBINBOMBOM", tab.map(_.columns))
+    //println("tablenames", tables.map{_.yamlName}, fks.map{_.table})
+    //println("LATABLAOEZI: "+t.className+" fks: "+fks+"  tab: "+tab)
+    //println("BOMBINBOMBOM", tab.map(_.columns))
     val esto = tab.filter(_.columns.exists{
       case o: OneToMany if o.foreignTable.capitalize == t.className => true
       //case c: Column if c.foreignKey.isDefined => true
       case _ => false
     })
 
-    println("resultado, ", esto)
+    //println("resultado, ", esto)
     esto
 
   }
@@ -158,13 +158,13 @@ object parser {
 
        """.stripMargin
     if(buildType == "all" || buildType == "sql") {
-      println("Appending SQL:  "+path + "/database.sql")
+      //println("Appending SQL:  "+path + "/database.sql")
       Files.write(Paths.get(path + "/database.sql"), sql.getBytes(StandardCharsets.UTF_8))
     }
   }
 
 
-  def writeToFile(path: String, submoduleName: String, table: Table, tablesOneToMany: List[Table], buildType: String)(implicit langHash: Map[String,String]) = {
+  def writeToFile(path: String, submoduleName: String, table: Table, tablesOneToMany: List[Table], buildType: String, tables: List[Table])(implicit langHash: Map[String,String]) = {
 
 
 
@@ -175,11 +175,11 @@ object parser {
     val fileName = table.className
     val currentContent = getCurrentContent(path + "/models/" + fileName + ".scala")
 
-    val mg = ModelGenerator(table, tablesOneToMany)
+    val mg = ModelGenerator(table, tablesOneToMany, tables)
     val content = mg.generate
     /*model*/
     if (currentContent.size != content.size && (buildType == "all" || buildType == "model")) {
-      println("Building Model("+table.viewsPackage+"): "+path + "/app/models/" + fileName + ".scala")
+      //println("Building Model("+table.viewsPackage+"): "+path + "/app/models/" + fileName + ".scala")
       Files.write(Paths.get(path + "/app/models/" + fileName + ".scala"), content.getBytes(StandardCharsets.UTF_8))
       Files.write(Paths.get(path + "/app/models/" + fileName + "Repository.scala"), mg.generateRepository.getBytes(StandardCharsets.UTF_8))
     }
@@ -187,25 +187,25 @@ object parser {
 
     /*extension*/
     if(/*!Files.exists(Paths.get(path+"/app/models/extensions/"+fileName+"Extension.scala")) && */(buildType == "all" || buildType == "model")){
-      println("Creating Model Extension("+table.viewsPackage+"): "+path+"/app/models/extensions/"+fileName+"Extension.scala")
+      //println("Creating Model Extension("+table.viewsPackage+"): "+path+"/app/models/extensions/"+fileName+"Extension.scala")
       Files.write(Paths.get(path+"/app/models/extensions/"+fileName+"Extension.scala"), mg.generateExtension.getBytes(StandardCharsets.UTF_8))
     }
 
     /*config*/
     if(buildType == "all" || buildType == "config") {
-      println("Appending Config("+table.viewsPackage+"):  "+path + "/conf/messages.raw")
+      //println("Appending Config("+table.viewsPackage+"):  "+path + "/conf/messages.raw")
       Files.write(Paths.get(path + "/conf/messages.raw"), MessageGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.APPEND)
     }
 
 
     /*controller*/
     if(buildType == "all" || buildType == "controller") {
-      println("Building Controller("+table.viewsPackage+"): "+path + "/app/controllers/" + fileName + "Controller.scala")
-      Files.write(Paths.get(path + "/app/controllers/" + fileName + "Controller.scala"), ControllerGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
+      //println("Building Controller("+table.viewsPackage+"): "+path + "/app/controllers/" + fileName + "Controller.scala")
+      Files.write(Paths.get(path + "/app/controllers/" + fileName + "Controller.scala"), ControllerGenerator(table, tablesOneToMany, submodulePackageString, tables).generate.getBytes(StandardCharsets.UTF_8))
     }
 
     if(buildType == "all" || buildType == "react"){
-      println("Building React("+table.viewsPackage+"): "+path + "/react/*" + submodulePath + table.viewsPackage + "/")
+      //println("Building React("+table.viewsPackage+"): "+path + "/react/*" + submodulePath + table.viewsPackage + "/")
       val r = Files.createDirectories(Paths.get(path + "/react/" + submodulePath + table.viewsPackage))
 
       Files.write(Paths.get(path + "/react/" + submodulePath + table.viewsPackage +  s"/${table.className}Form.jsx"), ReactFormGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
@@ -214,7 +214,7 @@ object parser {
 
     /*views*/
     if(buildType == "all" || buildType == "view") {
-      println("Building Views("+table.viewsPackage+"): "+path + "/app/views/*" + submodulePath + table.viewsPackage + "/")
+      //println("Building Views("+table.viewsPackage+"): "+path + "/app/views/*" + submodulePath + table.viewsPackage + "/")
       Files.createDirectories(Paths.get(path + "/app/views/" + submodulePath + table.viewsPackage))
       Files.write(Paths.get(path + "/app/views/" + submodulePath + table.viewsPackage + "/_form.scala.html"), FormGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
       Files.write(Paths.get(path + "/app/views/" + submodulePath + table.viewsPackage + "/create.scala.html"), CreateGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))

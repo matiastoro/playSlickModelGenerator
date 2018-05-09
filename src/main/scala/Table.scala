@@ -25,7 +25,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     case _ => yamlName
   }
 
-  println("TableNameDB; "+tableName)
+  //println("TableNameDB; "+tableName)
   val mappingName = className+"Mapeo"
   val queryName = className+langHash("Query")
   val objName = tableName
@@ -137,6 +137,9 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
 
   val columns: List[AbstractColumn] = getColumns(args.filterNot(pair => pair._1 == "_attributes")) //omit _attributes, its not a column
 
+  val subClasses = columns.collect{
+    case c: SubClass => c
+  }
 
   val createdAt = columns.exists({
     case c: Column => c.name == "createdAt" && c.synthetic
@@ -167,7 +170,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     else if("""timestamp.*""".r.findFirstIn(s).isDefined)
       "DateTime"
     else if("""date.*""".r.findFirstIn(s).isDefined)
-      "LocalDate"
+      "DateTime" //"LocalDate"
     else if("""oneToMany.*""".r.findFirstIn(s).isDefined)
       "OneToMany"
     else
@@ -235,7 +238,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     }
     list.flatten
   }
-  lazy val foreignColumns = getForeignColumns(columns)
+  lazy val foreignColumns: List[Column] = getForeignColumns(columns)
 
   def getOneToManies(cols: List[AbstractColumn]): List[OneToMany] = {
     cols.map{
@@ -269,7 +272,7 @@ object GeneratorMappings {
     "Double" -> "of(doubleFormat)",
     "DateTime" -> """jodaDate("YYYY-MM-dd HH:mm")""",
     "LocalDate" -> "jodaDate",
-    "Date" -> "jodaDate"
+    "Date" -> """jodaDate("YYYY-MM-dd", DateTimeZone.UTC)"""
   )
 }
 import GeneratorMappings._
@@ -339,7 +342,7 @@ object Columns{
 case class Column(override val name: String, rawName: String, tpe: String, sqlTpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, options: Map[String, String] = Map(), subClass: Option[SubClass] = None, primaryString: Boolean = false) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
-  lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(tpe, "text"))
+  lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(if(sqlTpe == "DATE") "Date" else tpe, "text"))
   lazy val formMapping: String = if(optional) "optional("+formMappingTpe+")" else formMappingTpe
 
   lazy val isId: Boolean = name.toLowerCase == "id"
@@ -369,8 +372,8 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
   def showHelper = tpe match {
     case "Long" if foreignKey.isDefined => {
       val fk = foreignKey.get
-      println("FK", foreignKey.get)
-      s"""{obj.${name} && this.state.indexedOptions?this.state.indexedOptions.${fk.table}s[obj.${name}].${fk.table}:null}"""
+      //println("FK", foreignKey.get)
+      s"""{obj.${name} && this.state.indexedOptions?this.state.indexedOptions.${fk.tableName}s[obj.${name}].${fk.displayField.getOrElse(fk.tableName)}:null}"""
     }
     case _ => s"""{obj.${name}}"""
   }
@@ -448,7 +451,7 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
 
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
-      println("a ver cual options", name)
+      //println("a ver cual options", name)
       val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={[${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}]} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
       //s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
       s"""${select}"""
@@ -459,17 +462,18 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
     foreignKey.map{ fk =>
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
-      println("a ver cual", fk)
+      //println("a ver cual", fk)
       val select =  if(inline)
-        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
+        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.state.options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}})} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
       else
-        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.state.options.${fk.table}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}}})} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
+        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.state.options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}})} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
       s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
     }.getOrElse(inputDefault(prefix))
   }
 
 }
 case class ForeignKey(table: String, reference: String, onDelete: Option[String], displayField: Option[String])(implicit lang:String) extends CodeGenerator{
+  val tableName = underscoreToCamel(table)
   val className = underscoreToCamel(table).capitalize
   val queryName = className+{if(lang=="es") "Consulta" else "Query"}
   val toStringName = underscoreToCamel(displayField.getOrElse(table))
