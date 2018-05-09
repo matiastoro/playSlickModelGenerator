@@ -73,14 +73,14 @@ object parser {
     val path = Paths.get(pathName)
     val pathExtensions  = Paths.get(path+"/app/models/extensions")
     val pathControllers = Paths.get(path+"/app/controllers")
-    val pathViews       = Paths.get(path+"/app/views/"+submoduleName)
-    val pathReact       = Paths.get(path+"/app/react/"+submoduleName)
+    //val pathViews       = Paths.get(path+"/app/views/"+submoduleName)
+    val pathReact       = Paths.get(path+"/react/"+submoduleName)
     YAMLParser.parse(reader).map{result =>
       Files.createDirectories(path)
       Files.createDirectories(pathExtensions)
       Files.createDirectories(pathControllers)
       Files.createDirectories(Paths.get(path + "/conf"))
-      Files.createDirectories(pathViews)
+      //Files.createDirectories(pathViews)
       Files.createDirectories(pathReact)
 
       if(buildType == "all" || buildType == "config") {
@@ -212,9 +212,9 @@ object parser {
       Files.write(Paths.get(path + "/react/" + submodulePath + table.viewsPackage +  s"/${table.className}List.jsx"), ReactListGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
     }
 
-    /*views*/
-    if(buildType == "all" || buildType == "view") {
-      //println("Building Views("+table.viewsPackage+"): "+path + "/app/views/*" + submodulePath + table.viewsPackage + "/")
+    /*views DEPRECATED*/
+    /**if(buildType == "all" || buildType == "view") {
+      //println("Building Views("+table.viewsPackage+"): "+path + "/app/views/" + submodulePath + table.viewsPackage + "/")
       Files.createDirectories(Paths.get(path + "/app/views/" + submodulePath + table.viewsPackage))
       Files.write(Paths.get(path + "/app/views/" + submodulePath + table.viewsPackage + "/_form.scala.html"), FormGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
       Files.write(Paths.get(path + "/app/views/" + submodulePath + table.viewsPackage + "/create.scala.html"), CreateGenerator(table, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
@@ -228,7 +228,7 @@ object parser {
         Files.write(Paths.get(path + "/app/views/" + submodulePath + table.viewsPackage + "/_nestedForm.scala.html"), NestedFormGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
         Files.write(Paths.get(path + "/app/views/" + submodulePath + table.viewsPackage + "/_nestedShow.scala.html"), NestedShowGenerator(table, tablesOneToMany, submodulePackageString).generate.getBytes(StandardCharsets.UTF_8))
       }
-    }
+    }**/
   }
 
   def getCurrentContent(path: String) = {

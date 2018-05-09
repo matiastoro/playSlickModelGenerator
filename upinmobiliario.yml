@@ -1,0 +1,41 @@
+region:
+  id: ~
+  region: {type: varchar, size: 255, required: true}
+  abreviacion: {type: varchar, size: 255, required: true}
+  comunas: { type: oneToMany, foreignTable: comuna}
+
+comuna:
+  id: ~
+  comuna: {type: varchar, size: 255, required: true}
+  region_id: {type: integer, foreignTable: region, required: true, foreignReference: id, onDelete: cascade}
+
+
+
+
+propiedad:
+  _attributes:
+    table_name: propiedad
+  id: ~
+  tipo: { type: integer, options:[{key: 1, value: Venta}, {key: 2, value: Arriendo}, {key: 3, value: Inversión}] }
+  comuna_id: {type: integer, foreignTable: comuna, required: true, foreignReference: id, onDelete: set null}
+  direccion: {type: varchar, size: 255, required: false}
+  telefono: {type: varchar, size: 255, required: false}
+  m2: {type: integer}
+  tipo_propiedad: { type: integer, options:[{key: 1, value: Habitacional / Casa},{key: 2, value: Habitacional / Departamento},{key: 3, value: Habitacional / Parcela},{key: 4, value: Comercial / Oficina},{key: 5, value: Comercial / Local},{key: 6, value: Comercial / Galpon},{key: 7, value: Comercial / Bodega},{key: 8, value: Comercial / Estacionamiento},{key: 9, value: Terreno / Para Proyecto},{key: 10, value: Terreno / Rural}] }
+  valor_moneda: {type: integer}
+  valor_uf: {type: integer}
+  visitas: {type: long}
+  dormitorios: {type: integer}
+  banios: {type: integer}
+  ufm2: {type: double}
+  email_contacto: {type: varchar, size: 255, required: false}
+  latitud: {type: double}
+  longitud: {type: double}
+  descripcion: {type: longvarchar}
+  inversion_rentabilidad_proyectada: {type: varchar}
+  inversion_tipo: {type: varchar}
+  inversion_minima: {type: varchar}
+  inversion_ruta_dossier: {type: varchar}
+  inversion_estado_proyecto: {type: varchar}
+
+

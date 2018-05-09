@@ -153,7 +153,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
   def getScalaType(col: String, ps: ListMap[String,String], withOption: Boolean = true): Option[String] = {
     val s = ps.getOrElse("type", "")
 
-    val tpe = (if("""varchar.*""".r.findFirstIn(s).isDefined)
+    val tpe = if("""varchar.*""".r.findFirstIn(s).isDefined)
       "String"
     else if("""longvarchar.*""".r.findFirstIn(s).isDefined)
       "String"
@@ -162,6 +162,9 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
         "Long"
       else
         "Int"
+    }
+    else if("""long.*""".r.findFirstIn(s).isDefined){
+      "Long"
     }
     else if("""boolean.*""".r.findFirstIn(s).isDefined)
       "Boolean"
@@ -174,7 +177,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     else if("""oneToMany.*""".r.findFirstIn(s).isDefined)
       "OneToMany"
     else
-      throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'"))
+      throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'")
 
     if(tpe == "OneToMany") None
     else Some({
@@ -196,6 +199,8 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
       else
         "INTEGER"
     }
+    else if("""long.*""".r.findFirstIn(s).isDefined)
+      "BIGINT"
     else if("""boolean.*""".r.findFirstIn(s).isDefined)
       "BOOLEAN"
     else if("""double.*""".r.findFirstIn(s).isDefined)
@@ -332,6 +337,7 @@ object Columns{
    "String" -> "",
    "Text" -> "",
    "Int" -> "0",
+   "Long" -> "0L",
    "Boolean" -> "false",
    "Double" -> "0",
    "DateTime" -> "",
