@@ -22,3 +22,4 @@ output/views/preguntaCurso/_form.scala.html
 output/views/preguntaCurso/index.scala.html
 output/views/preguntaHabilidadCognitiva/_form.scala.html
 output/views/preguntaHabilidadCognitiva/index.scala.html
+output*
