@@ -36,7 +36,7 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
 
     //println("controller, ", otmsRepos)
 
-    val objectSignature = """class """+table.className+s"""Controller @Inject()(cc: MessagesControllerComponents)(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) extends MessagesAbstractController(cc) with Autorization {"""
+    val objectSignature = """class """+table.className+s"""Controller @Inject()(cc: MessagesControllerComponents)(implicit val repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) extends MessagesAbstractController(cc) with Autorization {"""
 
     val l = List(imports, "\n", objectSignature, /*jsonFormats(),*/ index(), show(), form(), objectResponse, save, delete, update)
 
@@ -75,9 +75,30 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 
     """
 /*"""+routes+"""*/
+
+  def getQuery[A](implicit request: MessagesRequest[A]) = {
+    if(!request.queryString.isEmpty){
+      filterForm.bindFromRequest.fold(
+        formWithErrors => {
+          repo.all
+        }, formData => {
+          repo.filter(formData)
+        })
+    } else{
+      repo.all
+    }
+  }
+
   def index(page: Int = 1, pageLength: Int = 20) = withUserAsync{ user =>  implicit request =>
-    repo.paginate(repo.all,pageLength,page).map{ pagination =>
-      Ok(Json.toJson(Json.obj("results" -> pagination.results, "count" -> pagination.count, "page" -> page, "pageLength" -> pageLength)))
+    val q = getQuery
+    repo.paginate(q,pageLength,page).flatMap{ pagination =>
+      Future.sequence{
+        pagination.results.map{ obj =>
+          getJson(obj)
+        }
+      }.map{ r =>
+        Ok(Json.toJson(Json.obj("results" -> r, "count" -> pagination.count, "page" -> page, "pageLength" -> pageLength)))
+      }
     }
   }"""
   }
@@ -107,7 +128,8 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   }
 
   def form(): String= {
-    """  val form = """+table.className+"""Form.form"""
+    s"""  val form = ${table.className}Form.form""" + "\n" +
+    s"""  val filterForm = ${table.className}Form.filterForm"""
 
   }
   val fks = table.foreignKeys.map{fk =>
@@ -166,7 +188,7 @@ ${rows}
       }.mkString("+\n")
 
       val otmsListsFor = table.oneToManies.map{otm =>
-        s"""          ${otm.lstName} <- ${otm.foreignTable}Repo.by${table.className}Id(Some(id))"""
+        s"""          ${otm.lstName} <- ${otm.foreignTable}Repo.by${table.className}Id(obj.id)"""
       }.mkString("\n")
 
       val forStmt = (b: String) => s"""for{
@@ -176,16 +198,19 @@ ${otmsListsFor}
        }
        """
 
-      (forStmt, s" + \n ${otmsLists}")
+      (forStmt, s"(Json.toJson(obj).as[JsObject] + \n ${otmsLists})")
     } else
       ((b: String) => s"Future{${b}}","")
 
 
     s"""
+  def getJson(obj: ${table.className}): Future[JsObject] = {
+    ${others._1(others._2)}
+  }
   def objectResponse(id: Long)(implicit session: Session) = {
     repo.byId(id).flatMap{ oobj =>
       oobj.map{obj =>
-        ${others._1(s"""Ok(Json.obj("obj" -> (Json.toJson(obj).as[JsObject] ${others._2})))""")}
+       getJson(obj).map{ x =>  Ok(Json.obj("obj" -> x)) }
       }.getOrElse(Future{OrElse})
     }
   }

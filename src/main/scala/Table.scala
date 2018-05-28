@@ -355,9 +355,10 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
 
   lazy val label = {
     val tokens = rawName.split("_").map(_.capitalize)
-    (if(tokens.last == "Id")
+    tokens.mkString(" ")
+    /*(if(tokens.last == "Id")
       tokens.dropRight(1)
-    else tokens).mkString(" ")
+    else tokens).mkString(" ")*/
 
   }
 
@@ -386,43 +387,43 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
 
   val ref = (name: String) => s"""ref={(input) => this._inputs["${name}"] = input}"""
 
-  def inputDefaultReact(prefix: String) = {
+  def inputDefaultReact(prefix: String, forFilter: Boolean = false) = {
     val inputName = prefix+name
-    s"""<TextField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")}/>"""
+    s"""<TextField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")}/>"""
   }
 
-  def inputTextareaReact(prefix: String) = {
+  def inputTextareaReact(prefix: String, forFilter: Boolean = false) = {
     val inputName = prefix+name
-    s"""<TextField ${ref(inputName)} multiLine rows={3} name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")}/>"""
+    s"""<TextField ${ref(inputName)} multiLine rows={3} name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")}/>"""
   }
 
-  def inputReact(control: String, prefix: String, extra: Option[String] = None) = {
+  def inputReact(control: String, prefix: String, extra: Option[String] = None, forFilter: Boolean = false) = {
     val inputName = prefix + name
-    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
+    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
   }
 
-  def inputDateReact(control: String, prefix: String, extra: Option[String] = None) = {
+  def inputDateReact(control: String, prefix: String, extra: Option[String] = None, forFilter: Boolean = false) = {
     val inputName = prefix + name
-    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}")} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
+    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
   }
 
 
 
-  def formHelperReact(prefix: String = "", hidden: Boolean = false)(implicit inline: Boolean = false): String = {
+  def formHelperReact(prefix: String = "", hidden: Boolean = false, forFilter: Boolean = false)(implicit inline: Boolean = false): String = {
     val inputName = prefix + name
     if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={this.getAttr(obj, "${inputName}", "")} readOnly={readOnly} />"""
     else{
       tpe match {
-        case "Long" if foreignKey.isDefined => foreignKeyInputReact(prefix, foreignKey)
-        case "String" => if(options.isDefinedAt("longvarchar")) inputTextareaReact(prefix) else inputDefaultReact(prefix)
-        case "Text" => inputTextareaReact(prefix) //deprecated
-        case "Int" => if(options.nonEmpty) optionsInputReact(prefix) else inputDefaultReact(prefix)
-        case "Long" => inputDefaultReact(prefix)
-        case "Boolean" => inputReact("Checkbox", prefix, Some("singlecontrol"))
-        case "Double" => inputDefaultReact(prefix)
-        case "DateTime" => inputDateReact("DateTime", prefix)
-        case "Date" => inputDateReact("DatePicker", prefix)
-        case "LocalDate" => inputDateReact("DatePicker", prefix)
+        case "Long" if foreignKey.isDefined => foreignKeyInputReact(prefix, foreignKey, forFilter)
+        case "String" => if(options.isDefinedAt("longvarchar")) inputTextareaReact(prefix, forFilter) else inputDefaultReact(prefix, forFilter)
+        case "Text" => inputTextareaReact(prefix, forFilter) //deprecated
+        case "Int" => if(options.nonEmpty) optionsInputReact(prefix, forFilter) else inputDefaultReact(prefix, forFilter)
+        case "Long" => inputDefaultReact(prefix, forFilter)
+        case "Boolean" => inputReact("Checkbox", prefix, Some("singlecontrol"), forFilter)
+        case "Double" => inputDefaultReact(prefix, forFilter)
+        case "DateTime" => inputDateReact("DateTime", prefix, None, forFilter)
+        case "Date" => inputDateReact("DatePicker", prefix, None, forFilter)
+        case "LocalDate" => inputDateReact("DatePicker", prefix, None, forFilter)
         case _ => inputDefaultReact(prefix)
       }
     }
@@ -453,27 +454,28 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
     }.getOrElse(inputDefault(prefix))
   }
 
-  def optionsInputReact(prefix: String) = {
+  def optionsInputReact(prefix: String, forFilter: Boolean = false) = {
 
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
       //println("a ver cual options", name)
-      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={[${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}]} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
+      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions([${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}])} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} />"""
       //s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
       s"""${select}"""
 
   }
 
-  def foreignKeyInputReact(prefix: String, foreignKey: Option[ForeignKey])(implicit inline: Boolean = false) = {
+  def foreignKeyInputReact(prefix: String, foreignKey: Option[ForeignKey], forFilter: Boolean = false)(implicit inline: Boolean = false) = {
     foreignKey.map{ fk =>
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
       //println("a ver cual", fk)
       val select =  if(inline)
-        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.state.options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}})} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
+        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
       else
-        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.state.options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}})} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
-      s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
+        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} />"""
+      if(!forFilter) s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
+      else select
     }.getOrElse(inputDefault(prefix))
   }
 

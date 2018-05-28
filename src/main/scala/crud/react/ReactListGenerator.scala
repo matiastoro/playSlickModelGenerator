@@ -21,13 +21,15 @@ case class ReactListGenerator(table: Table, tablesOneToMany: List[Table] = List(
     val imports = s"""import React from 'react';
 import GList from '../gforms/GList'
 import {grey400, darkBlack, lightBlack} from 'material-ui/styles/colors';
+import ${table.className}Filter from './${table.className}Filter'
+
 //inputs de nested
 """
     val inputs = generateInputs(table.columns)
     val withOptions = table.foreignColumns.length>0
 
     val secondaryText = if(inputs.length>0)
-      s"""secondaryLines = 1
+      s"""
     renderSecondaryText = (obj) => {
         return <p>
 ${inputs}
@@ -51,14 +53,25 @@ export default class ${table.className}List extends GList{
     apiCreateUrl = '/${table.tableName}/save'
     apiDeleteUrl = '/${table.tableName}/delete/'
     ${if(withOptions) s"""apiOptionsUrl = '/${table.tableName}/options'""" else ""}
+    listUrl = '/${table.tableName}/'
 
     objsStr = '${table.label}s'
+
+    /*constructor(props){
+        super(props);
+        this.secondaryLines = 1
+    }*/
 
     renderPrimaryText = (obj) => {
         return obj.${table.selectCol}
     }
     ${secondaryText}
 
+    renderFilter = () => {
+        return <div>
+            <${table.className}Filter listUrl={this.listUrl} options={this.state.options} query={this.state.query} doFilter={this.doFilter} pageLength={this.state.pageLength}/>
+        </div>
+    }
 }
       """
     result

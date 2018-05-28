@@ -53,6 +53,47 @@ import play.api.libs.json._*/
     }.getOrElse("")
   }.mkString("\n")
 
+
+  def filterRec(columns: List[AbstractColumn]): List[String] = {
+    s"""
+  def filter(formData: EccairsFilter) = {
+    all
+      .filteredBy( formData.number )((x,y) =>  x.number like ('%'+y+'%') )
+      .filteredBy( formData.date_from )( _.date >= _ )
+      .filteredBy( formData.date_to )( _.date <= _ )
+      .filteredBy( formData.stateAreaId.collect{case x if x>0L => x} )( _.stateAreaId === _ )
+      .filteredBy( formData.ocurrenceClassId.collect{case x if x>0L => x} )( _.ocurrenceClassId === _ )
+      .filteredBy( formData.injuryLevelId.flatMap{x => if(x>0L) Some(x) else None} )( _.injuryLevelId.getOrElse(0L) === _ )
+      .filteredBy( formData.massGroupId.flatMap{x => if(x>0L) Some(x) else None} )( _.massGroupId.getOrElse(0L) === _ )
+      .filteredBy( formData.categoryId.flatMap{x => if(x>0L) Some(x) else None} )( _.categoryId.getOrElse(0L) === _ )
+      .filteredBy( formData.registry )((x,y) =>  x.registry.getOrElse("") like ('%'+y+'%') )
+      .filteredBy( formData.operationTypeId.flatMap{x => if(x>0L) Some(x) else None} )( _.operationTypeId.getOrElse(0L) === _ )
+      .filteredBy( formData.operatorTypeId.flatMap{x => if(x>0L) Some(x) else None} )( _.operatorTypeId.getOrElse(0L) === _ )
+      .filteredBy( formData.operatorId.flatMap{x => if(x>0L) Some(x) else None} )( _.operatorId.getOrElse(0L) === _ )
+      .filteredBy( formData.weatherConditionId.flatMap{x => if(x>0L) Some(x) else None} )( _.weatherConditionId.getOrElse(0L) === _ )
+      .oneToManyFilterfilter(formData.eccairsOcurrenceCategorys)((x,o) => eccairs_ocurrence_categoryRepo.get().all.filter(y => y.eccairsId === x.id && y.ocurrenceCategoryId === o.ocurrenceCategoryId).exists)
+  }
+      """
+
+    columns.flatMap{ col => col match{
+      case c: Column if !c.synthetic && c.display != DisplayType.Hidden =>
+        c.tpe match {
+          case "String" | "Text" => s""".filteredBy(formData.${c.name})((x,y) => x.${c.name}.toUpperCase like ('%'+y.toUpperCase+'%')"""
+          case _ => //TODO
+        }
+        List("")
+      case s: SubClass => filterRec(s.cols)//throw new Exception("Subclas")//generateInputs(s.cols, s.name+".")
+      case o: OneToMany => //o.formHelper(submodulePackageString, Some(table))
+        //.oneToManyFilterfilter(formData.eccairsOcurrenceCategorys)((x,o) => eccairs_ocurrence_categoryRepo.get().all.filter(y => y.eccairsId === x.id && y.ocurrenceCategoryId === o.ocurrenceCategoryId).exists)
+        List("")
+      case _ => List("")
+    }}
+  }
+
+  def filter = {
+    filterRec(table.columns).mkString("\n")
+  }
+
   def generate: String = {
 
 
@@ -607,7 +648,7 @@ class ${className}Repository @Inject() (dbConfigProvider: DatabaseConfigProvider
   ${if(table.subClasses.length>0) s"""import models.${table.className}Partition._"""}
 
 """ +"\n\n"+
-    tableClass.split("\n").map{s => "  "+s}.mkString("\n") + "\n\n"+ dbTables + "\n\n"+getters+"\n"+ //+toJson+"\n"+
+    tableClass.split("\n").map{s => "  "+s}.mkString("\n") + "\n\n"+ dbTables + "\n\n"+getters+"\n\n"+filter+ "\n"+ //+toJson+"\n"+
     """}"""
   }
 }
