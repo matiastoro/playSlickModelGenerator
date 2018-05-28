@@ -1,0 +1,11 @@
+@(frm: Form[models.HexFormData], user: List[models.User])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.hex.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.HexController.save(), 'id -> "hexForm", 'role -> "form") {
+            @views.html.hex._form(frm, user)
+        }
+
+    </div>
+}
+    

@@ -1,0 +1,103 @@
+@(frm: Form[models.UsuarioFormData], usuarioOpt: Option[models.Usuario] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("usuario.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="usuarioErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @myInputText(frm("nombre"), '_label -> "Nombre")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("email"), '_label -> "Email")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("contrasena"), '_label -> "Contrasena")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("estado"), '_label -> "Estado")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("rut"), '_label -> "Rut")
+          </div>
+          <div id="usuarioCargosDiv_@frm("usuarioCargos").id">
+              <h2>@Messages("usuarioCargo.list")</h2>
+              @repeat(frm("usuarioCargos"), min = 0) { field =>
+                  @controllers.UsuarioCargoController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nusuarioCargos_@frm("usuarioCargos").id" value="@frm("usuarioCargos").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedusuarioCargo_@frm("usuarioCargos").id" href="javascript:;" onclick="addNestedUsuarioCargo_@{frm("usuarioCargos").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("usuarioCargo.related.add")</a>
+              <span id="loadingNested_usuarioCargo@frm("usuarioCargos").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedUsuarioCargo_@{frm("usuarioCargos").id}() {
+                    $('#addNestedusuarioCargo_@frm("usuarioCargos").id').hide(); $('#loadingNested_usuarioCargo@frm("usuarioCargos").id').show();
+                    var i = parseInt($('#nusuarioCargos_@frm("usuarioCargos").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.UsuarioCargoController.createNested()",
+                      data: { i: i, name: '@frm("usuarioCargos").id' }
+                    }).done(function(msg) {
+                        $('#usuarioCargosDiv_@frm("usuarioCargos").id').append(msg)
+                        $('#nusuarioCargos_@frm("usuarioCargos").id' ).val(i+1);
+                        $('#addNestedusuarioCargo_@frm("usuarioCargos").id').show(); $('#loadingNested_usuarioCargo@frm("usuarioCargos").id').hide();
+                    });
+              }
+          </script>
+          <div id="perfilUsuariosDiv_@frm("perfilUsuarios").id">
+              <h2>@Messages("perfilUsuario.list")</h2>
+              @repeat(frm("perfilUsuarios"), min = 0) { field =>
+                  @controllers.PerfilUsuarioController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nperfilUsuarios_@frm("perfilUsuarios").id" value="@frm("perfilUsuarios").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedperfilUsuario_@frm("perfilUsuarios").id" href="javascript:;" onclick="addNestedPerfilUsuario_@{frm("perfilUsuarios").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("perfilUsuario.related.add")</a>
+              <span id="loadingNested_perfilUsuario@frm("perfilUsuarios").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedPerfilUsuario_@{frm("perfilUsuarios").id}() {
+                    $('#addNestedperfilUsuario_@frm("perfilUsuarios").id').hide(); $('#loadingNested_perfilUsuario@frm("perfilUsuarios").id').show();
+                    var i = parseInt($('#nperfilUsuarios_@frm("perfilUsuarios").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.PerfilUsuarioController.createNested()",
+                      data: { i: i, name: '@frm("perfilUsuarios").id' }
+                    }).done(function(msg) {
+                        $('#perfilUsuariosDiv_@frm("perfilUsuarios").id').append(msg)
+                        $('#nperfilUsuarios_@frm("perfilUsuarios").id' ).val(i+1);
+                        $('#addNestedperfilUsuario_@frm("perfilUsuarios").id').show(); $('#loadingNested_perfilUsuario@frm("perfilUsuarios").id').hide();
+                    });
+              }
+          </script>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @usuarioOpt.map{ usuario =>
+                @usuario.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.UsuarioController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

@@ -1,0 +1,61 @@
+@(zaepStep: models.ZaepStep)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.ifiscore.zaepStep.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("zaepStep.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@zaepStep.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Zaep</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.ifiscore.routes.ZaepController.show(zaepStep.zaepId.get)">@zaepStep.getZaep.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Tpe</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@zaepStep.tpe</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Latitude</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@zaepStep.latitude</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Longitude</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@zaepStep.longitude</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Radius</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@zaepStep.radius</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Orientation</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@zaepStep.orientation</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Number</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@zaepStep.number</p>
+                </div>
+            </div>
+        @zaepStep.id.map{ id =>
+            <a href="@controllers.ifiscore.routes.ZaepStepController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.ifiscore.routes.ZaepStepController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.ifiscore.routes.ZaepStepController.index(1,20)">@Messages("list")</a>
+
+}

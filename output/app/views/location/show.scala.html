@@ -1,0 +1,56 @@
+@(location: models.Location)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.location.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("location.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@location.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Location</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@location.location</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">LocationType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@location.locationType</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Latitude</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@location.latitude</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Longitude</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@location.longitude</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Altitude</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@location.altitude</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Slug</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@location.slug</p>
+                </div>
+            </div>
+            @controllers.LocationCountryController.showByLocation(location.id)
+        @location.id.map{ id =>
+            <a href="@controllers.routes.LocationController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.LocationController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.LocationController.index(1,20)">@Messages("list")</a>
+
+}

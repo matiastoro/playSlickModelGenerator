@@ -1,0 +1,107 @@
+@(list: List[models.NeoAerodrome], total: Int, page: Int, pageLength: Int)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.neoAerodrome.main(Html(Messages("home.title")))(sidebar(1)) {
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a class="btn btn-success pull-right" data-dismiss="modal" href="@controllers.routes.NeoAerodromeController.create()">@Messages("new")</a>
+            <h2 class="panel-title">
+                @Messages("neoAerodrome.list.title")
+            </h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="panel-body">
+            @{Messages("paginator.list.total")+" "+total+" "+Messages("paginator.list.from")+" "+((page-1)*20)+" "+Messages("paginator.list.to")+" "+(math.min(page*20, total))}
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers.routes.NeoAerodromeController.index(x, y)})
+            <table class="table table-striped table-condensed">
+                <thead>
+                    <tr>
+                                                                                                                        <th>@Messages("neoAerodrome.id")</th>
+                        <th>@Messages("neoAerodrome.reportingEntityId")</th>
+                        <th>@Messages("neoAerodrome.reportingEntityName")</th>
+                        <th>@Messages("neoAerodrome.when")</th>
+                        <th>@Messages("neoAerodrome.whenLocal")</th>
+                        <th>@Messages("neoAerodrome.whereStateAreaId")</th>
+                        <th>@Messages("neoAerodrome.whereLocationName")</th>
+                        <th>@Messages("neoAerodrome.whereLatitudeOcc")</th>
+                        <th>@Messages("neoAerodrome.whereLongitudeOcc")</th>
+                        <th>@Messages("neoAerodrome.whatHeadline")</th>
+                        <th>@Messages("neoAerodrome.whatNarrativeLanguaje")</th>
+                        <th>@Messages("neoAerodrome.whatNarrative")</th>
+                        <th>@Messages("neoAerodrome.aerodromeId")</th>
+                        <th>@Messages("neoAerodrome.aerodromeLocationId")</th>
+                        <th>@Messages("neoAerodrome.aerodromeStatusId")</th>
+                        <th>@Messages("neoAerodrome.aerodromeTypeId")</th>
+                        <th>@Messages("neoAerodrome.latitude")</th>
+                        <th>@Messages("neoAerodrome.longitude")</th>
+                        <th>@Messages("neoAerodrome.runwayId")</th>
+                        <th>@Messages("neoAerodrome.runwaySurfaceTypeId")</th>
+                        <th>@Messages("neoAerodrome.helicopterLandingAreaTypeId")</th>
+                        <th>@Messages("neoAerodrome.helicopterLandingAreaAreaConfigurationId")</th>
+                        <th>@Messages("neoAerodrome.helicopterLandingAreaSurfaceTypeId")</th>
+                        <th>@Messages("neoAerodrome.ocurrenceClassId")</th>
+                        <th>@Messages("neoAerodrome.detectionPhaseId")</th>
+                        <th>@Messages("neoAerodrome.riskClassification")</th>
+                        <th>@Messages("neoAerodrome.riskMethodology")</th>
+                        <th>@Messages("neoAerodrome.riskAssessment")</th>
+                        <th>@Messages("neoAerodrome.analysisFollowUp")</th>
+                        <th>@Messages("neoAerodrome.correctiveActions")</th>
+                        <th>@Messages("neoAerodrome.conclusions")</th>
+                        <th>@Messages("neoAerodrome.reportStatusId")</th>
+                        <th>@Messages("neoAerodrome.reportVersion")</th>
+                        <th>@Messages("neoAerodrome.attachments")</th>
+                        <th>@Messages("Actions")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for(obj <- list) {
+                    <tr class="if(it.state==1){warning}else{}">
+                                                                                                                                   <td>@obj.id</td>
+                        <td>@obj.reportingEntityId</td>
+                        <td>@obj.reportingEntityName</td>
+                        <td>@obj.generalInformation.when</td>
+                        <td>@obj.generalInformation.whenLocal</td>
+                        <td>@obj.generalInformation.whereStateAreaId</td>
+                        <td>@obj.generalInformation.whereLocationName</td>
+                        <td>@obj.generalInformation.whereLatitudeOcc</td>
+                        <td>@obj.generalInformation.whereLongitudeOcc</td>
+                        <td>@obj.generalInformation.whatHeadline</td>
+                        <td>@obj.generalInformation.whatNarrativeLanguaje</td>
+                        <td>@obj.generalInformation.whatNarrative</td>
+                        <td>@obj.aerodromeDescription.aerodromeId</td>
+                        <td>@obj.aerodromeDescription.aerodromeLocationId</td>
+                        <td>@obj.aerodromeDescription.aerodromeStatusId</td>
+                        <td>@obj.aerodromeDescription.aerodromeTypeId</td>
+                        <td>@obj.aerodromeDescription.latitude</td>
+                        <td>@obj.aerodromeDescription.longitude</td>
+                        <td>@obj.aerodromeDescription.runwayId</td>
+                        <td>@obj.aerodromeDescription.runwaySurfaceTypeId</td>
+                        <td>@obj.aerodromeDescription.helicopterLandingAreaTypeId</td>
+                        <td>@obj.aerodromeDescription.helicopterLandingAreaAreaConfigurationId</td>
+                        <td>@obj.aerodromeDescription.helicopterLandingAreaSurfaceTypeId</td>
+                        <td>@obj.classification.ocurrenceClassId</td>
+                        <td>@obj.classification.detectionPhaseId</td>
+                        <td>@obj.risk.riskClassification</td>
+                        <td>@obj.risk.riskMethodology</td>
+                        <td>@obj.risk.riskAssessment</td>
+                        <td>@obj.assessment.analysisFollowUp</td>
+                        <td>@obj.assessment.correctiveActions</td>
+                        <td>@obj.assessment.conclusions</td>
+                        <td>@obj.reportManagement.reportStatusId</td>
+                        <td>@obj.reportManagement.reportVersion</td>
+                        <td>@obj.attachments</td>
+                        <td>
+                            <a href="@controllers.routes.NeoAerodromeController.show(obj.id.get)">@Messages("show")</a>
+                            <a href="@controllers.routes.NeoAerodromeController.edit(obj.id.get)">@Messages("edit")</a>
+                            <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.NeoAerodromeController.delete(obj.id.get)';">@Messages("delete")</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers.routes.NeoAerodromeController.index(x, y)})
+
+        </div>
+    </div>
+}
+    

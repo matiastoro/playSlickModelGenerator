@@ -1,0 +1,11 @@
+@(frm: Form[models.NeoReportStatusFormData], neoReportStatus: models.NeoReportStatus)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.neoReportStatus.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.NeoReportStatusController.update(neoReportStatus.id.getOrElse(0)), 'id -> "neoReportStatusForm", 'role -> "form") {
+            @views.html.neoReportStatus._form(frm, Some(neoReportStatus))
+        }
+
+    </div>
+}
+    

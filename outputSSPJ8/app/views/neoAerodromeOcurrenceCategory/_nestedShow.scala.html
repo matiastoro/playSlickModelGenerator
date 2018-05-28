@@ -1,0 +1,23 @@
+@(neoAerodromeOcurrenceCategorys: List[models.NeoAerodromeOcurrenceCategory])
+
+        <h2>@Messages("neoAerodromeOcurrenceCategory.related.list")</h2>
+        @for(neoAerodromeOcurrenceCategory <- neoAerodromeOcurrenceCategorys){
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoAerodromeOcurrenceCategory.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">NeoAerodrome</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.NeoAerodromeController.show(neoAerodromeOcurrenceCategory.neoAerodromeId.get)">@neoAerodromeOcurrenceCategory.getNeoAerodrome.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">OcurrenceCategory</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.OcurrenceCategoryController.show(neoAerodromeOcurrenceCategory.ocurrenceCategoryId.get)">@neoAerodromeOcurrenceCategory.getOcurrenceCategory.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+        }

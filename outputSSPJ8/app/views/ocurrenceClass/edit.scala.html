@@ -1,0 +1,11 @@
+@(frm: Form[models.OcurrenceClassFormData], ocurrenceClass: models.OcurrenceClass)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.ocurrenceClass.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.OcurrenceClassController.update(ocurrenceClass.id.getOrElse(0)), 'id -> "ocurrenceClassForm", 'role -> "form") {
+            @views.html.ocurrenceClass._form(frm, Some(ocurrenceClass))
+        }
+
+    </div>
+}
+    

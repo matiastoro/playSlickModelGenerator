@@ -1,0 +1,53 @@
+@(list: List[models.Location], total: Int, page: Int, pageLength: Int)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.location.main(Html(Messages("home.title")))(sidebar(1)) {
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a class="btn btn-success pull-right" data-dismiss="modal" href="@controllers.routes.LocationController.create()">@Messages("new")</a>
+            <h2 class="panel-title">
+                @Messages("location.list.title")
+            </h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="panel-body">
+            @{Messages("paginator.list.total")+" "+total+" "+Messages("paginator.list.from")+" "+((page-1)*20)+" "+Messages("paginator.list.to")+" "+(math.min(page*20, total))}
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers.routes.LocationController.index(x, y)})
+            <table class="table table-striped table-condensed">
+                <thead>
+                    <tr>
+                                                                                                                        <th>@Messages("location.id")</th>
+                        <th>@Messages("location.location")</th>
+                        <th>@Messages("location.locationType")</th>
+                        <th>@Messages("location.latitude")</th>
+                        <th>@Messages("location.longitude")</th>
+                        <th>@Messages("location.altitude")</th>
+                        <th>@Messages("location.slug")</th>
+                        <th>@Messages("Actions")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for(obj <- list) {
+                    <tr class="if(it.state==1){warning}else{}">
+                                                                                                                                   <td>@obj.id</td>
+                        <td>@obj.location</td>
+                        <td>@obj.locationType</td>
+                        <td>@obj.latitude</td>
+                        <td>@obj.longitude</td>
+                        <td>@obj.altitude</td>
+                        <td>@obj.slug</td>
+                        <td>
+                            <a href="@controllers.routes.LocationController.show(obj.id.get)">@Messages("show")</a>
+                            <a href="@controllers.routes.LocationController.edit(obj.id.get)">@Messages("edit")</a>
+                            <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.LocationController.delete(obj.id.get)';">@Messages("delete")</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers.routes.LocationController.index(x, y)})
+
+        </div>
+    </div>
+}
+    

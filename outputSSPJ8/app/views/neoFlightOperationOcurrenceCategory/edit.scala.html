@@ -1,0 +1,11 @@
+@(frm: Form[models.NeoFlightOperationOcurrenceCategoryFormData], neo_flight_operation: List[models.NeoFlightOperation], ocurrence_category: List[models.OcurrenceCategory], neoFlightOperationOcurrenceCategory: models.NeoFlightOperationOcurrenceCategory)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.neoFlightOperationOcurrenceCategory.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.NeoFlightOperationOcurrenceCategoryController.update(neoFlightOperationOcurrenceCategory.id.getOrElse(0)), 'id -> "neoFlightOperationOcurrenceCategoryForm", 'role -> "form") {
+            @views.html.neoFlightOperationOcurrenceCategory._form(frm, neo_flight_operation, ocurrence_category, Some(neoFlightOperationOcurrenceCategory))
+        }
+
+    </div>
+}
+    

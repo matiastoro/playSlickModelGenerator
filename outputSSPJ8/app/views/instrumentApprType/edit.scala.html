@@ -1,0 +1,11 @@
+@(frm: Form[models.InstrumentApprTypeFormData], instrumentApprType: models.InstrumentApprType)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.instrumentApprType.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.InstrumentApprTypeController.update(instrumentApprType.id.getOrElse(0)), 'id -> "instrumentApprTypeForm", 'role -> "form") {
+            @views.html.instrumentApprType._form(frm, Some(instrumentApprType))
+        }
+
+    </div>
+}
+    

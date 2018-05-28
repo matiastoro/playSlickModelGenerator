@@ -1,0 +1,120 @@
+
+#Perfil
+perfil.title = Perfil List
+perfil.list.title = Perfil List
+perfil.form.title = Perfil Form
+perfil.id = id
+perfil.perfil = perfil
+
+perfil.show.title = Show Perfil
+
+#Organizacion
+organizacion.title = Organizacion List
+organizacion.list.title = Organizacion List
+organizacion.form.title = Organizacion Form
+organizacion.id = id
+organizacion.organizacion = organizacion
+
+organizacion.show.title = Show Organizacion
+
+#Cargo
+cargo.title = Cargo List
+cargo.list.title = Cargo List
+cargo.form.title = Cargo Form
+cargo.id = id
+cargo.cargo = cargo
+cargo.codigo = codigo
+cargo.organizacionId = organizacionId
+
+cargo.show.title = Show Cargo
+
+#Usuario
+usuario.title = Usuario List
+usuario.list.title = Usuario List
+usuario.form.title = Usuario Form
+usuario.id = id
+usuario.nombre = nombre
+usuario.email = email
+usuario.contrasena = contrasena
+usuario.estado = estado
+usuario.rut = rut
+
+usuario.show.title = Show Usuario
+
+#UsuarioCargo
+usuarioCargo.title = UsuarioCargo List
+usuarioCargo.list.title = UsuarioCargo List
+usuarioCargo.form.title = UsuarioCargo Form
+usuarioCargo.id = id
+usuarioCargo.cargoId = cargoId
+usuarioCargo.usuarioId = usuarioId
+usuarioCargo.aerodromo = aerodromo
+usuarioCargo.related.list = Related UsuarioCargo
+usuarioCargo.show.title = Show UsuarioCargo
+
+#PerfilUsuario
+perfilUsuario.title = PerfilUsuario List
+perfilUsuario.list.title = PerfilUsuario List
+perfilUsuario.form.title = PerfilUsuario Form
+perfilUsuario.id = id
+perfilUsuario.perfilId = perfilId
+perfilUsuario.usuarioId = usuarioId
+perfilUsuario.related.list = Related PerfilUsuario
+perfilUsuario.show.title = Show PerfilUsuario
+
+#Formulario
+formulario.title = Formulario List
+formulario.list.title = Formulario List
+formulario.form.title = Formulario Form
+formulario.id = id
+formulario.nombre = nombre
+formulario.codigo = codigo
+formulario.key = key
+formulario.schema = schema
+formulario.organizacionId = organizacionId
+formulario.estado = estado
+
+formulario.show.title = Show Formulario
+
+#FormularioInstancia
+formularioInstancia.title = FormularioInstancia List
+formularioInstancia.list.title = FormularioInstancia List
+formularioInstancia.form.title = FormularioInstancia Form
+formularioInstancia.id = id
+formularioInstancia.formularioId = formularioId
+formularioInstancia.data = data
+formularioInstancia.estado = estado
+formularioInstancia.files = files
+formularioInstancia.adjuntos = adjuntos
+formularioInstancia.designadorOaci = designadorOaci
+formularioInstancia.createdAt = createdAt
+formularioInstancia.updatedAt = updatedAt
+
+formularioInstancia.show.title = Show FormularioInstancia
+
+#FormularioInstanciaHistoria
+formularioInstanciaHistoria.title = FormularioInstanciaHistoria List
+formularioInstanciaHistoria.list.title = FormularioInstanciaHistoria List
+formularioInstanciaHistoria.form.title = FormularioInstanciaHistoria Form
+formularioInstanciaHistoria.id = id
+formularioInstanciaHistoria.formularioId = formularioId
+formularioInstanciaHistoria.data = data
+formularioInstanciaHistoria.estado = estado
+formularioInstanciaHistoria.files = files
+formularioInstanciaHistoria.adjuntos = adjuntos
+formularioInstanciaHistoria.usuarioId = usuarioId
+formularioInstanciaHistoria.createdAt = createdAt
+
+formularioInstanciaHistoria.show.title = Show FormularioInstanciaHistoria
+
+#Attachment
+attachment.title = Attachment List
+attachment.list.title = Attachment List
+attachment.form.title = Attachment Form
+attachment.id = id
+attachment.attachment = attachment
+attachment.estado = estado
+attachment.targetTable = targetTable
+attachment.d = d
+
+attachment.show.title = Show Attachment

@@ -1,0 +1,61 @@
+@(formularioInstanciaHistoria: models.FormularioInstanciaHistoria)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.formularioInstanciaHistoria.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("formularioInstanciaHistoria.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@formularioInstanciaHistoria.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Formulario</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.FormularioController.show(formularioInstanciaHistoria.formularioId.get)">@formularioInstanciaHistoria.getFormulario.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Data</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@formularioInstanciaHistoria.data</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Estado</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@formularioInstanciaHistoria.estado</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Files</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@formularioInstanciaHistoria.files</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Adjuntos</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@formularioInstanciaHistoria.adjuntos</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Usuario</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.UsuarioController.show(formularioInstanciaHistoria.usuarioId.get)">@formularioInstanciaHistoria.getUsuario.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">CreatedAt</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@formularioInstanciaHistoria.createdAt</p>
+                </div>
+            </div>
+        @formularioInstanciaHistoria.id.map{ id =>
+            <a href="@controllers.routes.FormularioInstanciaHistoriaController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.FormularioInstanciaHistoriaController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.FormularioInstanciaHistoriaController.index(1,20)">@Messages("list")</a>
+
+}

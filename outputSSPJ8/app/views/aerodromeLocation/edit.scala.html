@@ -1,0 +1,11 @@
+@(frm: Form[models.AerodromeLocationFormData], aerodromeLocation: models.AerodromeLocation)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.aerodromeLocation.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.AerodromeLocationController.update(aerodromeLocation.id.getOrElse(0)), 'id -> "aerodromeLocationForm", 'role -> "form") {
+            @views.html.aerodromeLocation._form(frm, Some(aerodromeLocation))
+        }
+
+    </div>
+}
+    

@@ -1,0 +1,11 @@
+@(frm: Form[models.StateAreaFormData], state_area: List[models.StateArea], stateArea: models.StateArea)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.stateArea.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.StateAreaController.update(stateArea.id.getOrElse(0)), 'id -> "stateAreaForm", 'role -> "form") {
+            @views.html.stateArea._form(frm, state_area, Some(stateArea))
+        }
+
+    </div>
+}
+    

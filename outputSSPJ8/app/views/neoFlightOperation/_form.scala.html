@@ -1,0 +1,261 @@
+@(frm: Form[models.NeoFlightOperationFormData], reporting_entity: List[models.ReportingEntity], state_area: List[models.StateArea], state_area: List[models.StateArea], aircraft_manufacturer_model: List[models.AircraftManufacturerModel], aircraft_category: List[models.AircraftCategory], aircraft_mass_group: List[models.AircraftMassGroup], aircraft_propulsion_type: List[models.AircraftPropulsionType], aircraft_wake_turb_category: List[models.AircraftWakeTurbCategory], aircraft_landing_gear_type: List[models.AircraftLandingGearType], aerodrome: List[models.Aerodrome], aerodrome: List[models.Aerodrome], phase: List[models.Phase], operator: List[models.Operator], operation_type: List[models.OperationType], type_of_airspeed: List[models.TypeOfAirspeed], flight_rule: List[models.FlightRule], traffic_type: List[models.TrafficType], instrument_appr_type: List[models.InstrumentApprType], ocurrence_class: List[models.OcurrenceClass], detection_phase: List[models.DetectionPhase], neo_report_status: List[models.NeoReportStatus], neoFlightOperationOpt: Option[models.NeoFlightOperation] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("neoFlightOperation.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="neoFlightOperationErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @select(frm("reportingEntityId"),reporting_entity.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "ReportingEntityId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("reportingEntityName"), '_label -> "ReportingEntityName")
+          </div>
+          <div class="form-group">
+            @inputDate(frm("generalInformation.when"), '_label -> "When")
+          </div>
+          <div class="form-group">
+            @inputDate(frm("generalInformation.whenLocal"), '_label -> "WhenLocal")
+          </div>
+          <div class="form-group">
+            @select(frm("generalInformation.whereStateAreaId"),state_area.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "WhereStateAreaId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("generalInformation.whereLocationName"), '_label -> "WhereLocationName")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("generalInformation.whereLatitudeOcc"), '_label -> "WhereLatitudeOcc")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("generalInformation.whereLongitudeOcc"), '_label -> "WhereLongitudeOcc")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("generalInformation.whatHeadline"), '_label -> "WhatHeadline")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("generalInformation.whatNarrativeLanguaje"), '_label -> "WhatNarrativeLanguaje")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("generalInformation.whatNarrative"), '_label -> "WhatNarrative")
+          </div>
+          <div class="form-group">
+            @select(frm("aircraftIdentification.stateOfRegistryId"),state_area.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "StateOfRegistryId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("aircraftIdentification.registration"), '_label -> "Registration")
+          </div>
+          <div class="form-group">
+            @select(frm("aircraftIdentification.manufacturerModelId"),aircraft_manufacturer_model.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "ManufacturerModelId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("aircraftIdentification.serialNumber"), '_label -> "SerialNumber")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("aircraftIdentification.yearBuilt"), '_label -> "YearBuilt")
+          </div>
+          <div class="form-group">
+            @select(frm("aircraftDescription.categoryId"),aircraft_category.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "CategoryId")
+          </div>
+          <div class="form-group">
+            @select(frm("aircraftDescription.massGroupId"),aircraft_mass_group.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "MassGroupId")
+          </div>
+          <div class="form-group">
+            @select(frm("aircraftDescription.propulsionTypeId"),aircraft_propulsion_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "PropulsionTypeId")
+          </div>
+          <div class="form-group">
+            @select(frm("aircraftDescription.wakeTurbCategoryId"),aircraft_wake_turb_category.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "WakeTurbCategoryId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("aircraftDescription.numberOfEngines"), '_label -> "NumberOfEngines")
+          </div>
+          <div class="form-group">
+            @select(frm("aircraftDescription.landingGearTypeId"),aircraft_landing_gear_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "LandingGearTypeId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("aircraftDescription.maximumMass"), '_label -> "MaximumMass")
+          </div>
+          <div class="form-group">
+            @select(frm("flightDetails.departureId"),aerodrome.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "DepartureId")
+          </div>
+          <div class="form-group">
+            @select(frm("flightDetails.destinationId"),aerodrome.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "DestinationId")
+          </div>
+          <div class="form-group">
+            @select(frm("flightDetails.phaseId"),phase.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "PhaseId")
+          </div>
+          <div class="form-group">
+            @select(frm("flightDetails.operatorId"),operator.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "OperatorId")
+          </div>
+          <div class="form-group">
+            @select(frm("flightDetails.operationTypeId"),operation_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "OperationTypeId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("flightDetails.callsign"), '_label -> "Callsign")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("flightDetails.flightNumber"), '_label -> "FlightNumber")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("flightDetails.numberPersons"), '_label -> "NumberPersons")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("operationalInformation.aircraftAltitude"), '_label -> "AircraftAltitude")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("operationalInformation.aircraftFlightLevel"), '_label -> "AircraftFlightLevel")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("operationalInformation.speed"), '_label -> "Speed")
+          </div>
+          <div class="form-group">
+            @select(frm("operationalInformation.typeOfAirspeedId"),type_of_airspeed.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "TypeOfAirspeedId")
+          </div>
+          <div class="form-group">
+            @select(frm("operationalInformation.flightRuleId"),flight_rule.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "FlightRuleId")
+          </div>
+          <div class="form-group">
+            @select(frm("operationalInformation.trafficTypeId"),traffic_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "TrafficTypeId")
+          </div>
+          <div class="form-group">
+            @select(frm("operationalInformation.instrumentApprTypeId"),instrument_appr_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "InstrumentApprTypeId")
+          </div>
+          <div id="flightCrewsDiv_@frm("flightCrews").id">
+              <h2>@Messages("flightCrew.list")</h2>
+              @repeat(frm("flightCrews"), min = 0) { field =>
+                  @controllers.FlightCrewController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nflightCrews_@frm("flightCrews").id" value="@frm("flightCrews").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedflightCrew_@frm("flightCrews").id" href="javascript:;" onclick="addNestedFlightCrew_@{frm("flightCrews").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("flightCrew.related.add")</a>
+              <span id="loadingNested_flightCrew@frm("flightCrews").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedFlightCrew_@{frm("flightCrews").id}() {
+                    $('#addNestedflightCrew_@frm("flightCrews").id').hide(); $('#loadingNested_flightCrew@frm("flightCrews").id').show();
+                    var i = parseInt($('#nflightCrews_@frm("flightCrews").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.FlightCrewController.createNested()",
+                      data: { i: i, name: '@frm("flightCrews").id' }
+                    }).done(function(msg) {
+                        $('#flightCrewsDiv_@frm("flightCrews").id').append(msg)
+                        $('#nflightCrews_@frm("flightCrews").id' ).val(i+1);
+                        $('#addNestedflightCrew_@frm("flightCrews").id').show(); $('#loadingNested_flightCrew@frm("flightCrews").id').hide();
+                    });
+              }
+          </script>
+          <div class="form-group">
+            @select(frm("classification.ocurrenceClassId"),ocurrence_class.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "OcurrenceClassId")
+          </div>
+          <div class="form-group">
+            @select(frm("classification.detectionPhaseId"),detection_phase.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "DetectionPhaseId")
+          </div>
+          <div id="neoFlightOperationOcurrenceCategorysDiv_@frm("neoFlightOperationOcurrenceCategorys").id">
+              <h2>@Messages("neoFlightOperationOcurrenceCategory.list")</h2>
+              @repeat(frm("neoFlightOperationOcurrenceCategorys"), min = 0) { field =>
+                  @controllers.NeoFlightOperationOcurrenceCategoryController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nneoFlightOperationOcurrenceCategorys_@frm("neoFlightOperationOcurrenceCategorys").id" value="@frm("neoFlightOperationOcurrenceCategorys").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedneoFlightOperationOcurrenceCategory_@frm("neoFlightOperationOcurrenceCategorys").id" href="javascript:;" onclick="addNestedNeoFlightOperationOcurrenceCategory_@{frm("neoFlightOperationOcurrenceCategorys").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("neoFlightOperationOcurrenceCategory.related.add")</a>
+              <span id="loadingNested_neoFlightOperationOcurrenceCategory@frm("neoFlightOperationOcurrenceCategorys").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedNeoFlightOperationOcurrenceCategory_@{frm("neoFlightOperationOcurrenceCategorys").id}() {
+                    $('#addNestedneoFlightOperationOcurrenceCategory_@frm("neoFlightOperationOcurrenceCategorys").id').hide(); $('#loadingNested_neoFlightOperationOcurrenceCategory@frm("neoFlightOperationOcurrenceCategorys").id').show();
+                    var i = parseInt($('#nneoFlightOperationOcurrenceCategorys_@frm("neoFlightOperationOcurrenceCategorys").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.NeoFlightOperationOcurrenceCategoryController.createNested()",
+                      data: { i: i, name: '@frm("neoFlightOperationOcurrenceCategorys").id' }
+                    }).done(function(msg) {
+                        $('#neoFlightOperationOcurrenceCategorysDiv_@frm("neoFlightOperationOcurrenceCategorys").id').append(msg)
+                        $('#nneoFlightOperationOcurrenceCategorys_@frm("neoFlightOperationOcurrenceCategorys").id' ).val(i+1);
+                        $('#addNestedneoFlightOperationOcurrenceCategory_@frm("neoFlightOperationOcurrenceCategorys").id').show(); $('#loadingNested_neoFlightOperationOcurrenceCategory@frm("neoFlightOperationOcurrenceCategorys").id').hide();
+                    });
+              }
+          </script>
+          <div id="neoFlightOperationEventTypePhasesDiv_@frm("neoFlightOperationEventTypePhases").id">
+              <h2>@Messages("neoFlightOperationEventTypePhase.list")</h2>
+              @repeat(frm("neoFlightOperationEventTypePhases"), min = 0) { field =>
+                  @controllers.NeoFlightOperationEventTypePhaseController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nneoFlightOperationEventTypePhases_@frm("neoFlightOperationEventTypePhases").id" value="@frm("neoFlightOperationEventTypePhases").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedneoFlightOperationEventTypePhase_@frm("neoFlightOperationEventTypePhases").id" href="javascript:;" onclick="addNestedNeoFlightOperationEventTypePhase_@{frm("neoFlightOperationEventTypePhases").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("neoFlightOperationEventTypePhase.related.add")</a>
+              <span id="loadingNested_neoFlightOperationEventTypePhase@frm("neoFlightOperationEventTypePhases").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedNeoFlightOperationEventTypePhase_@{frm("neoFlightOperationEventTypePhases").id}() {
+                    $('#addNestedneoFlightOperationEventTypePhase_@frm("neoFlightOperationEventTypePhases").id').hide(); $('#loadingNested_neoFlightOperationEventTypePhase@frm("neoFlightOperationEventTypePhases").id').show();
+                    var i = parseInt($('#nneoFlightOperationEventTypePhases_@frm("neoFlightOperationEventTypePhases").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.NeoFlightOperationEventTypePhaseController.createNested()",
+                      data: { i: i, name: '@frm("neoFlightOperationEventTypePhases").id' }
+                    }).done(function(msg) {
+                        $('#neoFlightOperationEventTypePhasesDiv_@frm("neoFlightOperationEventTypePhases").id').append(msg)
+                        $('#nneoFlightOperationEventTypePhases_@frm("neoFlightOperationEventTypePhases").id' ).val(i+1);
+                        $('#addNestedneoFlightOperationEventTypePhase_@frm("neoFlightOperationEventTypePhases").id').show(); $('#loadingNested_neoFlightOperationEventTypePhase@frm("neoFlightOperationEventTypePhases").id').hide();
+                    });
+              }
+          </script>
+          <div class="form-group">
+            @myInputText(frm("risk.riskClassification"), '_label -> "RiskClassification")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("risk.riskMethodology"), '_label -> "RiskMethodology")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("risk.riskAssessment"), '_label -> "RiskAssessment")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("assessment.analysisFollowUp"), '_label -> "AnalysisFollowUp")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("assessment.correctiveActions"), '_label -> "CorrectiveActions")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("assessment.conclusions"), '_label -> "Conclusions")
+          </div>
+          <div class="form-group">
+            @select(frm("reportManagement.reportStatusId"),neo_report_status.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "ReportStatusId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("reportManagement.reportVersion"), '_label -> "ReportVersion")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("attachments"), '_label -> "Attachments")
+          </div>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @neoFlightOperationOpt.map{ neoFlightOperation =>
+                @neoFlightOperation.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.NeoFlightOperationController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

@@ -1,0 +1,11 @@
+@(frm: Form[models.OperationTypeFormData], operation_type: List[models.OperationType])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.operationType.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.OperationTypeController.save(), 'id -> "operationTypeForm", 'role -> "form") {
+            @views.html.operationType._form(frm, operation_type)
+        }
+
+    </div>
+}
+    

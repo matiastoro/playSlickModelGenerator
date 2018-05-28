@@ -1,0 +1,11 @@
+@(frm: Form[models.UsuarioTipoInspectorFormData], usuario: List[models.Usuario], tipo_inspector: List[models.TipoInspector], usuarioTipoInspector: models.UsuarioTipoInspector)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.usuarioTipoInspector.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.UsuarioTipoInspectorController.update(usuarioTipoInspector.id.getOrElse(0)), 'id -> "usuarioTipoInspectorForm", 'role -> "form") {
+            @views.html.usuarioTipoInspector._form(frm, usuario, tipo_inspector, Some(usuarioTipoInspector))
+        }
+
+    </div>
+}
+    

@@ -1,0 +1,92 @@
+@(eccairs: models.Eccairs)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.eccairs.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("eccairs.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@eccairs.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Number</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@eccairs.number</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Date</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@eccairs.date</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">StateArea</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.StateAreaController.show(eccairs.stateAreaId.get)">@eccairs.getStateArea.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">OcurrenceClass</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.OcurrenceClassController.show(eccairs.ocurrenceClassId.get)">@eccairs.getOcurrenceClass.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            @controllers.EccairsOcurrenceCategoryController.showByEccairs(eccairs.id)
+            <div class="form-group">
+                <label class="col-sm-2 control-label">InjuryLevel</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftMassGroup</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftCategory</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Registry</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@eccairs.registry</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">OperationType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">OperatorType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Operator</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WeatherCondition</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+        @eccairs.id.map{ id =>
+            <a href="@controllers.routes.EccairsController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.EccairsController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.EccairsController.index(1,20)">@Messages("list")</a>
+
+}

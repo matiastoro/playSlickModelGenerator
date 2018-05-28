@@ -1,0 +1,11 @@
+@(frm: Form[models.IcebergFormData], location: List[models.Location])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.iceberg.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.IcebergController.save(), 'id -> "icebergForm", 'role -> "form") {
+            @views.html.iceberg._form(frm, location)
+        }
+
+    </div>
+}
+    

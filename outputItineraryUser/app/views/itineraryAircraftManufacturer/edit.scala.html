@@ -1,0 +1,11 @@
+@(frm: Form[models.ItineraryAircraftManufacturerFormData], itineraryAircraftManufacturer: models.ItineraryAircraftManufacturer)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.itineraryAircraftManufacturer.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.ItineraryAircraftManufacturerController.update(itineraryAircraftManufacturer.id.getOrElse(0)), 'id -> "itineraryAircraftManufacturerForm", 'role -> "form") {
+            @views.html.itineraryAircraftManufacturer._form(frm, Some(itineraryAircraftManufacturer))
+        }
+
+    </div>
+}
+    

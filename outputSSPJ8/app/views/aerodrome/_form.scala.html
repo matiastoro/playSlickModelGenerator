@@ -1,0 +1,106 @@
+@(frm: Form[models.AerodromeFormData], aerodrome_status: List[models.AerodromeStatus], aerodrome_type: List[models.AerodromeType], aerodromeOpt: Option[models.Aerodrome] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("aerodrome.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="aerodromeErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @myInputText(frm("icaoCode"), '_label -> "IcaoCode")
+          </div>
+          <div class="form-group">
+            @select(frm("aerodromeStatusId"),aerodrome_status.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "AerodromeStatusId")
+          </div>
+          <div class="form-group">
+            @select(frm("aerodromeTypeId"),aerodrome_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "AerodromeTypeId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("latitude"), '_label -> "Latitude")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("longitude"), '_label -> "Longitude")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("elevationAboveMsl"), '_label -> "ElevationAboveMsl")
+          </div>
+          <div id="runwaysDiv_@frm("runways").id">
+              <h2>@Messages("runway.list")</h2>
+              @repeat(frm("runways"), min = 0) { field =>
+                  @controllers.RunwayController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nrunways_@frm("runways").id" value="@frm("runways").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedrunway_@frm("runways").id" href="javascript:;" onclick="addNestedRunway_@{frm("runways").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("runway.related.add")</a>
+              <span id="loadingNested_runway@frm("runways").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedRunway_@{frm("runways").id}() {
+                    $('#addNestedrunway_@frm("runways").id').hide(); $('#loadingNested_runway@frm("runways").id').show();
+                    var i = parseInt($('#nrunways_@frm("runways").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.RunwayController.createNested()",
+                      data: { i: i, name: '@frm("runways").id' }
+                    }).done(function(msg) {
+                        $('#runwaysDiv_@frm("runways").id').append(msg)
+                        $('#nrunways_@frm("runways").id' ).val(i+1);
+                        $('#addNestedrunway_@frm("runways").id').show(); $('#loadingNested_runway@frm("runways").id').hide();
+                    });
+              }
+          </script>
+          <div id="helicopterLandingAreasDiv_@frm("helicopterLandingAreas").id">
+              <h2>@Messages("helicopterLandingArea.list")</h2>
+              @repeat(frm("helicopterLandingAreas"), min = 0) { field =>
+                  @controllers.HelicopterLandingAreaController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nhelicopterLandingAreas_@frm("helicopterLandingAreas").id" value="@frm("helicopterLandingAreas").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedhelicopterLandingArea_@frm("helicopterLandingAreas").id" href="javascript:;" onclick="addNestedHelicopterLandingArea_@{frm("helicopterLandingAreas").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("helicopterLandingArea.related.add")</a>
+              <span id="loadingNested_helicopterLandingArea@frm("helicopterLandingAreas").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedHelicopterLandingArea_@{frm("helicopterLandingAreas").id}() {
+                    $('#addNestedhelicopterLandingArea_@frm("helicopterLandingAreas").id').hide(); $('#loadingNested_helicopterLandingArea@frm("helicopterLandingAreas").id').show();
+                    var i = parseInt($('#nhelicopterLandingAreas_@frm("helicopterLandingAreas").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.HelicopterLandingAreaController.createNested()",
+                      data: { i: i, name: '@frm("helicopterLandingAreas").id' }
+                    }).done(function(msg) {
+                        $('#helicopterLandingAreasDiv_@frm("helicopterLandingAreas").id').append(msg)
+                        $('#nhelicopterLandingAreas_@frm("helicopterLandingAreas").id' ).val(i+1);
+                        $('#addNestedhelicopterLandingArea_@frm("helicopterLandingAreas").id').show(); $('#loadingNested_helicopterLandingArea@frm("helicopterLandingAreas").id').hide();
+                    });
+              }
+          </script>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @aerodromeOpt.map{ aerodrome =>
+                @aerodrome.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.AerodromeController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

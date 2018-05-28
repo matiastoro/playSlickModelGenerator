@@ -1,0 +1,11 @@
+@(frm: Form[models.NeoAerodromeFormData], reporting_entity: List[models.ReportingEntity], state_area: List[models.StateArea], aerodrome: List[models.Aerodrome], aerodrome_location: List[models.AerodromeLocation], aerodrome_status: List[models.AerodromeStatus], aerodrome_type: List[models.AerodromeType], runway: List[models.Runway], runway_surface_type: List[models.RunwaySurfaceType], helicopter_landing_area_type: List[models.HelicopterLandingAreaType], helicopter_landing_area_area_configuration: List[models.HelicopterLandingAreaAreaConfiguration], helicopter_landing_area_surface_type: List[models.HelicopterLandingAreaSurfaceType], ocurrence_class: List[models.OcurrenceClass], detection_phase: List[models.DetectionPhase], neo_report_status: List[models.NeoReportStatus])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.neoAerodrome.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.NeoAerodromeController.save(), 'id -> "neoAerodromeForm", 'role -> "form") {
+            @views.html.neoAerodrome._form(frm, reporting_entity, state_area, aerodrome, aerodrome_location, aerodrome_status, aerodrome_type, runway, runway_surface_type, helicopter_landing_area_type, helicopter_landing_area_area_configuration, helicopter_landing_area_surface_type, ocurrence_class, detection_phase, neo_report_status)
+        }
+
+    </div>
+}
+    

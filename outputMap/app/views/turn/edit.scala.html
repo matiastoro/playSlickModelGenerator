@@ -1,0 +1,11 @@
+@(frm: Form[models.TurnFormData], turn: models.Turn)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.turn.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.TurnController.update(turn.id.getOrElse(0)), 'id -> "turnForm", 'role -> "form") {
+            @views.html.turn._form(frm, Some(turn))
+        }
+
+    </div>
+}
+    

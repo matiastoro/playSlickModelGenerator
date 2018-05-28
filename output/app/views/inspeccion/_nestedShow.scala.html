@@ -1,0 +1,54 @@
+@(inspeccions: List[models.Inspeccion])
+
+        <h2>@Messages("inspeccion.related.list")</h2>
+        @for(inspeccion <- inspeccions){
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@inspeccion.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Inspeccion</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@inspeccion.inspeccion</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">FechaInicio</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@inspeccion.fechaInicio</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">FechaTermino</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@inspeccion.fechaTermino</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Orden</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@inspeccion.orden</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">ProgramaId</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@inspeccion.programaId</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">ObjetoInspeccionId</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@inspeccion.objetoInspeccionId</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">ObjetoInspeccionInstanciaId</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@inspeccion.objetoInspeccionInstanciaId</p>
+                </div>
+            </div>
+        }

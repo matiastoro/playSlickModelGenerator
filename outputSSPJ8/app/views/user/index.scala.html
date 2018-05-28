@@ -1,0 +1,49 @@
+@(list: List[models.User], total: Int, page: Int, pageLength: Int)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.user.main(Html(Messages("home.title")))(sidebar(1)) {
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a class="btn btn-success pull-right" data-dismiss="modal" href="@controllers.routes.UserController.create()">@Messages("new")</a>
+            <h2 class="panel-title">
+                @Messages("user.list.title")
+            </h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="panel-body">
+            @{Messages("paginator.list.total")+" "+total+" "+Messages("paginator.list.from")+" "+((page-1)*20)+" "+Messages("paginator.list.to")+" "+(math.min(page*20, total))}
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers.routes.UserController.index(x, y)})
+            <table class="table table-striped table-condensed">
+                <thead>
+                    <tr>
+                                                                                                                        <th>@Messages("user.id")</th>
+                        <th>@Messages("user.username")</th>
+                        <th>@Messages("user.password")</th>
+                        <th>@Messages("user.name")</th>
+                        <th>@Messages("user.email")</th>
+                        <th>@Messages("Actions")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for(obj <- list) {
+                    <tr class="if(it.state==1){warning}else{}">
+                                                                                                                                   <td>@obj.id</td>
+                        <td>@obj.username</td>
+                        <td>@obj.password</td>
+                        <td>@obj.name</td>
+                        <td>@obj.email</td>
+                        <td>
+                            <a href="@controllers.routes.UserController.show(obj.id.get)">@Messages("show")</a>
+                            <a href="@controllers.routes.UserController.edit(obj.id.get)">@Messages("edit")</a>
+                            <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.UserController.delete(obj.id.get)';">@Messages("delete")</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers.routes.UserController.index(x, y)})
+
+        </div>
+    </div>
+}
+    

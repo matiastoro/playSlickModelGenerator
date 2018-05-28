@@ -1,0 +1,11 @@
+@(frm: Form[models.WindowFormData], branch: List[models.Branch], window: models.Window)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.window.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.WindowController.update(window.id.getOrElse(0)), 'id -> "windowForm", 'role -> "form") {
+            @views.html.window._form(frm, branch, Some(window))
+        }
+
+    </div>
+}
+    

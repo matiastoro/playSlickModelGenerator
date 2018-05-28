@@ -1,0 +1,49 @@
+@(meteoStation: models.MeteoStation)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.meteoStation.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("meteoStation.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@meteoStation.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Location</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WmoArgos</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@meteoStation.wmoArgos</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">MainBulletin</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@meteoStation.mainBulletin</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Network</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@meteoStation.network</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Observations</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@meteoStation.observations</p>
+                </div>
+            </div>
+        @meteoStation.id.map{ id =>
+            <a href="@controllers.routes.MeteoStationController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.MeteoStationController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.MeteoStationController.index(1,20)">@Messages("list")</a>
+
+}

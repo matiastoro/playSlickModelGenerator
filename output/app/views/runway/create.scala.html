@@ -1,0 +1,11 @@
+@(frm: Form[models.RunwayFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.runway.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.RunwayController.save(), 'id -> "runwayForm", 'role -> "form") {
+            @views.html.runway._form(frm)
+        }
+
+    </div>
+}
+    

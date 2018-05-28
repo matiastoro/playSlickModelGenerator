@@ -1,0 +1,11 @@
+@(frm: Form[models.AttachmentFormData], attachment: models.Attachment)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.attachment.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.AttachmentController.update(attachment.id.getOrElse(0)), 'id -> "attachmentForm", 'role -> "form") {
+            @views.html.attachment._form(frm, Some(attachment))
+        }
+
+    </div>
+}
+    

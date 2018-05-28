@@ -1,0 +1,11 @@
+@(frm: Form[models.UserAerodromeFormData], user: List[models.User], aerodrome: List[models.Aerodrome])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.userAerodrome.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.UserAerodromeController.save(), 'id -> "userAerodromeForm", 'role -> "form") {
+            @views.html.userAerodrome._form(frm, user, aerodrome)
+        }
+
+    </div>
+}
+    

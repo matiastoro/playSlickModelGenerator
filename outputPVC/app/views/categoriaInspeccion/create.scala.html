@@ -1,0 +1,11 @@
+@(frm: Form[models.CategoriaInspeccionFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.categoriaInspeccion.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.CategoriaInspeccionController.save(), 'id -> "categoriaInspeccionForm", 'role -> "form") {
+            @views.html.categoriaInspeccion._form(frm)
+        }
+
+    </div>
+}
+    

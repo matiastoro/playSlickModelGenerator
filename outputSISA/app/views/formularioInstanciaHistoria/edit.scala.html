@@ -1,0 +1,11 @@
+@(frm: Form[models.FormularioInstanciaHistoriaFormData], formulario: List[models.Formulario], usuario: List[models.Usuario], formularioInstanciaHistoria: models.FormularioInstanciaHistoria)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.formularioInstanciaHistoria.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.FormularioInstanciaHistoriaController.update(formularioInstanciaHistoria.id.getOrElse(0)), 'id -> "formularioInstanciaHistoriaForm", 'role -> "form") {
+            @views.html.formularioInstanciaHistoria._form(frm, formulario, usuario, Some(formularioInstanciaHistoria))
+        }
+
+    </div>
+}
+    

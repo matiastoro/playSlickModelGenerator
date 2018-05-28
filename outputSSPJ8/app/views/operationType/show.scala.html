@@ -1,0 +1,31 @@
+@(operationType: models.OperationType)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.operationType.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("operationType.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@operationType.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">OperationType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@operationType.operationType</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">OperationType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+        @operationType.id.map{ id =>
+            <a href="@controllers.routes.OperationTypeController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.OperationTypeController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.OperationTypeController.index(1,20)">@Messages("list")</a>
+
+}

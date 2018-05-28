@@ -1,0 +1,11 @@
+@(frm: Form[models.UsuarioPerfilFormData], perfil: List[models.Perfil], usuario: List[models.Usuario], usuarioPerfil: models.UsuarioPerfil)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.usuarioPerfil.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.UsuarioPerfilController.update(usuarioPerfil.id.getOrElse(0)), 'id -> "usuarioPerfilForm", 'role -> "form") {
+            @views.html.usuarioPerfil._form(frm, perfil, usuario, Some(usuarioPerfil))
+        }
+
+    </div>
+}
+    

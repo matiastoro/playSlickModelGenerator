@@ -1,0 +1,11 @@
+@(frm: Form[models.LanguageFormData], language: models.Language)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.language.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.LanguageController.update(language.id.getOrElse(0)), 'id -> "languageForm", 'role -> "form") {
+            @views.html.language._form(frm, Some(language))
+        }
+
+    </div>
+}
+    

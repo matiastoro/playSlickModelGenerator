@@ -1,0 +1,11 @@
+@(frm: Form[models.UserFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.user.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.UserController.save(), 'id -> "userForm", 'role -> "form") {
+            @views.html.user._form(frm)
+        }
+
+    </div>
+}
+    

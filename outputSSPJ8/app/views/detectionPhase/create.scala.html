@@ -1,0 +1,11 @@
+@(frm: Form[models.DetectionPhaseFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.detectionPhase.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.DetectionPhaseController.save(), 'id -> "detectionPhaseForm", 'role -> "form") {
+            @views.html.detectionPhase._form(frm)
+        }
+
+    </div>
+}
+    

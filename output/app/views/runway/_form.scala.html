@@ -1,0 +1,45 @@
+@(frm: Form[models.RunwayFormData], runwayOpt: Option[models.Runway] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("runway.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="runwayErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @myInputText(frm("runway"), '_label -> "Runway")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("length"), '_label -> "Length")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("runwayType"), '_label -> "RunwayType")
+          </div>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @runwayOpt.map{ runway =>
+                @runway.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.RunwayController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

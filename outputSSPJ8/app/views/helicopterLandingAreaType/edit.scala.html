@@ -1,0 +1,11 @@
+@(frm: Form[models.HelicopterLandingAreaTypeFormData], helicopterLandingAreaType: models.HelicopterLandingAreaType)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.helicopterLandingAreaType.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.HelicopterLandingAreaTypeController.update(helicopterLandingAreaType.id.getOrElse(0)), 'id -> "helicopterLandingAreaTypeForm", 'role -> "form") {
+            @views.html.helicopterLandingAreaType._form(frm, Some(helicopterLandingAreaType))
+        }
+
+    </div>
+}
+    

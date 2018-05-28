@@ -1,0 +1,11 @@
+@(frm: Form[models.HelicopterLandingAreaFormData], aerodrome: List[models.Aerodrome])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.helicopterLandingArea.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.HelicopterLandingAreaController.save(), 'id -> "helicopterLandingAreaForm", 'role -> "form") {
+            @views.html.helicopterLandingArea._form(frm, aerodrome)
+        }
+
+    </div>
+}
+    

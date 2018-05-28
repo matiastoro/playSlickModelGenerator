@@ -1,0 +1,80 @@
+@(frm: Form[models.FlightCrewFormData], neo_flight_operation: List[models.NeoFlightOperation], flight_crew_category: List[models.FlightCrewCategory], flightCrewOpt: Option[models.FlightCrew] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("flightCrew.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="flightCrewErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @select(frm("neoFlightOperationId"),neo_flight_operation.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "NeoFlightOperationId")
+          </div>
+          <div class="form-group">
+            @select(frm("categoryId"),flight_crew_category.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "CategoryId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("experienceThis"), '_label -> "ExperienceThis")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("experienceAll"), '_label -> "ExperienceAll")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("dutyLast24Hours"), '_label -> "DutyLast24Hours")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("restBeforeDuty"), '_label -> "RestBeforeDuty")
+          </div>
+          <div id="flightCrewLicensesDiv_@frm("flightCrewLicenses").id">
+              <h2>@Messages("flightCrewLicense.list")</h2>
+              @repeat(frm("flightCrewLicenses"), min = 0) { field =>
+                  @controllers.FlightCrewLicenseController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nflightCrewLicenses_@frm("flightCrewLicenses").id" value="@frm("flightCrewLicenses").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedflightCrewLicense_@frm("flightCrewLicenses").id" href="javascript:;" onclick="addNestedFlightCrewLicense_@{frm("flightCrewLicenses").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("flightCrewLicense.related.add")</a>
+              <span id="loadingNested_flightCrewLicense@frm("flightCrewLicenses").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedFlightCrewLicense_@{frm("flightCrewLicenses").id}() {
+                    $('#addNestedflightCrewLicense_@frm("flightCrewLicenses").id').hide(); $('#loadingNested_flightCrewLicense@frm("flightCrewLicenses").id').show();
+                    var i = parseInt($('#nflightCrewLicenses_@frm("flightCrewLicenses").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.FlightCrewLicenseController.createNested()",
+                      data: { i: i, name: '@frm("flightCrewLicenses").id' }
+                    }).done(function(msg) {
+                        $('#flightCrewLicensesDiv_@frm("flightCrewLicenses").id').append(msg)
+                        $('#nflightCrewLicenses_@frm("flightCrewLicenses").id' ).val(i+1);
+                        $('#addNestedflightCrewLicense_@frm("flightCrewLicenses").id').show(); $('#loadingNested_flightCrewLicense@frm("flightCrewLicenses").id').hide();
+                    });
+              }
+          </script>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @flightCrewOpt.map{ flightCrew =>
+                @flightCrew.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.FlightCrewController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

@@ -1,0 +1,590 @@
+
+#ReportingEntity
+reportingEntity.title = ReportingEntity List
+reportingEntity.list.title = ReportingEntity List
+reportingEntity.form.title = ReportingEntity Form
+reportingEntity.id = id
+reportingEntity.reportingEntity = reportingEntity
+reportingEntity.reportingEntityId = reportingEntityId
+
+reportingEntity.show.title = Show ReportingEntity
+
+#Organization
+organization.title = Organization List
+organization.list.title = Organization List
+organization.form.title = Organization Form
+organization.id = id
+organization.organization = organization
+
+organization.show.title = Show Organization
+
+#StateArea
+stateArea.title = StateArea List
+stateArea.list.title = StateArea List
+stateArea.form.title = StateArea Form
+stateArea.id = id
+stateArea.stateArea = stateArea
+stateArea.stateAreaId = stateAreaId
+
+stateArea.show.title = Show StateArea
+
+#Language
+language.title = Language List
+language.list.title = Language List
+language.form.title = Language Form
+language.id = id
+language.language = language
+
+language.show.title = Show Language
+
+#AerodromeStatus
+aerodromeStatus.title = AerodromeStatus List
+aerodromeStatus.list.title = AerodromeStatus List
+aerodromeStatus.form.title = AerodromeStatus Form
+aerodromeStatus.id = id
+aerodromeStatus.status = status
+
+aerodromeStatus.show.title = Show AerodromeStatus
+
+#AerodromeType
+aerodromeType.title = AerodromeType List
+aerodromeType.list.title = AerodromeType List
+aerodromeType.form.title = AerodromeType Form
+aerodromeType.id = id
+aerodromeType.tpe = tpe
+
+aerodromeType.show.title = Show AerodromeType
+
+#RunwaySurfaceType
+runwaySurfaceType.title = RunwaySurfaceType List
+runwaySurfaceType.list.title = RunwaySurfaceType List
+runwaySurfaceType.form.title = RunwaySurfaceType Form
+runwaySurfaceType.id = id
+runwaySurfaceType.surfaceType = surfaceType
+
+runwaySurfaceType.show.title = Show RunwaySurfaceType
+
+#Runway
+runway.title = Runway List
+runway.list.title = Runway List
+runway.form.title = Runway Form
+runway.id = id
+runway.runway = runway
+runway.runwaySurfaceTypeId = runwaySurfaceTypeId
+runway.aerodromeId = aerodromeId
+runway.related.list = Related Runway
+runway.show.title = Show Runway
+
+#HelicopterLandingAreaSurfaceType
+helicopterLandingAreaSurfaceType.title = HelicopterLandingAreaSurfaceType List
+helicopterLandingAreaSurfaceType.list.title = HelicopterLandingAreaSurfaceType List
+helicopterLandingAreaSurfaceType.form.title = HelicopterLandingAreaSurfaceType Form
+helicopterLandingAreaSurfaceType.id = id
+helicopterLandingAreaSurfaceType.surfaceType = surfaceType
+
+helicopterLandingAreaSurfaceType.show.title = Show HelicopterLandingAreaSurfaceType
+
+#HelicopterLandingAreaType
+helicopterLandingAreaType.title = HelicopterLandingAreaType List
+helicopterLandingAreaType.list.title = HelicopterLandingAreaType List
+helicopterLandingAreaType.form.title = HelicopterLandingAreaType Form
+helicopterLandingAreaType.id = id
+helicopterLandingAreaType.landingAreaType = landingAreaType
+
+helicopterLandingAreaType.show.title = Show HelicopterLandingAreaType
+
+#HelicopterLandingAreaAreaConfiguration
+helicopterLandingAreaAreaConfiguration.title = HelicopterLandingAreaAreaConfiguration List
+helicopterLandingAreaAreaConfiguration.list.title = HelicopterLandingAreaAreaConfiguration List
+helicopterLandingAreaAreaConfiguration.form.title = HelicopterLandingAreaAreaConfiguration Form
+helicopterLandingAreaAreaConfiguration.id = id
+helicopterLandingAreaAreaConfiguration.areaConfiguration = areaConfiguration
+
+helicopterLandingAreaAreaConfiguration.show.title = Show HelicopterLandingAreaAreaConfiguration
+
+#HelicopterLandingAreaAreaType
+helicopterLandingAreaAreaType.title = HelicopterLandingAreaAreaType List
+helicopterLandingAreaAreaType.list.title = HelicopterLandingAreaAreaType List
+helicopterLandingAreaAreaType.form.title = HelicopterLandingAreaAreaType Form
+helicopterLandingAreaAreaType.id = id
+helicopterLandingAreaAreaType.helicopterLandingArea = helicopterLandingArea
+helicopterLandingAreaAreaType.helicopterLandingAreaTypeId = helicopterLandingAreaTypeId
+helicopterLandingAreaAreaType.helicopterLandingAreaAreaConfigurationId = helicopterLandingAreaAreaConfigurationId
+helicopterLandingAreaAreaType.helicopterLandingAreaSurfaceTypeId = helicopterLandingAreaSurfaceTypeId
+
+helicopterLandingAreaAreaType.show.title = Show HelicopterLandingAreaAreaType
+
+#HelicopterLandingArea
+helicopterLandingArea.title = HelicopterLandingArea List
+helicopterLandingArea.list.title = HelicopterLandingArea List
+helicopterLandingArea.form.title = HelicopterLandingArea Form
+helicopterLandingArea.id = id
+helicopterLandingArea.helicopterLandingArea = helicopterLandingArea
+helicopterLandingArea.aerodromeId = aerodromeId
+helicopterLandingArea.related.list = Related HelicopterLandingArea
+helicopterLandingArea.show.title = Show HelicopterLandingArea
+
+#Aerodrome
+aerodrome.title = Aerodrome List
+aerodrome.list.title = Aerodrome List
+aerodrome.form.title = Aerodrome Form
+aerodrome.id = id
+aerodrome.icaoCode = icaoCode
+aerodrome.aerodromeStatusId = aerodromeStatusId
+aerodrome.aerodromeTypeId = aerodromeTypeId
+aerodrome.latitude = latitude
+aerodrome.longitude = longitude
+aerodrome.elevationAboveMsl = elevationAboveMsl
+
+aerodrome.show.title = Show Aerodrome
+
+#AerodromeLocation
+aerodromeLocation.title = AerodromeLocation List
+aerodromeLocation.list.title = AerodromeLocation List
+aerodromeLocation.form.title = AerodromeLocation Form
+aerodromeLocation.id = id
+aerodromeLocation.location = location
+
+aerodromeLocation.show.title = Show AerodromeLocation
+
+#OcurrenceClass
+ocurrenceClass.title = OcurrenceClass List
+ocurrenceClass.list.title = OcurrenceClass List
+ocurrenceClass.form.title = OcurrenceClass Form
+ocurrenceClass.id = id
+ocurrenceClass.ocurrenceClass = ocurrenceClass
+
+ocurrenceClass.show.title = Show OcurrenceClass
+
+#DetectionPhase
+detectionPhase.title = DetectionPhase List
+detectionPhase.list.title = DetectionPhase List
+detectionPhase.form.title = DetectionPhase Form
+detectionPhase.id = id
+detectionPhase.detectionPhase = detectionPhase
+
+detectionPhase.show.title = Show DetectionPhase
+
+#OcurrenceCategory
+ocurrenceCategory.title = OcurrenceCategory List
+ocurrenceCategory.list.title = OcurrenceCategory List
+ocurrenceCategory.form.title = OcurrenceCategory Form
+ocurrenceCategory.id = id
+ocurrenceCategory.code = code
+ocurrenceCategory.ocurrenceCategory = ocurrenceCategory
+
+ocurrenceCategory.show.title = Show OcurrenceCategory
+
+#NeoAerodromeOcurrenceCategory
+neoAerodromeOcurrenceCategory.title = NeoAerodromeOcurrenceCategory List
+neoAerodromeOcurrenceCategory.list.title = NeoAerodromeOcurrenceCategory List
+neoAerodromeOcurrenceCategory.form.title = NeoAerodromeOcurrenceCategory Form
+neoAerodromeOcurrenceCategory.id = id
+neoAerodromeOcurrenceCategory.neoAerodromeId = neoAerodromeId
+neoAerodromeOcurrenceCategory.ocurrenceCategoryId = ocurrenceCategoryId
+neoAerodromeOcurrenceCategory.related.list = Related NeoAerodromeOcurrenceCategory
+neoAerodromeOcurrenceCategory.show.title = Show NeoAerodromeOcurrenceCategory
+
+#NeoEventType
+neoEventType.title = NeoEventType List
+neoEventType.list.title = NeoEventType List
+neoEventType.form.title = NeoEventType Form
+neoEventType.id = id
+neoEventType.eventType = eventType
+
+neoEventType.show.title = Show NeoEventType
+
+#Phase
+phase.title = Phase List
+phase.list.title = Phase List
+phase.form.title = Phase Form
+phase.id = id
+phase.phase = phase
+phase.phaseId = phaseId
+
+phase.show.title = Show Phase
+
+#NeoEventTypePhase
+neoEventTypePhase.title = NeoEventTypePhase List
+neoEventTypePhase.list.title = NeoEventTypePhase List
+neoEventTypePhase.form.title = NeoEventTypePhase Form
+neoEventTypePhase.id = id
+neoEventTypePhase.neoAerodromeId = neoAerodromeId
+neoEventTypePhase.neoEventTypeId = neoEventTypeId
+neoEventTypePhase.phaseId = phaseId
+neoEventTypePhase.related.list = Related NeoEventTypePhase
+neoEventTypePhase.show.title = Show NeoEventTypePhase
+
+#NeoReportStatus
+neoReportStatus.title = NeoReportStatus List
+neoReportStatus.list.title = NeoReportStatus List
+neoReportStatus.form.title = NeoReportStatus Form
+neoReportStatus.id = id
+neoReportStatus.reportStatus = reportStatus
+
+neoReportStatus.show.title = Show NeoReportStatus
+
+#NeoAerodrome
+neoAerodrome.title = NeoAerodrome List
+neoAerodrome.list.title = NeoAerodrome List
+neoAerodrome.form.title = NeoAerodrome Form
+neoAerodrome.id = id
+neoAerodrome.reportingEntityId = reportingEntityId
+neoAerodrome.reportingEntityName = reportingEntityName
+neoAerodrome.when = when
+neoAerodrome.whenLocal = whenLocal
+neoAerodrome.whereStateAreaId = whereStateAreaId
+neoAerodrome.whereLocationName = whereLocationName
+neoAerodrome.whereLatitudeOcc = whereLatitudeOcc
+neoAerodrome.whereLongitudeOcc = whereLongitudeOcc
+neoAerodrome.whatHeadline = whatHeadline
+neoAerodrome.whatNarrativeLanguaje = whatNarrativeLanguaje
+neoAerodrome.whatNarrative = whatNarrative
+neoAerodrome.aerodromeId = aerodromeId
+neoAerodrome.aerodromeLocationId = aerodromeLocationId
+neoAerodrome.aerodromeStatusId = aerodromeStatusId
+neoAerodrome.aerodromeTypeId = aerodromeTypeId
+neoAerodrome.latitude = latitude
+neoAerodrome.longitude = longitude
+neoAerodrome.runwayId = runwayId
+neoAerodrome.runwaySurfaceTypeId = runwaySurfaceTypeId
+neoAerodrome.helicopterLandingAreaTypeId = helicopterLandingAreaTypeId
+neoAerodrome.helicopterLandingAreaAreaConfigurationId = helicopterLandingAreaAreaConfigurationId
+neoAerodrome.helicopterLandingAreaSurfaceTypeId = helicopterLandingAreaSurfaceTypeId
+neoAerodrome.ocurrenceClassId = ocurrenceClassId
+neoAerodrome.detectionPhaseId = detectionPhaseId
+neoAerodrome.riskClassification = riskClassification
+neoAerodrome.riskMethodology = riskMethodology
+neoAerodrome.riskAssessment = riskAssessment
+neoAerodrome.analysisFollowUp = analysisFollowUp
+neoAerodrome.correctiveActions = correctiveActions
+neoAerodrome.conclusions = conclusions
+neoAerodrome.reportStatusId = reportStatusId
+neoAerodrome.reportVersion = reportVersion
+neoAerodrome.attachments = attachments
+
+neoAerodrome.show.title = Show NeoAerodrome
+
+#AircraftManufacturerModel
+aircraftManufacturerModel.title = AircraftManufacturerModel List
+aircraftManufacturerModel.list.title = AircraftManufacturerModel List
+aircraftManufacturerModel.form.title = AircraftManufacturerModel Form
+aircraftManufacturerModel.id = id
+aircraftManufacturerModel.manufacturerModel = manufacturerModel
+aircraftManufacturerModel.aircraftManufacturerModelId = aircraftManufacturerModelId
+
+aircraftManufacturerModel.show.title = Show AircraftManufacturerModel
+
+#AircraftCategory
+aircraftCategory.title = AircraftCategory List
+aircraftCategory.list.title = AircraftCategory List
+aircraftCategory.form.title = AircraftCategory Form
+aircraftCategory.id = id
+aircraftCategory.category = category
+aircraftCategory.aircraftCategoryId = aircraftCategoryId
+
+aircraftCategory.show.title = Show AircraftCategory
+
+#AircraftMassGroup
+aircraftMassGroup.title = AircraftMassGroup List
+aircraftMassGroup.list.title = AircraftMassGroup List
+aircraftMassGroup.form.title = AircraftMassGroup Form
+aircraftMassGroup.id = id
+aircraftMassGroup.massGroup = massGroup
+
+aircraftMassGroup.show.title = Show AircraftMassGroup
+
+#AircraftPropulsionType
+aircraftPropulsionType.title = AircraftPropulsionType List
+aircraftPropulsionType.list.title = AircraftPropulsionType List
+aircraftPropulsionType.form.title = AircraftPropulsionType Form
+aircraftPropulsionType.id = id
+aircraftPropulsionType.propulsionType = propulsionType
+
+aircraftPropulsionType.show.title = Show AircraftPropulsionType
+
+#AircraftWakeTurbCategory
+aircraftWakeTurbCategory.title = AircraftWakeTurbCategory List
+aircraftWakeTurbCategory.list.title = AircraftWakeTurbCategory List
+aircraftWakeTurbCategory.form.title = AircraftWakeTurbCategory Form
+aircraftWakeTurbCategory.id = id
+aircraftWakeTurbCategory.wakeTurbCategory = wakeTurbCategory
+
+aircraftWakeTurbCategory.show.title = Show AircraftWakeTurbCategory
+
+#AircraftLandingGearType
+aircraftLandingGearType.title = AircraftLandingGearType List
+aircraftLandingGearType.list.title = AircraftLandingGearType List
+aircraftLandingGearType.form.title = AircraftLandingGearType Form
+aircraftLandingGearType.id = id
+aircraftLandingGearType.landingGearType = landingGearType
+aircraftLandingGearType.aircraftLandingGearTypeId = aircraftLandingGearTypeId
+
+aircraftLandingGearType.show.title = Show AircraftLandingGearType
+
+#Operator
+operator.title = Operator List
+operator.list.title = Operator List
+operator.form.title = Operator Form
+operator.id = id
+operator.operator = operator
+operator.operatorTypeId = operatorTypeId
+
+operator.show.title = Show Operator
+
+#OperatorType
+operatorType.title = OperatorType List
+operatorType.list.title = OperatorType List
+operatorType.form.title = OperatorType Form
+operatorType.id = id
+operatorType.operatorType = operatorType
+operatorType.operatorTypeId = operatorTypeId
+
+operatorType.show.title = Show OperatorType
+
+#OperationType
+operationType.title = OperationType List
+operationType.list.title = OperationType List
+operationType.form.title = OperationType Form
+operationType.id = id
+operationType.operationType = operationType
+operationType.operationTypeId = operationTypeId
+
+operationType.show.title = Show OperationType
+
+#TypeOfAirspeed
+typeOfAirspeed.title = TypeOfAirspeed List
+typeOfAirspeed.list.title = TypeOfAirspeed List
+typeOfAirspeed.form.title = TypeOfAirspeed Form
+typeOfAirspeed.id = id
+typeOfAirspeed.typeOfAirspeed = typeOfAirspeed
+
+typeOfAirspeed.show.title = Show TypeOfAirspeed
+
+#FlightRule
+flightRule.title = FlightRule List
+flightRule.list.title = FlightRule List
+flightRule.form.title = FlightRule Form
+flightRule.id = id
+flightRule.flightRule = flightRule
+
+flightRule.show.title = Show FlightRule
+
+#TrafficType
+trafficType.title = TrafficType List
+trafficType.list.title = TrafficType List
+trafficType.form.title = TrafficType Form
+trafficType.id = id
+trafficType.trafficType = trafficType
+
+trafficType.show.title = Show TrafficType
+
+#InstrumentApprType
+instrumentApprType.title = InstrumentApprType List
+instrumentApprType.list.title = InstrumentApprType List
+instrumentApprType.form.title = InstrumentApprType Form
+instrumentApprType.id = id
+instrumentApprType.instrumentApprType = instrumentApprType
+
+instrumentApprType.show.title = Show InstrumentApprType
+
+#FlightCrewCategory
+flightCrewCategory.title = FlightCrewCategory List
+flightCrewCategory.list.title = FlightCrewCategory List
+flightCrewCategory.form.title = FlightCrewCategory Form
+flightCrewCategory.id = id
+flightCrewCategory.category = category
+
+flightCrewCategory.show.title = Show FlightCrewCategory
+
+#LicenseType
+licenseType.title = LicenseType List
+licenseType.list.title = LicenseType List
+licenseType.form.title = LicenseType Form
+licenseType.id = id
+licenseType.licenseType = licenseType
+licenseType.licenseTypeId = licenseTypeId
+
+licenseType.show.title = Show LicenseType
+
+#LicenseIssuedBy
+licenseIssuedBy.title = LicenseIssuedBy List
+licenseIssuedBy.list.title = LicenseIssuedBy List
+licenseIssuedBy.form.title = LicenseIssuedBy Form
+licenseIssuedBy.id = id
+licenseIssuedBy.licenseIssuedBy = licenseIssuedBy
+licenseIssuedBy.licenseIssuedById = licenseIssuedById
+
+licenseIssuedBy.show.title = Show LicenseIssuedBy
+
+#LicenseValidity
+licenseValidity.title = LicenseValidity List
+licenseValidity.list.title = LicenseValidity List
+licenseValidity.form.title = LicenseValidity Form
+licenseValidity.id = id
+licenseValidity.licenseValidity = licenseValidity
+
+licenseValidity.show.title = Show LicenseValidity
+
+#LicenseRatings
+licenseRatings.title = LicenseRatings List
+licenseRatings.list.title = LicenseRatings List
+licenseRatings.form.title = LicenseRatings Form
+licenseRatings.id = id
+licenseRatings.licenseRatings = licenseRatings
+
+licenseRatings.show.title = Show LicenseRatings
+
+#FlightCrewLicense
+flightCrewLicense.title = FlightCrewLicense List
+flightCrewLicense.list.title = FlightCrewLicense List
+flightCrewLicense.form.title = FlightCrewLicense Form
+flightCrewLicense.id = id
+flightCrewLicense.flightCrewId = flightCrewId
+flightCrewLicense.licenseTypeId = licenseTypeId
+flightCrewLicense.licenseIssuedById = licenseIssuedById
+flightCrewLicense.dateOfLicense = dateOfLicense
+flightCrewLicense.licenseValidityId = licenseValidityId
+flightCrewLicense.licenseRatingsId = licenseRatingsId
+flightCrewLicense.related.list = Related FlightCrewLicense
+flightCrewLicense.show.title = Show FlightCrewLicense
+
+#FlightCrew
+flightCrew.title = FlightCrew List
+flightCrew.list.title = FlightCrew List
+flightCrew.form.title = FlightCrew Form
+flightCrew.id = id
+flightCrew.neoFlightOperationId = neoFlightOperationId
+flightCrew.categoryId = categoryId
+flightCrew.experienceThis = experienceThis
+flightCrew.experienceAll = experienceAll
+flightCrew.dutyLast24Hours = dutyLast24Hours
+flightCrew.restBeforeDuty = restBeforeDuty
+flightCrew.related.list = Related FlightCrew
+flightCrew.show.title = Show FlightCrew
+
+#NeoFlightOperationOcurrenceCategory
+neoFlightOperationOcurrenceCategory.title = NeoFlightOperationOcurrenceCategory List
+neoFlightOperationOcurrenceCategory.list.title = NeoFlightOperationOcurrenceCategory List
+neoFlightOperationOcurrenceCategory.form.title = NeoFlightOperationOcurrenceCategory Form
+neoFlightOperationOcurrenceCategory.id = id
+neoFlightOperationOcurrenceCategory.neoFlightOperationId = neoFlightOperationId
+neoFlightOperationOcurrenceCategory.ocurrenceCategoryId = ocurrenceCategoryId
+neoFlightOperationOcurrenceCategory.related.list = Related NeoFlightOperationOcurrenceCategory
+neoFlightOperationOcurrenceCategory.show.title = Show NeoFlightOperationOcurrenceCategory
+
+#NeoFlightOperationEventTypePhase
+neoFlightOperationEventTypePhase.title = NeoFlightOperationEventTypePhase List
+neoFlightOperationEventTypePhase.list.title = NeoFlightOperationEventTypePhase List
+neoFlightOperationEventTypePhase.form.title = NeoFlightOperationEventTypePhase Form
+neoFlightOperationEventTypePhase.id = id
+neoFlightOperationEventTypePhase.neoFlightOperationId = neoFlightOperationId
+neoFlightOperationEventTypePhase.neoEventTypeId = neoEventTypeId
+neoFlightOperationEventTypePhase.phaseId = phaseId
+neoFlightOperationEventTypePhase.related.list = Related NeoFlightOperationEventTypePhase
+neoFlightOperationEventTypePhase.show.title = Show NeoFlightOperationEventTypePhase
+
+#NeoFlightOperation
+neoFlightOperation.title = NeoFlightOperation List
+neoFlightOperation.list.title = NeoFlightOperation List
+neoFlightOperation.form.title = NeoFlightOperation Form
+neoFlightOperation.id = id
+neoFlightOperation.reportingEntityId = reportingEntityId
+neoFlightOperation.reportingEntityName = reportingEntityName
+neoFlightOperation.when = when
+neoFlightOperation.whenLocal = whenLocal
+neoFlightOperation.whereStateAreaId = whereStateAreaId
+neoFlightOperation.whereLocationName = whereLocationName
+neoFlightOperation.whereLatitudeOcc = whereLatitudeOcc
+neoFlightOperation.whereLongitudeOcc = whereLongitudeOcc
+neoFlightOperation.whatHeadline = whatHeadline
+neoFlightOperation.whatNarrativeLanguaje = whatNarrativeLanguaje
+neoFlightOperation.whatNarrative = whatNarrative
+neoFlightOperation.stateOfRegistryId = stateOfRegistryId
+neoFlightOperation.registration = registration
+neoFlightOperation.manufacturerModelId = manufacturerModelId
+neoFlightOperation.serialNumber = serialNumber
+neoFlightOperation.yearBuilt = yearBuilt
+neoFlightOperation.categoryId = categoryId
+neoFlightOperation.massGroupId = massGroupId
+neoFlightOperation.propulsionTypeId = propulsionTypeId
+neoFlightOperation.wakeTurbCategoryId = wakeTurbCategoryId
+neoFlightOperation.numberOfEngines = numberOfEngines
+neoFlightOperation.landingGearTypeId = landingGearTypeId
+neoFlightOperation.maximumMass = maximumMass
+neoFlightOperation.departureId = departureId
+neoFlightOperation.destinationId = destinationId
+neoFlightOperation.phaseId = phaseId
+neoFlightOperation.operatorId = operatorId
+neoFlightOperation.operationTypeId = operationTypeId
+neoFlightOperation.callsign = callsign
+neoFlightOperation.flightNumber = flightNumber
+neoFlightOperation.numberPersons = numberPersons
+neoFlightOperation.aircraftAltitude = aircraftAltitude
+neoFlightOperation.aircraftFlightLevel = aircraftFlightLevel
+neoFlightOperation.speed = speed
+neoFlightOperation.typeOfAirspeedId = typeOfAirspeedId
+neoFlightOperation.flightRuleId = flightRuleId
+neoFlightOperation.trafficTypeId = trafficTypeId
+neoFlightOperation.instrumentApprTypeId = instrumentApprTypeId
+neoFlightOperation.ocurrenceClassId = ocurrenceClassId
+neoFlightOperation.detectionPhaseId = detectionPhaseId
+neoFlightOperation.riskClassification = riskClassification
+neoFlightOperation.riskMethodology = riskMethodology
+neoFlightOperation.riskAssessment = riskAssessment
+neoFlightOperation.analysisFollowUp = analysisFollowUp
+neoFlightOperation.correctiveActions = correctiveActions
+neoFlightOperation.conclusions = conclusions
+neoFlightOperation.reportStatusId = reportStatusId
+neoFlightOperation.reportVersion = reportVersion
+neoFlightOperation.attachments = attachments
+
+neoFlightOperation.show.title = Show NeoFlightOperation
+
+#EccairsOcurrenceCategory
+eccairsOcurrenceCategory.title = EccairsOcurrenceCategory List
+eccairsOcurrenceCategory.list.title = EccairsOcurrenceCategory List
+eccairsOcurrenceCategory.form.title = EccairsOcurrenceCategory Form
+eccairsOcurrenceCategory.id = id
+eccairsOcurrenceCategory.eccairsId = eccairsId
+eccairsOcurrenceCategory.ocurrenceCategoryId = ocurrenceCategoryId
+eccairsOcurrenceCategory.related.list = Related EccairsOcurrenceCategory
+eccairsOcurrenceCategory.show.title = Show EccairsOcurrenceCategory
+
+#InjuryLevel
+injuryLevel.title = InjuryLevel List
+injuryLevel.list.title = InjuryLevel List
+injuryLevel.form.title = InjuryLevel Form
+injuryLevel.id = id
+injuryLevel.injuryLevel = injuryLevel
+
+injuryLevel.show.title = Show InjuryLevel
+
+#WeatherCondition
+weatherCondition.title = WeatherCondition List
+weatherCondition.list.title = WeatherCondition List
+weatherCondition.form.title = WeatherCondition Form
+weatherCondition.id = id
+weatherCondition.weatherCondition = weatherCondition
+
+weatherCondition.show.title = Show WeatherCondition
+
+#Eccairs
+eccairs.title = Eccairs List
+eccairs.list.title = Eccairs List
+eccairs.form.title = Eccairs Form
+eccairs.id = id
+eccairs.number = number
+eccairs.date = date
+eccairs.stateAreaId = stateAreaId
+eccairs.ocurrenceClassId = ocurrenceClassId
+eccairs.injuryLevelId = injuryLevelId
+eccairs.massGroupId = massGroupId
+eccairs.categoryId = categoryId
+eccairs.registry = registry
+eccairs.operationTypeId = operationTypeId
+eccairs.operatorTypeId = operatorTypeId
+eccairs.operatorId = operatorId
+eccairs.weatherConditionId = weatherConditionId
+
+eccairs.show.title = Show Eccairs

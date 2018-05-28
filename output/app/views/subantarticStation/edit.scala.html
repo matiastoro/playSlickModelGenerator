@@ -1,0 +1,11 @@
+@(frm: Form[models.SubantarticStationFormData], location: List[models.Location], subantarticStation: models.SubantarticStation)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.subantarticStation.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.SubantarticStationController.update(subantarticStation.id.getOrElse(0)), 'id -> "subantarticStationForm", 'role -> "form") {
+            @views.html.subantarticStation._form(frm, location, Some(subantarticStation))
+        }
+
+    </div>
+}
+    

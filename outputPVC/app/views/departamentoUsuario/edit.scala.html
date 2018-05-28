@@ -1,0 +1,11 @@
+@(frm: Form[models.DepartamentoUsuarioFormData], departamento: List[models.Departamento], usuario: List[models.Usuario], departamentoUsuario: models.DepartamentoUsuario)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.departamentoUsuario.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.DepartamentoUsuarioController.update(departamentoUsuario.id.getOrElse(0)), 'id -> "departamentoUsuarioForm", 'role -> "form") {
+            @views.html.departamentoUsuario._form(frm, departamento, usuario, Some(departamentoUsuario))
+        }
+
+    </div>
+}
+    

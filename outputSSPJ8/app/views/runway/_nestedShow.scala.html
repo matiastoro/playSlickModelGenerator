@@ -1,0 +1,24 @@
+@(runways: List[models.Runway])
+
+        <h2>@Messages("runway.related.list")</h2>
+        @for(runway <- runways){
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@runway.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Runway</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@runway.runway</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">RunwaySurfaceType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.RunwaySurfaceTypeController.show(runway.runwaySurfaceTypeId.get)">@runway.getRunwaySurfaceType.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+
+        }

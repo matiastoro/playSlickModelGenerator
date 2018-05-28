@@ -1,0 +1,11 @@
+@(frm: Form[models.ItineraryUserCompanyFormData], user: List[models.User], company: List[models.Company])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.itineraryUserCompany.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.ItineraryUserCompanyController.save(), 'id -> "itineraryUserCompanyForm", 'role -> "form") {
+            @views.html.itineraryUserCompany._form(frm, user, company)
+        }
+
+    </div>
+}
+    

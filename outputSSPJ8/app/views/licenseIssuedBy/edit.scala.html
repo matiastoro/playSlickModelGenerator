@@ -1,0 +1,11 @@
+@(frm: Form[models.LicenseIssuedByFormData], license_issued_by: List[models.LicenseIssuedBy], licenseIssuedBy: models.LicenseIssuedBy)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.licenseIssuedBy.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.LicenseIssuedByController.update(licenseIssuedBy.id.getOrElse(0)), 'id -> "licenseIssuedByForm", 'role -> "form") {
+            @views.html.licenseIssuedBy._form(frm, license_issued_by, Some(licenseIssuedBy))
+        }
+
+    </div>
+}
+    

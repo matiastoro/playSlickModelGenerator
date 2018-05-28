@@ -1,0 +1,18 @@
+@(itineraryUserCompanys: List[models.ItineraryUserCompany])
+
+        <h2>@Messages("itineraryUserCompany.related.list")</h2>
+        @for(itineraryUserCompany <- itineraryUserCompanys){
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@itineraryUserCompany.id</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Company</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.CompanyController.show(itineraryUserCompany.companyId.get)">@itineraryUserCompany.getCompany.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+        }

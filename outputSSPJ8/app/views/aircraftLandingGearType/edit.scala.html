@@ -1,0 +1,11 @@
+@(frm: Form[models.AircraftLandingGearTypeFormData], aircraft_landing_gear_type: List[models.AircraftLandingGearType], aircraftLandingGearType: models.AircraftLandingGearType)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.aircraftLandingGearType.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.AircraftLandingGearTypeController.update(aircraftLandingGearType.id.getOrElse(0)), 'id -> "aircraftLandingGearTypeForm", 'role -> "form") {
+            @views.html.aircraftLandingGearType._form(frm, aircraft_landing_gear_type, Some(aircraftLandingGearType))
+        }
+
+    </div>
+}
+    

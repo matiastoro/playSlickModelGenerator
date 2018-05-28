@@ -1,0 +1,11 @@
+@(frm: Form[models.NeoEventTypePhaseFormData], neo_aerodrome: List[models.NeoAerodrome], neo_event_type: List[models.NeoEventType], phase: List[models.Phase], neoEventTypePhase: models.NeoEventTypePhase)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.neoEventTypePhase.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.NeoEventTypePhaseController.update(neoEventTypePhase.id.getOrElse(0)), 'id -> "neoEventTypePhaseForm", 'role -> "form") {
+            @views.html.neoEventTypePhase._form(frm, neo_aerodrome, neo_event_type, phase, Some(neoEventTypePhase))
+        }
+
+    </div>
+}
+    

@@ -1,0 +1,118 @@
+@(frm: Form[models.UserFormData], army: List[models.Army], userOpt: Option[models.User] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("user.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="userErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @myInputText(frm("username"), '_label -> "Username")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("password"), '_label -> "Password")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("name"), '_label -> "Name")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("email"), '_label -> "Email")
+          </div>
+          <div class="form-group">
+            @select(frm("armyId"),army.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "ArmyId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("army"), '_label -> "Army")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("background"), '_label -> "Background")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("observations"), '_label -> "Observations")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("color"), '_label -> "Color")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("icon"), '_label -> "Icon")
+          </div>
+          <div id="profileUsersDiv_@frm("profileUsers").id">
+              <h2>@Messages("profileUser.list")</h2>
+              @repeat(frm("profileUsers"), min = 0) { field =>
+                  @controllers.ProfileUserController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nprofileUsers_@frm("profileUsers").id" value="@frm("profileUsers").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedprofileUser_@frm("profileUsers").id" href="javascript:;" onclick="addNestedProfileUser_@{frm("profileUsers").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("profileUser.related.add")</a>
+              <span id="loadingNested_profileUser@frm("profileUsers").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedProfileUser_@{frm("profileUsers").id}() {
+                    $('#addNestedprofileUser_@frm("profileUsers").id').hide(); $('#loadingNested_profileUser@frm("profileUsers").id').show();
+                    var i = parseInt($('#nprofileUsers_@frm("profileUsers").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.ProfileUserController.createNested()",
+                      data: { i: i, name: '@frm("profileUsers").id' }
+                    }).done(function(msg) {
+                        $('#profileUsersDiv_@frm("profileUsers").id').append(msg)
+                        $('#nprofileUsers_@frm("profileUsers").id' ).val(i+1);
+                        $('#addNestedprofileUser_@frm("profileUsers").id').show(); $('#loadingNested_profileUser@frm("profileUsers").id').hide();
+                    });
+              }
+          </script>
+          <div id="charactersDiv_@frm("characters").id">
+              <h2>@Messages("character.list")</h2>
+              @repeat(frm("characters"), min = 0) { field =>
+                  @controllers.CharacterController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="ncharacters_@frm("characters").id" value="@frm("characters").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedcharacter_@frm("characters").id" href="javascript:;" onclick="addNestedCharacter_@{frm("characters").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("character.related.add")</a>
+              <span id="loadingNested_character@frm("characters").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedCharacter_@{frm("characters").id}() {
+                    $('#addNestedcharacter_@frm("characters").id').hide(); $('#loadingNested_character@frm("characters").id').show();
+                    var i = parseInt($('#ncharacters_@frm("characters").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.CharacterController.createNested()",
+                      data: { i: i, name: '@frm("characters").id' }
+                    }).done(function(msg) {
+                        $('#charactersDiv_@frm("characters").id').append(msg)
+                        $('#ncharacters_@frm("characters").id' ).val(i+1);
+                        $('#addNestedcharacter_@frm("characters").id').show(); $('#loadingNested_character@frm("characters").id').hide();
+                    });
+              }
+          </script>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @userOpt.map{ user =>
+                @user.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.UserController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

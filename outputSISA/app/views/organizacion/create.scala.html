@@ -1,0 +1,11 @@
+@(frm: Form[models.OrganizacionFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.organizacion.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.OrganizacionController.save(), 'id -> "organizacionForm", 'role -> "form") {
+            @views.html.organizacion._form(frm)
+        }
+
+    </div>
+}
+    

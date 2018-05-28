@@ -1,0 +1,316 @@
+@(neoFlightOperation: models.NeoFlightOperation)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.neoFlightOperation.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("neoFlightOperation.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">ReportingEntity</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.ReportingEntityController.show(neoFlightOperation.reportingEntityId.get)">@neoFlightOperation.getReportingEntity.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">ReportingEntityName</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.reportingEntityName</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">When</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.generalInformation.when</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WhenLocal</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.generalInformation.whenLocal</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">StateArea</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.StateAreaController.show(neoFlightOperation.generalInformation.whereStateAreaId.get)">@neoFlightOperation.generalInformation.getStateArea.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WhereLocationName</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.generalInformation.whereLocationName</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WhereLatitudeOcc</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.generalInformation.whereLatitudeOcc</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WhereLongitudeOcc</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.generalInformation.whereLongitudeOcc</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WhatHeadline</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.generalInformation.whatHeadline</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WhatNarrativeLanguaje</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.generalInformation.whatNarrativeLanguaje</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WhatNarrative</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.generalInformation.whatNarrative</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">StateArea</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.StateAreaController.show(neoFlightOperation.aircraftIdentification.stateOfRegistryId.get)">@neoFlightOperation.aircraftIdentification.getStateArea.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Registration</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.aircraftIdentification.registration</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftManufacturerModel</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.AircraftManufacturerModelController.show(neoFlightOperation.aircraftIdentification.manufacturerModelId.get)">@neoFlightOperation.aircraftIdentification.getAircraftManufacturerModel.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">SerialNumber</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.aircraftIdentification.serialNumber</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">YearBuilt</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.aircraftIdentification.yearBuilt</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftCategory</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.AircraftCategoryController.show(neoFlightOperation.aircraftDescription.categoryId.get)">@neoFlightOperation.aircraftDescription.getAircraftCategory.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftMassGroup</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.AircraftMassGroupController.show(neoFlightOperation.aircraftDescription.massGroupId.get)">@neoFlightOperation.aircraftDescription.getAircraftMassGroup.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftPropulsionType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.AircraftPropulsionTypeController.show(neoFlightOperation.aircraftDescription.propulsionTypeId.get)">@neoFlightOperation.aircraftDescription.getAircraftPropulsionType.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftWakeTurbCategory</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">NumberOfEngines</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.aircraftDescription.numberOfEngines</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftLandingGearType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">MaximumMass</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.aircraftDescription.maximumMass</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Aerodrome</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.AerodromeController.show(neoFlightOperation.flightDetails.departureId.get)">@neoFlightOperation.flightDetails.getAerodrome.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Aerodrome</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.AerodromeController.show(neoFlightOperation.flightDetails.destinationId.get)">@neoFlightOperation.flightDetails.getAerodrome.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Phase</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.PhaseController.show(neoFlightOperation.flightDetails.phaseId.get)">@neoFlightOperation.flightDetails.getPhase.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Operator</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.OperatorController.show(neoFlightOperation.flightDetails.operatorId.get)">@neoFlightOperation.flightDetails.getOperator.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">OperationType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.OperationTypeController.show(neoFlightOperation.flightDetails.operationTypeId.get)">@neoFlightOperation.flightDetails.getOperationType.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Callsign</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.flightDetails.callsign</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">FlightNumber</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.flightDetails.flightNumber</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">NumberPersons</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.flightDetails.numberPersons</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftAltitude</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.operationalInformation.aircraftAltitude</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AircraftFlightLevel</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.operationalInformation.aircraftFlightLevel</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Speed</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.operationalInformation.speed</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">TypeOfAirspeed</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">FlightRule</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">TrafficType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">InstrumentApprType</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            @controllers.FlightCrewController.showByNeoFlightOperation(neoFlightOperation.id)
+            <div class="form-group">
+                <label class="col-sm-2 control-label">OcurrenceClass</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.OcurrenceClassController.show(neoFlightOperation.classification.ocurrenceClassId.get)">@neoFlightOperation.classification.getOcurrenceClass.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">DetectionPhase</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.DetectionPhaseController.show(neoFlightOperation.classification.detectionPhaseId.get)">@neoFlightOperation.classification.getDetectionPhase.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            @controllers.NeoFlightOperationOcurrenceCategoryController.showByNeoFlightOperation(neoFlightOperation.id)
+            @controllers.NeoFlightOperationEventTypePhaseController.showByNeoFlightOperation(neoFlightOperation.id)
+            <div class="form-group">
+                <label class="col-sm-2 control-label">RiskClassification</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.risk.riskClassification</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">RiskMethodology</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.risk.riskMethodology</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">RiskAssessment</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.risk.riskAssessment</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">AnalysisFollowUp</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.assessment.analysisFollowUp</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">CorrectiveActions</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.assessment.correctiveActions</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Conclusions</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.assessment.conclusions</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">NeoReportStatus</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">ReportVersion</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.reportManagement.reportVersion</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Attachments</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@neoFlightOperation.attachments</p>
+                </div>
+            </div>
+        @neoFlightOperation.id.map{ id =>
+            <a href="@controllers.routes.NeoFlightOperationController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.NeoFlightOperationController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.NeoFlightOperationController.index(1,20)">@Messages("list")</a>
+
+}

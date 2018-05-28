@@ -1,0 +1,11 @@
+@(frm: Form[models.UsuarioCargoFormData], cargo: List[models.Cargo], usuario: List[models.Usuario])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.usuarioCargo.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.UsuarioCargoController.save(), 'id -> "usuarioCargoForm", 'role -> "form") {
+            @views.html.usuarioCargo._form(frm, cargo, usuario)
+        }
+
+    </div>
+}
+    

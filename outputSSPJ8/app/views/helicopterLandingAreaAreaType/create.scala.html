@@ -1,0 +1,11 @@
+@(frm: Form[models.HelicopterLandingAreaAreaTypeFormData], helicopter_landing_area_type: List[models.HelicopterLandingAreaType], helicopter_landing_area_area_configuration: List[models.HelicopterLandingAreaAreaConfiguration], helicopter_landing_area_surface_type: List[models.HelicopterLandingAreaSurfaceType])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.helicopterLandingAreaAreaType.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.HelicopterLandingAreaAreaTypeController.save(), 'id -> "helicopterLandingAreaAreaTypeForm", 'role -> "form") {
+            @views.html.helicopterLandingAreaAreaType._form(frm, helicopter_landing_area_type, helicopter_landing_area_area_configuration, helicopter_landing_area_surface_type)
+        }
+
+    </div>
+}
+    

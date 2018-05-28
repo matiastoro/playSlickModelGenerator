@@ -1,0 +1,25 @@
+@(tipoInspector: models.TipoInspector)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.tipoInspector.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("tipoInspector.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@tipoInspector.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Tipo</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@tipoInspector.tipo</p>
+                </div>
+            </div>
+        @tipoInspector.id.map{ id =>
+            <a href="@controllers.routes.TipoInspectorController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.TipoInspectorController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.TipoInspectorController.index(1,20)">@Messages("list")</a>
+
+}

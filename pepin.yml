@@ -1,0 +1,10 @@
+season:
+  id: ~
+  season: {type: integer, required: true, options:[{key: 1, value: Invierno}, {key: 2, value: Verano}]}
+  from: {type: timestamp, required: true}
+  to: {type: timestamp, required: true}
+
+
+  --alter table itinerary add column state integer
+
+select x2."id", x2."season", x2."from", x2."to" from "season" x2 where (((x2."from" <= '2017-12-26 21:00:00.0') and (x2."to" >= '2017-12-26 21:00:00.0')) and (x2."to" < '2018-01-09 21:00:00.0')) or (((x2."from" <= x2."to") and (x2."to" >= '2018-01-09 21:00:00.0')) and (x2."from" > '2017-12-26 21:00:00.0'))

@@ -1,0 +1,48 @@
+@(frm: Form[models.HelicopterLandingAreaAreaTypeFormData], helicopter_landing_area_type: List[models.HelicopterLandingAreaType], helicopter_landing_area_area_configuration: List[models.HelicopterLandingAreaAreaConfiguration], helicopter_landing_area_surface_type: List[models.HelicopterLandingAreaSurfaceType], helicopterLandingAreaAreaTypeOpt: Option[models.HelicopterLandingAreaAreaType] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("helicopterLandingAreaAreaType.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="helicopterLandingAreaAreaTypeErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @myInputText(frm("helicopterLandingArea"), '_label -> "HelicopterLandingArea")
+          </div>
+          <div class="form-group">
+            @select(frm("helicopterLandingAreaTypeId"),helicopter_landing_area_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "HelicopterLandingAreaTypeId")
+          </div>
+          <div class="form-group">
+            @select(frm("helicopterLandingAreaAreaConfigurationId"),helicopter_landing_area_area_configuration.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "HelicopterLandingAreaAreaConfigurationId")
+          </div>
+          <div class="form-group">
+            @select(frm("helicopterLandingAreaSurfaceTypeId"),helicopter_landing_area_surface_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "HelicopterLandingAreaSurfaceTypeId")
+          </div>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @helicopterLandingAreaAreaTypeOpt.map{ helicopterLandingAreaAreaType =>
+                @helicopterLandingAreaAreaType.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.HelicopterLandingAreaAreaTypeController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

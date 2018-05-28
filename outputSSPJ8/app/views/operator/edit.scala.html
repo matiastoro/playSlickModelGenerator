@@ -1,0 +1,11 @@
+@(frm: Form[models.OperatorFormData], operator_type: List[models.OperatorType], operator: models.Operator)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.operator.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.OperatorController.update(operator.id.getOrElse(0)), 'id -> "operatorForm", 'role -> "form") {
+            @views.html.operator._form(frm, operator_type, Some(operator))
+        }
+
+    </div>
+}
+    

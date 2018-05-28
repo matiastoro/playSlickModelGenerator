@@ -1,0 +1,54 @@
+@(frm: Form[models.FlightCrewLicenseFormData], flight_crew: List[models.FlightCrew], license_type: List[models.LicenseType], license_issued_by: List[models.LicenseIssuedBy], license_validity: List[models.LicenseValidity], license_ratings: List[models.LicenseRatings], flightCrewLicenseOpt: Option[models.FlightCrewLicense] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("flightCrewLicense.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="flightCrewLicenseErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @select(frm("flightCrewId"),flight_crew.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "FlightCrewId")
+          </div>
+          <div class="form-group">
+            @select(frm("licenseTypeId"),license_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "LicenseTypeId")
+          </div>
+          <div class="form-group">
+            @select(frm("licenseIssuedById"),license_issued_by.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "LicenseIssuedById")
+          </div>
+          <div class="form-group">
+            @inputDate(frm("dateOfLicense"), '_label -> "DateOfLicense")
+          </div>
+          <div class="form-group">
+            @select(frm("licenseValidityId"),license_validity.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "LicenseValidityId")
+          </div>
+          <div class="form-group">
+            @select(frm("licenseRatingsId"),license_ratings.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "LicenseRatingsId")
+          </div>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @flightCrewLicenseOpt.map{ flightCrewLicense =>
+                @flightCrewLicense.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.FlightCrewLicenseController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

@@ -1,0 +1,11 @@
+@(frm: Form[models.ArmyFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.army.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.ArmyController.save(), 'id -> "armyForm", 'role -> "form") {
+            @views.html.army._form(frm)
+        }
+
+    </div>
+}
+    

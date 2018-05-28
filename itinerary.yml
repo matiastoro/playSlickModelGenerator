@@ -1,0 +1,61 @@
+aerodrome:
+  id: ~
+  icaoCode: {type: varchar, size: 255}
+
+
+company:
+  id: ~
+  company: {type: varchar, size: 255}
+
+itinerary_user_company:
+  id:  ~
+  userId:  {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+  companyId:  {type: integer, foreignTable: company, required: true, foreignReference: id, onDelete: cascade}
+
+
+itinerary_user_aerodrome:
+  id:  ~
+  userId:  {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+  aerodromeId:  {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade}
+
+user_profile:
+  id: ~
+  profile_id: {type: integer, foreignTable: profile, required: true, foreignReference: id, onDelete: cascade}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+
+user:
+  id: ~
+  username: {type: varchar, size: 255}
+  password: {type: varchar, size: 255}
+  name: {type: varchar, size: 255}
+  lastName: {type: varchar, size: 255}
+  lastName2: {type: varchar, size: 255}
+  email: {type: varchar, size: 255}
+  phone: {type: varchar, size: 255}
+  secretQuestion: {type: varchar, size: 255}
+  secretAnswer: {type: varchar, size: 255}
+  UserProfiles: { type: oneToMany, foreignTable: user_profile}
+  UserAerodromes: { type: oneToMany, foreignTable: itinerary_user_aerodrome}
+  UserCompanies: { type: oneToMany, foreignTable: itinerary_user_company}
+
+
+itinerary_aircraft:
+  id: ~
+  manufacturerId: {type: integer, foreignTable: itinerary_aircraft_manufacturer, required: true, foreignReference: id, onDelete: cascade}
+  model: {type: varchar, size: 255, required: true}
+  tpe: {type: varchar, size: 255, required: true}
+  iataCode: {type: varchar, size: 255, required: false}
+  nPassengers: {type: integer, size: 255, required: false}
+  length: {type: double, size: 255, required: true}
+  width: {type: double, size: 255, required: true}
+  wingspan: {type: double, size: 255, required: true}
+  OMGWS: {type: double, size: 255, required: true}
+  series: {type: varchar, size: 255, required: false}
+  ACN: {type: varchar, size: 255, required: false}
+
+itinerary_aircraft_manufacturer:
+  id: ~
+  name: {type: varchar, size: 255, required: true}
+  aircrafts: { type: oneToMany, foreignTable: itinerary_aircraft}
+
+

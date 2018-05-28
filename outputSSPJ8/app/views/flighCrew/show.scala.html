@@ -1,0 +1,50 @@
+@(flighCrew: models.FlighCrew)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.flighCrew.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("flighCrew.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@flighCrew.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">FlightCrewCategory</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"><a href="@controllers.routes.FlightCrewCategoryController.show(flighCrew.categoryId.get)">@flighCrew.getFlightCrewCategory.map{c => @c.selectString}.getOrElse("NOT FOUND")</a></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">ExperienceThis</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@flighCrew.experienceThis</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">ExperienceAll</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@flighCrew.experienceAll</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">DutyLast24Hours</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@flighCrew.dutyLast24Hours</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">RestBeforeDuty</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@flighCrew.restBeforeDuty</p>
+                </div>
+            </div>
+            @controllers.FlightCrewLicenseController.showByFlighCrew(flighCrew.id)
+        @flighCrew.id.map{ id =>
+            <a href="@controllers.routes.FlighCrewController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.FlighCrewController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.FlighCrewController.index(1,20)">@Messages("list")</a>
+
+}

@@ -1,0 +1,11 @@
+@(frm: Form[models.FormInstanciaFormData], form: List[models.Form])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.formInstancia.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.FormInstanciaController.save(), 'id -> "formInstanciaForm", 'role -> "form") {
+            @views.html.formInstancia._form(frm, form)
+        }
+
+    </div>
+}
+    

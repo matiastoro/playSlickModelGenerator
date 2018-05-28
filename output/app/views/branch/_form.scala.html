@@ -1,0 +1,105 @@
+@(frm: Form[models.BranchFormData], company: List[models.Company], branchOpt: Option[models.Branch] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("branch.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="branchErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @myInputText(frm("branch"), '_label -> "Branch")
+          </div>
+          <div class="form-group">
+            @select(frm("companyId"),company.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "CompanyId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("address"), '_label -> "Address")
+          </div>
+          <div class="form-group">
+            @checkbox(frm("visible"), '_label -> "Visible")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("state"), '_label -> "State")
+          </div>
+          <div id="DoorsDiv_@frm("Doors").id">
+              <h2>@Messages("Door.list")</h2>
+              @repeat(frm("Doors"), min = 0) { field =>
+                  @controllers.DoorController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nDoors_@frm("Doors").id" value="@frm("Doors").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedDoor_@frm("Doors").id" href="javascript:;" onclick="addNestedDoor_@{frm("Doors").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("Door.related.add")</a>
+              <span id="loadingNested_Door@frm("Doors").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedDoor_@{frm("Doors").id}() {
+                    $('#addNestedDoor_@frm("Doors").id').hide(); $('#loadingNested_Door@frm("Doors").id').show();
+                    var i = parseInt($('#nDoors_@frm("Doors").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.DoorController.createNested()",
+                      data: { i: i, name: '@frm("Doors").id' }
+                    }).done(function(msg) {
+                        $('#DoorsDiv_@frm("Doors").id').append(msg)
+                        $('#nDoors_@frm("Doors").id' ).val(i+1);
+                        $('#addNestedDoor_@frm("Doors").id').show(); $('#loadingNested_Door@frm("Doors").id').hide();
+                    });
+              }
+          </script>
+          <div id="WindowsDiv_@frm("Windows").id">
+              <h2>@Messages("Window.list")</h2>
+              @repeat(frm("Windows"), min = 0) { field =>
+                  @controllers.WindowController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nWindows_@frm("Windows").id" value="@frm("Windows").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedWindow_@frm("Windows").id" href="javascript:;" onclick="addNestedWindow_@{frm("Windows").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("Window.related.add")</a>
+              <span id="loadingNested_Window@frm("Windows").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedWindow_@{frm("Windows").id}() {
+                    $('#addNestedWindow_@frm("Windows").id').hide(); $('#loadingNested_Window@frm("Windows").id').show();
+                    var i = parseInt($('#nWindows_@frm("Windows").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.WindowController.createNested()",
+                      data: { i: i, name: '@frm("Windows").id' }
+                    }).done(function(msg) {
+                        $('#WindowsDiv_@frm("Windows").id').append(msg)
+                        $('#nWindows_@frm("Windows").id' ).val(i+1);
+                        $('#addNestedWindow_@frm("Windows").id').show(); $('#loadingNested_Window@frm("Windows").id').hide();
+                    });
+              }
+          </script>
+
+
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @branchOpt.map{ branch =>
+                @branch.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.BranchController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

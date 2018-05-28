@@ -1,0 +1,49 @@
+@(list: List[models.Programa], total: Int, page: Int, pageLength: Int)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.programa.main(Html(Messages("home.title")))(sidebar(1)) {
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a class="btn btn-success pull-right" data-dismiss="modal" href="@controllers.routes.ProgramaController.create()">@Messages("new")</a>
+            <h2 class="panel-title">
+                @Messages("programa.list.title")
+            </h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="panel-body">
+            @{Messages("paginator.list.total")+" "+total+" "+Messages("paginator.list.from")+" "+((page-1)*20)+" "+Messages("paginator.list.to")+" "+(math.min(page*20, total))}
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers.routes.ProgramaController.index(x, y)})
+            <table class="table table-striped table-condensed">
+                <thead>
+                    <tr>
+                                                                                                                        <th>@Messages("programa.id")</th>
+                        <th>@Messages("programa.programa")</th>
+                        <th>@Messages("programa.acronimo")</th>
+                        <th>@Messages("programa.departamentoId")</th>
+                        <th>@Messages("programa.objetoInspeccionTipoId")</th>
+                        <th>@Messages("Actions")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for(obj <- list) {
+                    <tr class="if(it.state==1){warning}else{}">
+                                                                                                                                   <td>@obj.id</td>
+                        <td>@obj.programa</td>
+                        <td>@obj.acronimo</td>
+                        <td>@obj.departamentoId</td>
+                        <td>@obj.objetoInspeccionTipoId</td>
+                        <td>
+                            <a href="@controllers.routes.ProgramaController.show(obj.id.get)">@Messages("show")</a>
+                            <a href="@controllers.routes.ProgramaController.edit(obj.id.get)">@Messages("edit")</a>
+                            <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.ProgramaController.delete(obj.id.get)';">@Messages("delete")</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            @views.html.userprofile.paginator(total, page, pageLength, {(x: Int, y: Int) => controllers.routes.ProgramaController.index(x, y)})
+
+        </div>
+    </div>
+}
+    

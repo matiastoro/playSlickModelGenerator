@@ -1,0 +1,11 @@
+@(frm: Form[models.PerroFormData], perro: models.Perro)(implicit flash: Flash, lang: Lang, session: Session, context: ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.perro.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(routes.PerroController.update(perro.id.getOrElse(0)), 'id -> "perroForm", 'role -> "form") {
+            @views.html.perro._form(frm, Some(perro))
+        }
+
+    </div>
+}
+    

@@ -1,0 +1,25 @@
+@(weatherCondition: models.WeatherCondition)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.weatherCondition.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("weatherCondition.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@weatherCondition.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">WeatherCondition</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@weatherCondition.weatherCondition</p>
+                </div>
+            </div>
+        @weatherCondition.id.map{ id =>
+            <a href="@controllers.routes.WeatherConditionController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.WeatherConditionController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.WeatherConditionController.index(1,20)">@Messages("list")</a>
+
+}

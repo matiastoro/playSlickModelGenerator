@@ -1,0 +1,11 @@
+@(frm: Form[models.ProfileFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.profile.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.ProfileController.save(), 'id -> "profileForm", 'role -> "form") {
+            @views.html.profile._form(frm)
+        }
+
+    </div>
+}
+    

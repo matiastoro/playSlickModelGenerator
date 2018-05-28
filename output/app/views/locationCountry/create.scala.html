@@ -1,0 +1,11 @@
+@(frm: Form[models.LocationCountryFormData], location: List[models.Location], country: List[models.Country])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.locationCountry.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.LocationCountryController.save(), 'id -> "locationCountryForm", 'role -> "form") {
+            @views.html.locationCountry._form(frm, location, country)
+        }
+
+    </div>
+}
+    

@@ -1,0 +1,11 @@
+@(frm: Form[models.RunwaySurfaceTypeFormData], runwaySurfaceType: models.RunwaySurfaceType)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.runwaySurfaceType.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.RunwaySurfaceTypeController.update(runwaySurfaceType.id.getOrElse(0)), 'id -> "runwaySurfaceTypeForm", 'role -> "form") {
+            @views.html.runwaySurfaceType._form(frm, Some(runwaySurfaceType))
+        }
+
+    </div>
+}
+    

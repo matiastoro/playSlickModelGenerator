@@ -1,0 +1,93 @@
+@(frm: play.api.data.Field, company: List[models.Company], branchOpt: Option[models.Branch] = None)(implicit flash: Flash, lang: Lang, session: Session, context: ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+<div class="panel panel-default" id="nestedParent@frm.id">
+    <div class="panel-heading">
+        <a class="pull-right glyphicon glyphicon-remove" href="javascript:;" onclick="if(confirm('are you sure?')) $('#nestedParent@frm.id').remove()"></a>
+        <h3 class="panel-title">@Messages("branch.form.title")</h3>
+    </div>
+    <div class="panel-body">
+
+        @if(frm.hasErrors){
+            <div id="branchErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+            <input type="hidden" id="@frm("id").id" name="@frm("id").name" value="@frm("id").value" />
+          <div class="form-group">
+            @myInputText(frm("branch"), '_label -> "Branch")
+          </div>
+            <input type="hidden" id="@frm("companyId").id" name="@frm("companyId").name" value="@frm("companyId").value" />
+          <div class="form-group">
+            @myInputText(frm("address"), '_label -> "Address")
+          </div>
+          <div class="form-group">
+            @checkbox(frm("visible"), '_label -> "Visible")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("state"), '_label -> "State")
+          </div>
+          <div id="doorsDiv_@frm("doors").id">
+              <h2>@Messages("door.list")</h2>
+              @repeat(frm("doors"), min = 0) { field =>
+                  @controllers.DoorController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="ndoors_@frm("doors").id" value="@frm("doors").indexes.size" />
+          <div class="form-group">
+              <a id="addNesteddoor_@frm("doors").id" href="javascript:;" onclick="addNestedDoor_@{frm("doors").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a door</a>
+              <span id="loadingNested_door@frm("doors").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedDoor_@{frm("doors").id}() {
+                    $('#addNesteddoor_@frm("doors").id').hide(); $('#loadingNested_door@frm("doors").id').show();
+                    var i = parseInt($('#ndoors_@frm("doors").id').val());
+                    $.ajax({
+                      url: "@routes.DoorController.createNested()",
+                      data: { i: i, name: '@frm("doors").id' }
+                    }).done(function(msg) {
+                        $('#doorsDiv_@frm("doors").id').append(msg)
+                        $('#ndoors_@frm("doors").id' ).val(i+1);
+                        $('#addNesteddoor_@frm("doors").id').show(); $('#loadingNested_door@frm("doors").id').hide();
+                    });
+              }
+          </script>
+          <div id="windowsDiv_@frm("windows").id">
+              <h2>@Messages("window.list")</h2>
+              @repeat(frm("windows"), min = 0) { field =>
+                  @controllers.WindowController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nwindows_@frm("windows").id" value="@frm("windows").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedwindow_@frm("windows").id" href="javascript:;" onclick="addNestedWindow_@{frm("windows").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add a window</a>
+              <span id="loadingNested_window@frm("windows").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedWindow_@{frm("windows").id}() {
+                    $('#addNestedwindow_@frm("windows").id').hide(); $('#loadingNested_window@frm("windows").id').show();
+                    var i = parseInt($('#nwindows_@frm("windows").id').val());
+                    $.ajax({
+                      url: "@routes.WindowController.createNested()",
+                      data: { i: i, name: '@frm("windows").id' }
+                    }).done(function(msg) {
+                        $('#windowsDiv_@frm("windows").id').append(msg)
+                        $('#nwindows_@frm("windows").id' ).val(i+1);
+                        $('#addNestedwindow_@frm("windows").id').show(); $('#loadingNested_window@frm("windows").id').hide();
+                    });
+              }
+          </script>
+
+
+
+    </div>
+</div>
+    

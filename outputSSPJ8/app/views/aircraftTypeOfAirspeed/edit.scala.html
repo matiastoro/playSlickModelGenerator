@@ -1,0 +1,11 @@
+@(frm: Form[models.AircraftTypeOfAirspeedFormData], aircraftTypeOfAirspeed: models.AircraftTypeOfAirspeed)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.aircraftTypeOfAirspeed.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.AircraftTypeOfAirspeedController.update(aircraftTypeOfAirspeed.id.getOrElse(0)), 'id -> "aircraftTypeOfAirspeedForm", 'role -> "form") {
+            @views.html.aircraftTypeOfAirspeed._form(frm, Some(aircraftTypeOfAirspeed))
+        }
+
+    </div>
+}
+    

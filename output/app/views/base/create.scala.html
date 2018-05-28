@@ -1,0 +1,11 @@
+@(frm: Form[models.BaseFormData], location: List[models.Location])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.base.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.BaseController.save(), 'id -> "baseForm", 'role -> "form") {
+            @views.html.base._form(frm, location)
+        }
+
+    </div>
+}
+    

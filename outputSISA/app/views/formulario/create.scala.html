@@ -1,0 +1,11 @@
+@(frm: Form[models.FormularioFormData], organizacion: List[models.Organizacion])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.formulario.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.FormularioController.save(), 'id -> "formularioForm", 'role -> "form") {
+            @views.html.formulario._form(frm, organizacion)
+        }
+
+    </div>
+}
+    

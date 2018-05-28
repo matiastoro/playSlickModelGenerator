@@ -1,0 +1,11 @@
+@(frm: Form[models.MobileStationFormData], location: List[models.Location], mobileStation: models.MobileStation)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.mobileStation.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.MobileStationController.update(mobileStation.id.getOrElse(0)), 'id -> "mobileStationForm", 'role -> "form") {
+            @views.html.mobileStation._form(frm, location, Some(mobileStation))
+        }
+
+    </div>
+}
+    

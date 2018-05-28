@@ -1,0 +1,11 @@
+@(frm: Form[models.AerodromeFormData], aerodrome_status: List[models.AerodromeStatus], aerodrome_type: List[models.AerodromeType], aerodrome: models.Aerodrome)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.aerodrome.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.AerodromeController.update(aerodrome.id.getOrElse(0)), 'id -> "aerodromeForm", 'role -> "form") {
+            @views.html.aerodrome._form(frm, aerodrome_status, aerodrome_type, Some(aerodrome))
+        }
+
+    </div>
+}
+    

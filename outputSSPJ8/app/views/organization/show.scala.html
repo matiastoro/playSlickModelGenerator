@@ -1,0 +1,25 @@
+@(organization: models.Organization)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.organization.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("organization.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@organization.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Organization</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@organization.organization</p>
+                </div>
+            </div>
+        @organization.id.map{ id =>
+            <a href="@controllers.routes.OrganizationController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.OrganizationController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.OrganizationController.index(1,20)">@Messages("list")</a>
+
+}

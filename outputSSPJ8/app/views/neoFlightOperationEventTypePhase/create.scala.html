@@ -1,0 +1,11 @@
+@(frm: Form[models.NeoFlightOperationEventTypePhaseFormData], neo_flight_operation: List[models.NeoFlightOperation], neo_event_type: List[models.NeoEventType], phase: List[models.Phase])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.neoFlightOperationEventTypePhase.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.NeoFlightOperationEventTypePhaseController.save(), 'id -> "neoFlightOperationEventTypePhaseForm", 'role -> "form") {
+            @views.html.neoFlightOperationEventTypePhase._form(frm, neo_flight_operation, neo_event_type, phase)
+        }
+
+    </div>
+}
+    

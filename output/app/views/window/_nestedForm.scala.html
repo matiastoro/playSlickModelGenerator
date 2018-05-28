@@ -1,0 +1,30 @@
+@(frm: play.api.data.Field, branch: List[models.Branch], windowOpt: Option[models.Window] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+<div class="panel panel-default" id="nestedParent@frm.id">
+    <div class="panel-heading">
+        <a class="pull-right glyphicon glyphicon-remove" href="javascript:;" onclick="if(confirm('are you sure?')) $('#nestedParent@frm.id').remove()"></a>
+        <h3 class="panel-title">@Messages("window.form.title")</h3>
+    </div>
+    <div class="panel-body">
+
+        @if(frm.hasErrors){
+            <div id="windowErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+            <input type="hidden" id="@frm("id").id" name="@frm("id").name" value="@frm("id").value" />
+            <input type="hidden" id="@frm("branchId").id" name="@frm("branchId").name" value="@frm("branchId").value" />
+          <div class="form-group">
+            @myInputText(frm("window"), '_label -> "Window")
+          </div>
+
+    </div>
+</div>
+    

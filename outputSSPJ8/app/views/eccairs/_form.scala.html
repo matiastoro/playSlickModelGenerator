@@ -1,0 +1,98 @@
+@(frm: Form[models.EccairsFormData], state_area: List[models.StateArea], ocurrence_class: List[models.OcurrenceClass], injury_level: List[models.InjuryLevel], aircraft_mass_group: List[models.AircraftMassGroup], aircraft_category: List[models.AircraftCategory], operation_type: List[models.OperationType], operator_type: List[models.OperatorType], operator: List[models.Operator], weather_condition: List[models.WeatherCondition], eccairsOpt: Option[models.Eccairs] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("eccairs.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="eccairsErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div class="form-group">
+            @myInputText(frm("number"), '_label -> "Number")
+          </div>
+          <div class="form-group">
+            @inputDate(frm("date"), '_label -> "Date")
+          </div>
+          <div class="form-group">
+            @select(frm("stateAreaId"),state_area.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "StateAreaId")
+          </div>
+          <div class="form-group">
+            @select(frm("ocurrenceClassId"),ocurrence_class.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "OcurrenceClassId")
+          </div>
+          <div id="eccairsOcurrenceCategorysDiv_@frm("eccairsOcurrenceCategorys").id">
+              <h2>@Messages("eccairsOcurrenceCategory.list")</h2>
+              @repeat(frm("eccairsOcurrenceCategorys"), min = 0) { field =>
+                  @controllers.EccairsOcurrenceCategoryController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="neccairsOcurrenceCategorys_@frm("eccairsOcurrenceCategorys").id" value="@frm("eccairsOcurrenceCategorys").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedeccairsOcurrenceCategory_@frm("eccairsOcurrenceCategorys").id" href="javascript:;" onclick="addNestedEccairsOcurrenceCategory_@{frm("eccairsOcurrenceCategorys").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("eccairsOcurrenceCategory.related.add")</a>
+              <span id="loadingNested_eccairsOcurrenceCategory@frm("eccairsOcurrenceCategorys").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedEccairsOcurrenceCategory_@{frm("eccairsOcurrenceCategorys").id}() {
+                    $('#addNestedeccairsOcurrenceCategory_@frm("eccairsOcurrenceCategorys").id').hide(); $('#loadingNested_eccairsOcurrenceCategory@frm("eccairsOcurrenceCategorys").id').show();
+                    var i = parseInt($('#neccairsOcurrenceCategorys_@frm("eccairsOcurrenceCategorys").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.EccairsOcurrenceCategoryController.createNested()",
+                      data: { i: i, name: '@frm("eccairsOcurrenceCategorys").id' }
+                    }).done(function(msg) {
+                        $('#eccairsOcurrenceCategorysDiv_@frm("eccairsOcurrenceCategorys").id').append(msg)
+                        $('#neccairsOcurrenceCategorys_@frm("eccairsOcurrenceCategorys").id' ).val(i+1);
+                        $('#addNestedeccairsOcurrenceCategory_@frm("eccairsOcurrenceCategorys").id').show(); $('#loadingNested_eccairsOcurrenceCategory@frm("eccairsOcurrenceCategorys").id').hide();
+                    });
+              }
+          </script>
+          <div class="form-group">
+            @select(frm("injuryLevelId"),injury_level.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "InjuryLevelId")
+          </div>
+          <div class="form-group">
+            @select(frm("massGroupId"),aircraft_mass_group.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "MassGroupId")
+          </div>
+          <div class="form-group">
+            @select(frm("categoryId"),aircraft_category.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "CategoryId")
+          </div>
+          <div class="form-group">
+            @myInputText(frm("registry"), '_label -> "Registry")
+          </div>
+          <div class="form-group">
+            @select(frm("operationTypeId"),operation_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "OperationTypeId")
+          </div>
+          <div class="form-group">
+            @select(frm("operatorTypeId"),operator_type.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "OperatorTypeId")
+          </div>
+          <div class="form-group">
+            @select(frm("operatorId"),operator.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "OperatorId")
+          </div>
+          <div class="form-group">
+            @select(frm("weatherConditionId"),weather_condition.map(o => o.id.getOrElse("0").toString -> o.selectString), '_label -> "WeatherConditionId")
+          </div>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @eccairsOpt.map{ eccairs =>
+                @eccairs.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.EccairsController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

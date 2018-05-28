@@ -1,0 +1,62 @@
+@(frm: Form[models.LalaFormData], lalaOpt: Option[models.Lala] = None)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import myHelper._
+@import helper._
+
+        <h1>@Messages("lala.form.title")</h1>
+
+
+        @if(frm.hasErrors){
+            <div id="lalaErrors" class="row alert alert-danger">
+            @frm.errors.map{ formError =>
+                <ul>
+                    <li><strong>@formError.key:</strong> @formError.message</li>
+                </ul>
+            }
+            </div>
+        }
+
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="@frm("id").value" />
+          </div>
+          <div id="CacasDiv_@frm("Cacas").id">
+              <h2>@Messages("Caca.list")</h2>
+              @repeat(frm("Cacas"), min = 0) { field =>
+                  @controllers.CacaController.nestedForm(field)
+              }
+          </div>
+          <input type="hidden" id="nCacas_@frm("Cacas").id" value="@frm("Cacas").indexes.size" />
+          <div class="form-group">
+              <a id="addNestedCaca_@frm("Cacas").id" href="javascript:;" onclick="addNestedCaca_@{frm("Cacas").id}()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @Messages("Caca.related.add")</a>
+              <span id="loadingNested_Caca@frm("Cacas").id" style="display:none;">Loading...</span>
+          </div>
+
+          <script>
+              function addNestedCaca_@{frm("Cacas").id}() {
+                    $('#addNestedCaca_@frm("Cacas").id').hide(); $('#loadingNested_Caca@frm("Cacas").id').show();
+                    var i = parseInt($('#nCacas_@frm("Cacas").id').val());
+                    $.ajax({
+                      url: "@controllers.routes.CacaController.createNested()",
+                      data: { i: i, name: '@frm("Cacas").id' }
+                    }).done(function(msg) {
+                        $('#CacasDiv_@frm("Cacas").id').append(msg)
+                        $('#nCacas_@frm("Cacas").id' ).val(i+1);
+                        $('#addNestedCaca_@frm("Cacas").id').show(); $('#loadingNested_Caca@frm("Cacas").id').hide();
+                    });
+              }
+          </script>
+
+
+
+        <div class="modalButtons">
+            <button type="button" class="btn btn-default" data-dismiss="modal">@Messages("close")</button>
+            @lalaOpt.map{ lala =>
+                @lala.id.map{ id =>
+                    <button type="button" id="btn-delete" class="btn btn-danger" onclick="if(confirm('are you sure?')) window.location='@controllers.routes.LalaController.delete(id)';">
+                    @Messages("delete")</button>
+                }
+            }
+            <input type="submit" id="btn-transmitir" class="btn btn-success" value="@Messages("save")"/>
+        </div>
+
+
+    

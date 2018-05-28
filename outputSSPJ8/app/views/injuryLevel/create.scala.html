@@ -1,0 +1,11 @@
+@(frm: Form[models.InjuryLevelFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.injuryLevel.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.InjuryLevelController.save(), 'id -> "injuryLevelForm", 'role -> "form") {
+            @views.html.injuryLevel._form(frm)
+        }
+
+    </div>
+}
+    

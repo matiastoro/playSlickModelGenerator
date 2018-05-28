@@ -1,0 +1,93 @@
+
+#Aerodrome
+aerodrome.title = Aerodrome List
+aerodrome.list.title = Aerodrome List
+aerodrome.form.title = Aerodrome Form
+aerodrome.id = id
+aerodrome.icaoCode = icaoCode
+
+aerodrome.show.title = Show Aerodrome
+
+#Company
+company.title = Company List
+company.list.title = Company List
+company.form.title = Company Form
+company.id = id
+company.company = company
+
+company.show.title = Show Company
+
+#ItineraryUserCompany
+itineraryUserCompany.title = ItineraryUserCompany List
+itineraryUserCompany.list.title = ItineraryUserCompany List
+itineraryUserCompany.form.title = ItineraryUserCompany Form
+itineraryUserCompany.id = id
+itineraryUserCompany.userId = userId
+itineraryUserCompany.companyId = companyId
+itineraryUserCompany.related.list = Related ItineraryUserCompany
+itineraryUserCompany.show.title = Show ItineraryUserCompany
+
+#ItineraryUserAerodrome
+itineraryUserAerodrome.title = ItineraryUserAerodrome List
+itineraryUserAerodrome.list.title = ItineraryUserAerodrome List
+itineraryUserAerodrome.form.title = ItineraryUserAerodrome Form
+itineraryUserAerodrome.id = id
+itineraryUserAerodrome.userId = userId
+itineraryUserAerodrome.aerodromeId = aerodromeId
+itineraryUserAerodrome.related.list = Related ItineraryUserAerodrome
+itineraryUserAerodrome.show.title = Show ItineraryUserAerodrome
+
+#UserProfile
+userProfile.title = UserProfile List
+userProfile.list.title = UserProfile List
+userProfile.form.title = UserProfile Form
+userProfile.id = id
+userProfile.profileId = profileId
+userProfile.userId = userId
+userProfile.related.list = Related UserProfile
+userProfile.show.title = Show UserProfile
+
+#User
+user.title = User List
+user.list.title = User List
+user.form.title = User Form
+user.id = id
+user.username = username
+user.password = password
+user.name = name
+user.lastName = lastName
+user.lastName2 = lastName2
+user.email = email
+user.phone = phone
+user.secretQuestion = secretQuestion
+user.secretAnswer = secretAnswer
+
+user.show.title = Show User
+
+#ItineraryAircraft
+itineraryAircraft.title = ItineraryAircraft List
+itineraryAircraft.list.title = ItineraryAircraft List
+itineraryAircraft.form.title = ItineraryAircraft Form
+itineraryAircraft.id = id
+itineraryAircraft.manufacturerId = manufacturerId
+itineraryAircraft.model = model
+itineraryAircraft.tpe = tpe
+itineraryAircraft.iataCode = iataCode
+itineraryAircraft.nPassengers = nPassengers
+itineraryAircraft.length = length
+itineraryAircraft.width = width
+itineraryAircraft.wingspan = wingspan
+itineraryAircraft.OMGWS = OMGWS
+itineraryAircraft.series = series
+itineraryAircraft.ACN = ACN
+
+itineraryAircraft.show.title = Show ItineraryAircraft
+
+#ItineraryAircraftManufacturer
+itineraryAircraftManufacturer.title = ItineraryAircraftManufacturer List
+itineraryAircraftManufacturer.list.title = ItineraryAircraftManufacturer List
+itineraryAircraftManufacturer.form.title = ItineraryAircraftManufacturer Form
+itineraryAircraftManufacturer.id = id
+itineraryAircraftManufacturer.name = name
+
+itineraryAircraftManufacturer.show.title = Show ItineraryAircraftManufacturer

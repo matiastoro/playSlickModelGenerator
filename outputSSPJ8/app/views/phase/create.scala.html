@@ -1,0 +1,11 @@
+@(frm: Form[models.PhaseFormData], phase: List[models.Phase])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.phase.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.PhaseController.save(), 'id -> "phaseForm", 'role -> "form") {
+            @views.html.phase._form(frm, phase)
+        }
+
+    </div>
+}
+    

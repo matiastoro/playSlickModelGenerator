@@ -1,0 +1,25 @@
+@(country: models.Country)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.country.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("country.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@country.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Country</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@country.country</p>
+                </div>
+            </div>
+        @country.id.map{ id =>
+            <a href="@controllers.routes.CountryController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.CountryController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.CountryController.index(1,20)">@Messages("list")</a>
+
+}

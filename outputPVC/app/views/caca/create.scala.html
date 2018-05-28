@@ -1,0 +1,11 @@
+@(frm: Form[models.CacaFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.caca.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.CacaController.save(), 'id -> "cacaForm", 'role -> "form") {
+            @views.html.caca._form(frm)
+        }
+
+    </div>
+}
+    

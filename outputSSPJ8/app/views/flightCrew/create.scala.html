@@ -1,0 +1,11 @@
+@(frm: Form[models.FlightCrewFormData], neo_flight_operation: List[models.NeoFlightOperation], flight_crew_category: List[models.FlightCrewCategory])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.flightCrew.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.FlightCrewController.save(), 'id -> "flightCrewForm", 'role -> "form") {
+            @views.html.flightCrew._form(frm, neo_flight_operation, flight_crew_category)
+        }
+
+    </div>
+}
+    

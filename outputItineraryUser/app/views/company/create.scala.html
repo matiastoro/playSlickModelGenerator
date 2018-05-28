@@ -1,0 +1,11 @@
+@(frm: Form[models.CompanyFormData])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.company.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.CompanyController.save(), 'id -> "companyForm", 'role -> "form") {
+            @views.html.company._form(frm)
+        }
+
+    </div>
+}
+    

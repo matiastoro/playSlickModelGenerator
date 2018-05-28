@@ -1,0 +1,11 @@
+@(frm: Form[models.OcurrenceCategoryFormData], ocurrenceCategory: models.OcurrenceCategory)(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.ocurrenceCategory.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.OcurrenceCategoryController.update(ocurrenceCategory.id.getOrElse(0)), 'id -> "ocurrenceCategoryForm", 'role -> "form") {
+            @views.html.ocurrenceCategory._form(frm, Some(ocurrenceCategory))
+        }
+
+    </div>
+}
+    

@@ -1,0 +1,23 @@
+zaep:
+  _attributes:
+    table_name: zona_prohibida
+  id: ~
+  identifier: {type: varchar(255), rawName: identificacion}
+  zaep: {type: varchar(255), rawName: nombre}
+  limits: {type: varchar(255), rawName: limites, required: false}
+  tpe: {type: integer, rawName: tipo}
+  zoom_level: {type: integer, rawName: zoom_level, required: false}
+  created_at: ~
+  steps: { type: oneToMany, foreignTable: zaep_step }
+
+zaep_step:
+  _attributes:
+    table_name: zona_prohibida_paso
+  id: ~
+  zaep_id: { type: integer, foreignTable: zaep, foreignReference: id, onDelete: cascade, rawName: zona_prohibida_id, required: true} 
+  tpe: {type: integer, rawName: tipo}
+  latitude: {type:double, rawName: latitud}
+  longitude: {type:double, rawName: longitud}
+  radius: {type: double, rawName: radio, required: false}
+  orientation: {type: integer, rawName: orientacion, required: false}
+  number: {type: integer, rawName: numero}

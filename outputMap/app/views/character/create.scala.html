@@ -1,0 +1,11 @@
+@(frm: Form[models.CharacterFormData], user: List[models.User])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.character.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.CharacterController.save(), 'id -> "characterForm", 'role -> "form") {
+            @views.html.character._form(frm, user)
+        }
+
+    </div>
+}
+    

@@ -1,0 +1,11 @@
+@(frm: Form[models.EccairsOcurrenceCategoryFormData], eccairs: List[models.Eccairs], ocurrence_category: List[models.OcurrenceCategory])(implicit flash: Flash, lang: Lang, session: Session, context: controllers.ApplicationContext, request: Request[AnyContent])
+@import helper._
+@views.html.eccairsOcurrenceCategory.main(Html(Messages("home.title")))(sidebar(1)) {
+    <div style="width:100%">
+        @form(controllers.routes.EccairsOcurrenceCategoryController.save(), 'id -> "eccairsOcurrenceCategoryForm", 'role -> "form") {
+            @views.html.eccairsOcurrenceCategory._form(frm, eccairs, ocurrence_category)
+        }
+
+    </div>
+}
+    

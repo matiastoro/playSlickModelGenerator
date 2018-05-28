@@ -1,0 +1,81 @@
+@(user: models.User)(implicit lang: Lang, flash: Flash, session: Session, context: controllers.ApplicationContext)
+
+@views.html.user.main(Html(Messages("home.title")))(sidebar(1)) {
+
+        <h1>@Messages("user.show.title")</h3>
+
+                                                     <div class="form-group">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.id</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Username</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.username</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Password</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.password</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Name</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.name</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Email</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.email</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Army</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Army</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.army</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Background</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.background</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Observations</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.observations</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Color</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.color</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Icon</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.icon</p>
+                </div>
+            </div>
+            @controllers.ProfileUserController.showByUser(user.id)
+            @controllers.CharacterController.showByUser(user.id)
+        @user.id.map{ id =>
+            <a href="@controllers.routes.UserController.edit(id)">@Messages("edit")</a>
+         | <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@controllers.routes.UserController.delete(id)';">@Messages("delete")</a>
+        }
+        | <a href="@controllers.routes.UserController.index(1,20)">@Messages("list")</a>
+
+}
