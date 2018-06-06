@@ -1,0 +1,55 @@
+@(list: List[models.Company], total: Int, page: Int, pageLength: Int)(implicit lang: Lang, flash: Flash, session: Session, context: ApplicationContext)
+
+@views.html.company.main(Html(Messages("home.title")))(sidebar(1)) {
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a class="btn btn-success pull-right" data-dismiss="modal" href="@routes.CompanyController.create()">@Messages("new")</a>
+            <h2 class="panel-title">
+                @Messages("company.list.title")
+            </h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="panel-body">
+            @{Messages("company.list.legend1")+" "+total+" "+Messages("company.list.legend2")+" "+((page-1)*20)+" "+Messages("company.list.legend3")+" "+(math.min(page*20, total))}
+            @paginator(total, page, pageLength, {(x: Int, y: Int) => routes.CompanyController.index(x, y)})
+            <table class="table table-striped table-condensed">
+                <thead>
+                    <tr>
+                                                                                                                        <th>@Messages("company.id")</th>
+                        <th>@Messages("company.company")</th>
+                        <th>@Messages("company.description")</th>
+                        <th>@Messages("company.username")</th>
+                        <th>@Messages("company.password")</th>
+                        <th>@Messages("company.email")</th>
+                        <th>@Messages("company.createdAt")</th>
+                        <th>@Messages("company.updatedAt")</th>
+                        <th>@Messages("Actions")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for(obj <- list) {
+                    <tr class="if(it.state==1){warning}else{}">
+                                                                                                                                   <td>@obj.id</td>
+                        <td>@obj.company</td>
+                        <td>@obj.description</td>
+                        <td>@obj.userData.username</td>
+                        <td>@obj.userData.password</td>
+                        <td>@obj.userData.email</td>
+                        <td>@obj.createdAt</td>
+                        <td>@obj.updatedAt</td>
+                        <td>
+                            <a href="@routes.CompanyController.show(obj.id.get)">@Messages("show")</a>
+                            <a href="@routes.CompanyController.edit(obj.id.get)">@Messages("edit")</a>
+                            <a href="javascript:;" onclick="if(confirm('are you sure?')) window.location = '@routes.CompanyController.delete(obj.id.get)';">@Messages("delete")</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            @paginator(total, page, pageLength, {(x: Int, y: Int) => routes.CompanyController.index(x, y)})
+
+        </div>
+    </div>
+}
+    

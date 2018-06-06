@@ -1,0 +1,59 @@
+[0m[[0minfo[0m] [0mRunning via56.slickGenerator.parser all pvc_2.yml outputPVC[0m
+[0m[[0mdebug[0m] [0mWaiting for threads to exit or System.exit to be called.[0m
+[0m[[0mdebug[0m] [0m  Classpath:[0m
+[0m[[0mdebug[0m] [0m	/Users/matias/Dropbox/U/2013-2/Scala/slickGenerator/target/scala-2.10/classes[0m
+[0m[[0mdebug[0m] [0m	/Users/matias/.sbt/boot/scala-2.10.4/lib/scala-library.jar[0m
+[0m[[0mdebug[0m] [0mWaiting for thread run-main-0 to terminate.[0m
+[0m[[31merror[0m] [0m(run-main-0) java.io.FileNotFoundException: pvc_2.yml (No such file or directory)[0m
+java.io.FileNotFoundException: pvc_2.yml (No such file or directory)
+	at java.io.FileInputStream.open0(Native Method)
+	at java.io.FileInputStream.open(FileInputStream.java:195)
+	at java.io.FileInputStream.<init>(FileInputStream.java:138)
+	at scala.io.Source$.fromFile(Source.scala:90)
+	at scala.io.Source$.fromFile(Source.scala:75)
+	at scala.io.Source$.fromFile(Source.scala:53)
+	at via56.slickGenerator.parser$.main(SlickCodeGenerator.scala:54)
+	at via56.slickGenerator.parser.main(SlickCodeGenerator.scala)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at sbt.Run.invokeMain(Run.scala:72)
+	at sbt.Run.run0(Run.scala:65)
+	at sbt.Run.sbt$Run$$execute$1(Run.scala:54)
+	at sbt.Run$$anonfun$run$1.apply$mcV$sp(Run.scala:58)
+	at sbt.Run$$anonfun$run$1.apply(Run.scala:58)
+	at sbt.Run$$anonfun$run$1.apply(Run.scala:58)
+	at sbt.Logger$$anon$4.apply(Logger.scala:90)
+	at sbt.TrapExit$App.run(TrapExit.scala:244)
+	at java.lang.Thread.run(Thread.java:745)
+[0m[[0mdebug[0m] [0m	Thread run-main-0 exited.[0m
+[0m[[0mdebug[0m] [0mInterrupting remaining threads (should be all daemons).[0m
+[0m[[0mdebug[0m] [0mSandboxed run complete..[0m
+java.lang.RuntimeException: Nonzero exit code: 1
+	at scala.sys.package$.error(package.scala:27)
+	at sbt.BuildCommon$$anonfun$toError$1.apply(Defaults.scala:1708)
+	at sbt.BuildCommon$$anonfun$toError$1.apply(Defaults.scala:1708)
+	at scala.Option.foreach(Option.scala:236)
+	at sbt.BuildCommon$class.toError(Defaults.scala:1708)
+	at sbt.Defaults$.toError(Defaults.scala:35)
+	at sbt.Defaults$$anonfun$runTask$1$$anonfun$apply$36$$anonfun$apply$37.apply(Defaults.scala:688)
+	at sbt.Defaults$$anonfun$runTask$1$$anonfun$apply$36$$anonfun$apply$37.apply(Defaults.scala:686)
+	at scala.Function1$$anonfun$compose$1.apply(Function1.scala:47)
+	at sbt.$tilde$greater$$anonfun$$u2219$1.apply(TypeFunctions.scala:42)
+	at sbt.std.Transform$$anon$4.work(System.scala:64)
+	at sbt.Execute$$anonfun$submit$1$$anonfun$apply$1.apply(Execute.scala:237)
+	at sbt.Execute$$anonfun$submit$1$$anonfun$apply$1.apply(Execute.scala:237)
+	at sbt.ErrorHandling$.wideConvert(ErrorHandling.scala:18)
+	at sbt.Execute.work(Execute.scala:244)
+	at sbt.Execute$$anonfun$submit$1.apply(Execute.scala:237)
+	at sbt.Execute$$anonfun$submit$1.apply(Execute.scala:237)
+	at sbt.ConcurrentRestrictions$$anon$4$$anonfun$1.apply(ConcurrentRestrictions.scala:160)
+	at sbt.CompletionService$$anon$2.call(CompletionService.scala:30)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+[0m[[31merror[0m] [0m(compile:[31mrun[0m) Nonzero exit code: 1[0m

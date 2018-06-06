@@ -1,0 +1,4 @@
+rsync -avz --progress --exclude-from=pvc-exclude-list.txt outputPVC/app/controllers/ ~/Documents/Dev/pvc/PVC/app/controllers/.
+rsync -avz --progress --exclude-from=pvc-exclude-list.txt outputPVC/app/models/ ~/Documents/Dev/pvc/PVC/app/models/.
+rsync -avz --progress --exclude-from=pvc-exclude-list.txt outputPVC/react/ ~/Documents/Dev/pvc/PVC/node/admin/src/app/components/.
+

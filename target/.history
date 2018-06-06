@@ -1,0 +1,17 @@
+run all sisa.yml outputSISAJ8
+run all ssp.yml outputSSPJ8
+run all ssp_2.yml outputSSPJ8
+run all ssp.yml outputSSPJ8
+run all ssp_2.yml outputSSPJ8
+run all ssp.yml outputSSPJ8
+run all ssp_2.yml outputSSPJ8
+run all ssp.yml outputSSPJ8
+run all ssp_2.yml outputSSPJ8
+compile
+run all ssp_2.yml outputSSPJ8
+~run all ssp_2.yml outputSSPJ8
+run all ssp_2.yml outputSSPJ8
+run
+run all ssp_2.yml outputSSPJ8
+~run all ssp_2.yml outputSSPJ8
+~run all pvc_2.yml outputPVC

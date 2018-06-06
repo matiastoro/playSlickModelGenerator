@@ -6,9 +6,9 @@ import via56.slickGenerator.Table
 
 case class ReactFormGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String) extends CodeGenerator{
 
-  def generateInputs(columns: List[AbstractColumn], prefix: String = ""): String = {
-    println("GENERATING REACT FORM ", table)
-    println("AA",tablesOneToMany)
+  def generateInputs(columns: List[AbstractColumn], prefix: String = "")(implicit inline: Boolean = false): String = {
+    //println("GENERATING REACT FORM ", table)
+    //println("AA",tablesOneToMany)
     val groupTab = (" "*10)
     val tab = (" "*12)
 
@@ -19,7 +19,7 @@ case class ReactFormGenerator(table: Table, tablesOneToMany: List[Table] = List(
         else
           tab+c.formHelperReact(prefix)
         groupTab+"<div>\n"+input+"\n"+groupTab+"</div>"
-      case s: SubClass => throw new Exception("Subclas")//generateInputs(s.cols, s.name+".")
+      case s: SubClass => generateInputs(s.cols, s.name+".")//throw new Exception("Subclas")//generateInputs(s.cols, s.name+".")
       case o: OneToMany => o.formHelper(submodulePackageString, Some(table))
       case _ => ""
     }}.mkString("\n")
@@ -34,6 +34,7 @@ export class ${table.className}FormInline extends GFormInline{
         const errors = this.props.errors
         const hide = this.props.hide || []
         const i = this.props.i
+        const options = this.state.options
         return <div>
 ${inputs}
         </div>
@@ -70,17 +71,15 @@ ${oneToManiesImports}
 //inputs de nested
 """
     val inputs = generateInputs(table.columns)
-    val oneToMany = if(tablesOneToMany.length>0) generateOneToMany(inputs) else ""
+    val inputsInline = generateInputs(table.columns)(true)
+
+
+    val oneToMany = if(tablesOneToMany.length>0) generateOneToMany(inputsInline) else ""
     val withOptions = table.foreignColumns.length>0
     val result =
       s"""$imports
 
-/*
-<Route path="/${table.objName}/" component={${table.className}List} />
-<Route path="/${table.objName}/new" component={${table.className}Form} />
-<Route path="/${table.objName}/:id" component={${table.className}Form} />
-<Route path="/${table.objName}/:page/:pageLength" component={${table.className}List} />
-*/
+
 export default class ${table.className}Form extends GForm{
     showUrl =  '/${table.tableName}/'
     listUrl =  '/${table.tableName}/'
@@ -90,12 +89,13 @@ export default class ${table.className}Form extends GForm{
     apiDeleteUrl = '/${table.tableName}/delete/'
     ${if(withOptions) s"""apiOptionsUrl = "/${table.tableName}/options"""" else ""}
 
-    objStr = '${table.className}'
+    objStr = '${table.label}'
     objGender = 'F'
 
     renderForm(obj, errors){
         const readOnly = this.state.readOnly
         ${if(withOptions) "const hide = this.props.hide || []" else ""}
+        const options = this.state.options
         return <div>
 ${inputs}
         </div>
