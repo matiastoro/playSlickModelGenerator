@@ -1,0 +1,6 @@
+aerodromo:
+  id: ~
+  aerodromo: {type: varchar, size: 255, required: true}
+  designador_oaci: {type: varchar, size: 7, required: true}
+  latitud: {type: varchar, size: 255}
+  longitud: {type: varchar, size: 255}

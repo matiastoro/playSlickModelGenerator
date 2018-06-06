@@ -1,0 +1,4 @@
+rsync -avz --progress --exclude-from=sisa-exclude-list.txt outputDASAForms/app/controllers/ ~/Documents/Dev/DASAForms/app/controllers/.
+rsync -avz --progress --exclude-from=sisa-exclude-list.txt outputDASAForms/app/models/ ~/Documents/Dev/DASAForms/app/models/.
+rsync -avz --progress --exclude-from=sisa-exclude-list.txt outputDASAForms/react/ ~/Documents/Dev/DASAForms/node/src/app/components/.
+
