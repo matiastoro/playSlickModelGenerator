@@ -34,6 +34,7 @@ export class ${table.className}FormInline extends GFormInline{
         const errors = this.props.errors
         const hide = this.props.hide || []
         const i = this.props.i
+        const options = this.state.options
         return <div>
 ${inputs}
         </div>
@@ -78,15 +79,7 @@ ${oneToManiesImports}
     val result =
       s"""$imports
 
-/*
-import ${table.className}Form from './components/${table.objName}/${table.className}Form'
-import ${table.className}List from './components/${table.objName}/${table.className}List'
 
-<Route path="/${table.objName}/" component={${table.className}List} />
-<Route path="/${table.objName}/new" component={${table.className}Form} />
-<Route path="/${table.objName}/:id" component={${table.className}Form} />
-<Route path="/${table.objName}/:page/:pageLength" component={${table.className}List} />
-*/
 export default class ${table.className}Form extends GForm{
     showUrl =  '/${table.tableName}/'
     listUrl =  '/${table.tableName}/'

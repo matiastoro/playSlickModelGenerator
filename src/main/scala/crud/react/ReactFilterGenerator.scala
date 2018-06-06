@@ -89,16 +89,7 @@ import { Row, Col } from 'react-flexbox-grid';
       s"""$imports
 
 
-const styles= {
-    contentFlex: {
-        display: "flex",
-        flexWrap: "wrap"
-    },
-    itemFlex: {
-        flex: "1 1 120px",
-        marginRight: 16
-    }
-}
+
 export default class ${table.className}Filter extends GFilter{
 
     renderFilter(){

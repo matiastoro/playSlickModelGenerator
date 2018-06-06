@@ -129,6 +129,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
   }
 
   def getForeignKey(ps: ListMap[String, String]): Option[ForeignKey] = {
+    println("getForeignKey", tableName, ps.get("displayField"))
     for{
       foreignTable <- ps.get("foreignTable")
       foreignReference <- ps.get("foreignReference")
@@ -348,6 +349,7 @@ object Columns{
 case class Column(override val name: String, rawName: String, tpe: String, sqlTpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, options: Map[String, String] = Map(), subClass: Option[SubClass] = None, primaryString: Boolean = false) extends AbstractColumn(name){
   lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
 
+
   lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(if(sqlTpe == "DATE") "Date" else tpe, "text"))
   lazy val formMapping: String = if(optional) "optional("+formMappingTpe+")" else formMappingTpe
 
@@ -355,10 +357,13 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
 
   lazy val label = {
     val tokens = rawName.split("_").map(_.capitalize)
-    tokens.mkString(" ")
-    /*(if(tokens.last == "Id")
-      tokens.dropRight(1)
-    else tokens).mkString(" ")*/
+    if(isId)
+      tokens.mkString(" ")
+    else{
+      (if(tokens.last == "Id")
+        tokens.dropRight(1)
+      else tokens).mkString(" ")
+    }
 
   }
 
@@ -380,9 +385,23 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
     case "Long" if foreignKey.isDefined => {
       val fk = foreignKey.get
       //println("FK", foreignKey.get)
-      s"""{obj.${name} && this.state.indexedOptions?this.state.indexedOptions.${fk.tableName}s[obj.${name}].${fk.displayField.getOrElse(fk.tableName)}:null}"""
+      s"""{obj.${name} && this.state.indexedOptions?this.state.indexedOptions.${fk.tableName}s[obj.${name}].${underscoreToCamel(fk.displayField.getOrElse(fk.tableName))}:null}"""
     }
     case _ => s"""{obj.${name}}"""
+  }
+
+  def tableHelper(prefix: String): String = {
+    val inputName = prefix+name
+    tpe match {
+      case "Long" if foreignKey.isDefined => {
+        val fk = foreignKey.get
+        //println("FK", foreignKey.get)
+        s"""{key: "${inputName}", rowName: "${label}", label: (o) => (this.findRelatedObject("${fk.tableName}s", "${inputName}", o, "${underscoreToCamel(fk.displayField.getOrElse(fk.tableName))}")), sortable: true}"""
+      }
+      case "Date"  => s"""{key: "${inputName}", rowName: "${label}", label: (o, v) => this.displayDate(v), sortable: true}"""
+      case "DateTime" | "Timestamp" => s"""{key: "${inputName}", rowName: "${label}", label: (o, v) => this.displayDateTime(v), sortable: true}"""
+      case _ => s"""{key: "${inputName}", rowName: "${label}", sortable: true}"""
+    }
   }
 
   val ref = (name: String) => s"""ref={(input) => this._inputs["${name}"] = input}"""
@@ -403,8 +422,15 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
   }
 
   def inputDateReact(control: String, prefix: String, extra: Option[String] = None, forFilter: Boolean = false) = {
-    val inputName = prefix + name
-    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
+    if(forFilter){
+      val inputNameFrom = prefix + name + "From"
+      val inputNameTo = prefix + name + "To"
+      s"""<${control} ${ref(inputNameFrom)}  name="${inputNameFrom}" fullWidth defaultValue={this.getAttr(obj, "${inputNameFrom}")} floatingLabelText="${label} desde" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputNameFrom}")} ${extra.getOrElse("")}/>""" + "\n" +
+      s"""<${control} ${ref(inputNameTo)}  name="${inputNameTo}" fullWidth defaultValue={this.getAttr(obj, "${inputNameTo}")} floatingLabelText="${label} hasta" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputNameTo}")} ${extra.getOrElse("")}/>"""
+    } else{
+      val inputName = prefix + name
+      s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
+    }
   }
 
 
@@ -470,6 +496,7 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
       //println("a ver cual", fk)
+      //println("el FK NAME", this.name, fk, fk.toStringName)
       val select =  if(inline)
         s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
       else

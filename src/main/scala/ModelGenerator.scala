@@ -54,44 +54,65 @@ import play.api.libs.json._*/
   }.mkString("\n")
 
 
-  def filterRec(columns: List[AbstractColumn]): List[String] = {
-    s"""
-  def filter(formData: EccairsFilter) = {
-    all
-      .filteredBy( formData.number )((x,y) =>  x.number like ('%'+y+'%') )
-      .filteredBy( formData.date_from )( _.date >= _ )
-      .filteredBy( formData.date_to )( _.date <= _ )
-      .filteredBy( formData.stateAreaId.collect{case x if x>0L => x} )( _.stateAreaId === _ )
-      .filteredBy( formData.ocurrenceClassId.collect{case x if x>0L => x} )( _.ocurrenceClassId === _ )
-      .filteredBy( formData.injuryLevelId.flatMap{x => if(x>0L) Some(x) else None} )( _.injuryLevelId.getOrElse(0L) === _ )
-      .filteredBy( formData.massGroupId.flatMap{x => if(x>0L) Some(x) else None} )( _.massGroupId.getOrElse(0L) === _ )
-      .filteredBy( formData.categoryId.flatMap{x => if(x>0L) Some(x) else None} )( _.categoryId.getOrElse(0L) === _ )
-      .filteredBy( formData.registry )((x,y) =>  x.registry.getOrElse("") like ('%'+y+'%') )
-      .filteredBy( formData.operationTypeId.flatMap{x => if(x>0L) Some(x) else None} )( _.operationTypeId.getOrElse(0L) === _ )
-      .filteredBy( formData.operatorTypeId.flatMap{x => if(x>0L) Some(x) else None} )( _.operatorTypeId.getOrElse(0L) === _ )
-      .filteredBy( formData.operatorId.flatMap{x => if(x>0L) Some(x) else None} )( _.operatorId.getOrElse(0L) === _ )
-      .filteredBy( formData.weatherConditionId.flatMap{x => if(x>0L) Some(x) else None} )( _.weatherConditionId.getOrElse(0L) === _ )
-      .oneToManyFilterfilter(formData.eccairsOcurrenceCategorys)((x,o) => eccairs_ocurrence_categoryRepo.get().all.filter(y => y.eccairsId === x.id && y.ocurrenceCategoryId === o.ocurrenceCategoryId).exists)
-  }
-      """
+  def filterRec(columns: List[AbstractColumn], prefix: String = ""): List[String] = {
+
+
+
 
     columns.flatMap{ col => col match{
       case c: Column if !c.synthetic && c.display != DisplayType.Hidden =>
+
         c.tpe match {
-          case "String" | "Text" => s""".filteredBy(formData.${c.name})((x,y) => x.${c.name}.toUpperCase like ('%'+y.toUpperCase+'%')"""
-          case _ => //TODO
+          case "String" | "Text" =>  List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse("")"""}else{""}}.toUpperCase like ('%'+y.toUpperCase+'%'))""")
+          case "Long" =>
+            if(c.isId)
+              List(s""".filteredBy( formData.${prefix}${c.name}.flatMap{x => if(x>0L) Some(x) else None} )( _.${c.name} === _ )""")
+            else if(c.optional)
+              List(s""".filteredBy( formData.${prefix}${c.name}.flatMap{x => if(x>0L) Some(x) else None} )( _.${c.name}.getOrElse(0L) === _ )""")
+            else
+              List(s""".filteredBy( formData.${prefix}${c.name}.collect{case x if x>0L => x} )( _.${c.name} === _ )""")
+          case "Date" | "DateTime" | "Timestamp" =>
+            if(c.optional)
+              List(s""".filteredBy( formData.${prefix}${c.name}From )((x,y) => x.${c.name}.map{d => d >= y}.getOrElse(false) )""",
+                s""".filteredBy( formData.${prefix}${c.name}To )((x,y) => x.${c.name}.map{d => d <= y}.getOrElse(false) )"""
+              )
+            else
+              List(s""".filteredBy( formData.${prefix}${c.name}From )( _.${c.name} >= _ )""", s""".filteredBy( formData.${prefix}${c.name}To )( _.${c.name} <= _ )""")
+
+
+          case "Double" => List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse(0.0)"""}else{""}} === y)""")
+          case "Int" => List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse(0)"""}else{""}} === y)""")
+          case _ =>
+            List(c.tpe+" not implemented")
         }
-        List("")
-      case s: SubClass => filterRec(s.cols)//throw new Exception("Subclas")//generateInputs(s.cols, s.name+".")
-      case o: OneToMany => //o.formHelper(submodulePackageString, Some(table))
-        //.oneToManyFilterfilter(formData.eccairsOcurrenceCategorys)((x,o) => eccairs_ocurrence_categoryRepo.get().all.filter(y => y.eccairsId === x.id && y.ocurrenceCategoryId === o.ocurrenceCategoryId).exists)
-        List("")
-      case _ => List("")
+      case s: SubClass =>
+        //println("EL TABLE", table.tableName)
+        //println("EL S ", s.name)
+        //s.cols.map{x => println(" >"+x.name)}
+        filterRec(s.cols, underscoreToCamel(s.name)+".")
+      case o: OneToMany =>
+        //println("========================")
+        //println(table.tableName)
+        //println("buscando referencia backwards a "+o.foreignTable)
+        val backwardsReference = tables.find(t => t.tableName == o.foreignTable).map{ t =>
+          t.columns.find{case c: Column => c.foreignKey.map{fk => fk.tableName == table.tableName}.getOrElse(false)}.map{ c =>
+            c.name
+          }.getOrElse("No encontre referencia backwards a "+t.tableName)
+        }.getOrElse(throw new Error("No encontre referencia a "+o.foreignTable))
+
+        List(s""".oneToManyFilterfilter(formData.${prefix}${o.foreignTable}s)((x,o) => ${o.rawForeignTable}Repo.get().filter(o).filter(y => y.${backwardsReference} === x.id).exists)""")
+      case _ => List("NO SE QUE HCER")
     }}
   }
 
   def filter = {
-    filterRec(table.columns).mkString("\n")
+
+    val filters = filterRec(table.columns).map("      "+_).mkString("\n")
+    s"""  def filter(formData: ${table.className}Filter) = {
+    all
+${filters}
+  }"""
+
   }
 
   def generate: String = {
@@ -100,7 +121,8 @@ import play.api.libs.json._*/
     val className = table.className
     val columns: List[AbstractColumn] = table.columns
 
-    def generateClass(className: String, columns: List[AbstractColumn], isSubClass: Boolean = false): String = {
+    def generateClass(className: String, columns: List[AbstractColumn], isSubClass: Boolean = false, level: Int = 0): String = {
+      val tab = "  "
       val head: String = """case class """+className+"""("""
       val cols = columns.collect{
         case c: Column =>
@@ -147,8 +169,9 @@ import play.api.libs.json._*/
   implicit val format = Json.format[${className}]
   val tupled = (this.apply _).tupled
 }"""
-      (if(subClasses.length>0) s"""object ${className}Partition{"""+"\nimport extensions."+className+"Partition._\n" else "")+
-      subClasses.map{sc => generateClass(sc.className, sc.cols, true)}.mkString("\n\n")+ (if(subClasses.length>0) "}\n" else "")+"\n\n"+ generatedClass + "\n\n"+objectClass + "\n\n"
+      val result = (if(subClasses.length>0) s"""object ${className}Partition{"""+"\n  import extensions."+className+"Partition._\n" else "")+
+      subClasses.map{sc => generateClass(sc.className, sc.cols, true, level + 1)}.mkString("\n\n")+ (if(subClasses.length>0) "\n}\n" else "")+"\n\n"+ generatedClass + "\n\n"+objectClass + "\n\n"
+      result.split("\n").map{(tab*level)+_}.mkString("\n")
     }
 
 
@@ -233,7 +256,7 @@ import play.api.libs.json._*/
 
     //def * = (id.?, fir, name, latitude, longitude) <> (Fir.tupled, Fir.unapply)
 
-    val tableClassHead = """class """+className+s"""${langHash("Mapping")}(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
+    val tableClassHead = """class """+className+s"""${langHash("Mapping")}(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+""""){"""
     val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+star+ shaped + "\n}"
 
     val foreignKeyFilters = (table.foreignColumns.toSet).map{ c: Column =>
@@ -258,74 +281,92 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 """+foreignKeyFilters+"""
 }"""
 
-    baseClass+"\n\n"+formData()+form()//+tableClass + objectHead + formData() + form()
+    baseClass+"\n\n"+formData()+form()+"\n\n"+filterFormData()+"\n\n"+filterForm()+"\n\n"//+tableClass + objectHead + formData() + form()
   }
 
   def isColumnOneToManyMap(c: Column): Boolean = {
     c.foreignKey.map{fk => tablesOneToMany.exists{t => t.tableName == fk.table}}.getOrElse(false)
   }
 
-  def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1): Option[String] = {
+  def getFields(columns: List[AbstractColumn], className: String, lvl: Int = 1, filterForm: Boolean = false): Option[String] = {
     val margin = (" "*(4+lvl*2))
     val margin_1 = (" "*(4+(lvl-1)*2))
 
-    val list = columns.collect{
-      case c : Column if !c.synthetic && c.display != DisplayType.Hidden => margin+"\""+c.name+"\" -> "+{
-        println(c, c.formMapping)
-        if(isColumnOneToManyMap(c)) "optional("+c.formMapping+")" else c.formMapping
+
+    val classNameStr = if(filterForm) className+"Filter" else className
+
+    val columnsWithDate = if(filterForm){
+      columns.flatMap{
+        case c: Column if c.tpe == "DateTime" || c.tpe == "Date" || c.tpe == "Timestamp" =>
+          List(c.copy(name = c.name+"From"), c.copy(name = c.name+"To"))
+        case c => List(c)
       }
-      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1).isDefined)  =>
-        getFields(cols, s.className, lvl+1).map{ a =>
+    } else columns
+
+    val list = columnsWithDate.collect{
+      case c : Column if !c.synthetic && c.display != DisplayType.Hidden => margin+"\""+c.name+"\" -> "+{
+        if(filterForm)
+          s"optional(${c.formMappingTpe})"
+        else
+          if(isColumnOneToManyMap(c)) "optional("+c.formMapping+")" else c.formMapping
+      }
+      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1,filterForm).isDefined)  =>
+        getFields(cols, s.className, lvl+1,filterForm).map{ a =>
           margin+"\""+name+"\" -> "+a
         }.get
-      case o: OneToMany => margin+"\""+o.name+"s\" -> list(models."+o.className+"Form.form.mapping)"
+      case o: OneToMany =>
+        if(filterForm)
+          margin+"\""+o.name+"s\" -> list(models."+o.className+"FilterForm.filterForm.mapping)"
+        else
+          margin+"\""+o.name+"s\" -> list(models."+o.className+"Form.form.mapping)"
     }
     val hasOneToMany = lvl <= 1 //&& table.hasOneToMany
 
 
 
-    val optionalList = columns.collect{
-      case c: Column if c.synthetic => "Some(new DateTime())"
-      case c: Column if c.display != DisplayType.Hidden => if(!isColumnOneToManyMap(c)) c.name else c.name+".getOrElse(0)"
+    val optionalList = columnsWithDate.collect{
+      case c: Column if c.synthetic && !filterForm => "Some(new DateTime())"
+      case c: Column if c.display != DisplayType.Hidden => if(!isColumnOneToManyMap(c) || filterForm) c.name else c.name+".getOrElse(0)"
       case c: Column if c.display == DisplayType.Hidden =>
-        if(c.optional)
+        if(c.optional && !filterForm)
           "Some("+c.defaultValue+")"
         else
           c.defaultValue
       case s @ SubClass(name, cols) =>
-        if(getFields(cols, s.className, lvl+1).isDefined)
+        if(getFields(cols, s.className, lvl+1,filterForm).isDefined)
           s.name
         else
           s.name.capitalize+"()"
+      case c: OneToMany if filterForm => c.foreignTable+"s"
     }.mkString(", ")
 
-    val nonSynthList = columns.collect{
+    val nonSynthList = columnsWithDate.collect{
       case c: Column if !c.synthetic && c.display != DisplayType.Hidden => c.name
-      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1).isDefined) => s.name
+      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1, filterForm).isDefined) => s.name
       case c: OneToMany => c.name+"s"
     }.mkString(",")
 
-    val prefix = if(hasOneToMany) "obj." else ""
-    val optionalListObj = columns.collect{
-      case c: Column if (!c.synthetic && c.display != DisplayType.Hidden)   => if(!isColumnOneToManyMap(c)) "formData."+prefix+c.name else "Some(formData."+prefix+c.name+")"
-      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1).isDefined) => "formData."+prefix+s.name
+    val prefix = if(hasOneToMany && !filterForm) "obj." else ""
+    val optionalListObj = columnsWithDate.collect{
+      case c: Column if (!c.synthetic && c.display != DisplayType.Hidden)   => if(!isColumnOneToManyMap(c) ||  filterForm) "formData."+prefix+c.name else "Some(formData."+prefix+c.name+")"
+      case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1, filterForm).isDefined) => "formData."+prefix+s.name
       case o: OneToMany => "formData."+o.name+"s"
     }.mkString(", ")
     val advancedForm = true//table.createdAt || table.updatedAt || table.oneToManies.size>0
 
-    val formClass = if(hasOneToMany) table.className+"""FormData""" else className
+    val formClass = if(hasOneToMany && !filterForm) table.className+"""FormData""" else classNameStr
 
-    val embeddedStart = if(hasOneToMany) table.className+"""FormData(""" else ""
+    val embeddedStart = if(hasOneToMany && !filterForm) table.className+"""FormData(""" else ""
 
-    val embeddedEnd = if(hasOneToMany) (if(table.hasOneToMany) ", " else "")+table.oneToManies.map{otm => otm.name+"s"}.mkString(", ")+")" else ""
+    val embeddedEnd = if(hasOneToMany && !filterForm) (if(table.hasOneToMany) ", " else "")+table.oneToManies.map{otm => otm.name+"s"}.mkString(", ")+")" else ""
 
     val optionalMapping = List(margin_1+(if(advancedForm) "" else "/*")+"""(("""+nonSynthList+""") => {""",
-      margin_1+"  "+embeddedStart+className+"""("""+optionalList+""")"""+embeddedEnd,
-      margin_1+"""})((formData: """+formClass+ """) => {""",
+      margin_1+"  "+embeddedStart+classNameStr+"""("""+optionalList+""")"""+embeddedEnd,
+      margin_1+"""})((formData: """+formClass+ s""") => {""",
       margin_1+"""  Some(("""+optionalListObj+"""))""",
       margin_1+"""})"""+(if(advancedForm) "" else "*/"))
 
-    val defaultMapping = (if(advancedForm) "/*("+className+".apply)("+className+".unapply)*/" else "("+className+".apply)("+className+".unapply)")
+    val defaultMapping = (if(advancedForm) "/*("+classNameStr+".apply)("+classNameStr+".unapply)*/" else "("+classNameStr+".apply)("+classNameStr+".unapply)")
 
     if(!list.isEmpty)
       Some("mapping(\n"+list.mkString(",\n")+"\n"+margin_1+")"+defaultMapping+"\n"+optionalMapping.mkString("\n"))
@@ -416,7 +457,56 @@ case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
 object """+table.className+s"""Form{
   ${if(table.subClasses.length>0) s"""import ${table.className}Partition._""" else ""}
   val form = Form(
-            """+getFields(table.columns, table.className).getOrElse("")+"""
+            """+getFields(table.columns, table.className).getOrElse("")+s"""
+  )
+}"""
+  }
+
+  val className = table.className
+  val columns: List[AbstractColumn] = table.columns
+
+  def filterFormDataRec(className: String, columns: List[AbstractColumn], isSubClass: Boolean = false, level: Int = 0): String = {
+
+    val tab = "  "
+    val head: String = """case class """+className+"""Filter("""
+    val colsWithDoubleDate = columns.flatMap{
+      case c: Column if c.tpe == "DateTime" || c.tpe == "Date" || c.tpe == "Timestamp" =>
+        List(c.copy(name = c.name+"From"), c.copy(name = c.name+"To"))
+      case c => List(c)
+    }
+    val cols = colsWithDoubleDate.collect{
+      case c: Column => c.name+": Option["+c.tpe+"] = None"
+      case c: SubClass => c.name+": "+s"${className}PartitionFilter.${c.className}Filter"
+      case c: OneToMany => s"""${c.foreignTable}s: List[${c.className}Filter] = List()"""
+    }
+
+
+    val generatedClass = head + cols.mkString(",\n"+(" "*head.length))+ s")"//{if(!isSubClass) getters else ""}+"\n}"
+
+
+    val subClasses = columns.collect{
+      case c: SubClass => c
+    }
+
+    val objectClass = s"""object ${className}Filter {
+  val tupled = (this.apply _).tupled
+}"""
+    val result =
+      (if(subClasses.length>0) s"""object ${className}PartitionFilter{"""+"\n" else "")+
+      (subClasses.map{sc => filterFormDataRec(sc.className, sc.cols, true, level + 1)}.mkString("\n\n")+ (if(subClasses.length>0) "\n}\n" else "")+"\n\n"+ generatedClass + "\n\n"+objectClass + "\n\n")
+    result.split("\n").map{(tab*level)+_}.mkString("\n")
+  }
+
+  def filterFormData(): String = {
+    val baseClass = filterFormDataRec(className, columns)
+    baseClass
+  }
+  def filterForm(): String = {
+    """
+object """+table.className+s"""FilterForm{
+  ${if(table.subClasses.length>0) s"""import ${table.className}PartitionFilter._""" else ""}
+  val filterForm = Form(
+            """+getFields(table.columns, table.className, lvl = 1, filterForm = true).getOrElse("")+"""
   )
 }"""
   }
@@ -544,7 +634,35 @@ trait ${className}${langHash("Query")}{
         "("+className+".tupled, "+className+".unapply)")
 
 
-    val tableClassHead = """class """+className+s"""${langHash("Mapping")}(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+"""") {"""
+    val tableClassHead = """class """+className+s"""${langHash("Mapping")}(tag: Tag) extends Table["""+className+"""](tag, """"+table.tableNameDB+""""){"""
+
+
+    def getSortColMaps(cols: List[AbstractColumn]): List[String] = {
+      cols.flatMap{
+        case c: Column if !c.foreignKey.isDefined =>
+          List(s"""    "${c.name}" -> {(q,s) => q.sortBy(_.${c.name})(s)}""") //TODO: foreignkey
+        case c: Column if c.foreignKey.isDefined =>
+          val fk = c.foreignKey.get
+          if(fk.displayField.isDefined){
+            val repoName = if(fk.table == table.yamlName) "" else (fk.table+"Repo.")
+            List(s"""    "${c.name}" -> {(q,s) => q.join(${repoName}all).on(_.${c.name} === _.id).sortBy(_._2.${underscoreToCamel(fk.displayField.getOrElse(fk.tableName))})(s).map{_._1}}""") //TODO: foreignkey
+          }
+          else
+            List(s"""    //displayField for field ${fk.tableName} is not defined in YML""")
+        case s: SubClass => getSortColMaps(s.cols)
+        case _ => List()
+      }
+    }
+
+    val sortColMaps = getSortColMaps(columns).mkString(",\n")
+    val sortMap =
+      s"""
+
+  override val sortMap = Map[String, SortMapType](
+${sortColMaps}
+  )
+      """
+
     val tableClass = tableClassHead +"\n"+ tableCols+ "\n\n"+"""/**
 * This is the tables default "projection".
 *
@@ -574,14 +692,20 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 """+foreignKeyFilters+"""
 }"""
 
-    val fkRepositories: List[String] = if(table.foreignColumns.length>0){
-      table.foreignColumns.filter(fc => fc.foreignKey.map{fk => fk.className != table.className}.getOrElse(false)).map { fc =>
+    val fkRepositories: List[String] = if(table.foreignColumns.length>0 || table.hasOneToMany){
+      val relations = table.foreignColumns.filter(fc => fc.foreignKey.map{fk => fk.className != table.className}.getOrElse(false)).map { fc =>
         fc.foreignKey.map { fk =>
-          (fk.table, fk.className)
+          (fk.table, fk.className+"Repository")
         }.getOrElse(("",""))
-      }.toSet[(String,String)].map{ fk =>
-        fk._1 + "Repo: " +fk._2+"Repository"
+      } ++ table.oneToManies.map{o =>
+        (o.rawForeignTable, s"Provider[${o.className}Repository]")
+      }
+
+
+      relations.toSet[(String,String)].map{ fk =>
+        fk._1 + "Repo: " +fk._2
       }.toList
+
     } else List()
 
     /*val toJson = {
@@ -625,7 +749,7 @@ ${foreignKeyFilters}
 
     s"""package models
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton, Provider}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 import play.api.libs.json._
@@ -648,7 +772,7 @@ class ${className}Repository @Inject() (dbConfigProvider: DatabaseConfigProvider
   ${if(table.subClasses.length>0) s"""import models.${table.className}Partition._"""}
 
 """ +"\n\n"+
-    tableClass.split("\n").map{s => "  "+s}.mkString("\n") + "\n\n"+ dbTables + "\n\n"+getters+"\n\n"+filter+ "\n"+ //+toJson+"\n"+
+    tableClass.split("\n").map{s => "  "+s}.mkString("\n") + sortMap+ "\n\n"+ dbTables + "\n\n"+getters+"\n\n"+filter+ "\n"+ //+toJson+"\n"+
     """}"""
   }
 }

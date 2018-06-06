@@ -89,9 +89,9 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
     }
   }
 
-  def index(page: Int = 1, pageLength: Int = 20) = withUserAsync{ user =>  implicit request =>
+  def index(page: Int = 1, pageLength: Int = 20, sortColumn: String = "", sortOrder: String = "") = withUserAsync{ user =>  implicit request =>
     val q = getQuery
-    repo.paginate(q,pageLength,page).flatMap{ pagination =>
+    repo.paginate(q,pageLength,page, sortColumn, sortOrder).flatMap{ pagination =>
       Future.sequence{
         pagination.results.map{ obj =>
           getJson(obj)
@@ -129,7 +129,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 
   def form(): String= {
     s"""  val form = ${table.className}Form.form""" + "\n" +
-    s"""  val filterForm = ${table.className}Form.filterForm"""
+    s"""  val filterForm = ${table.className}FilterForm.filterForm"""
 
   }
   val fks = table.foreignKeys.map{fk =>
@@ -200,7 +200,7 @@ ${otmsListsFor}
 
       (forStmt, s"(Json.toJson(obj).as[JsObject] + \n ${otmsLists})")
     } else
-      ((b: String) => s"Future{${b}}","")
+      ((b: String) => s"Future{Json.toJson(obj).as[JsObject]}","")
 
 
     s"""
@@ -283,14 +283,15 @@ ${otmsListsFor}
 
   def routes = {
     """
-GET         /"""+table.objName+"""/                  controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20)
+GET         /"""+table.objName+"""/                  controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20, sortColumn: String = "id", sortOrder: String = "desc")
 GET         /"""+table.objName+"""/show/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.show(id: Long)
 GET         /"""+table.objName+"""/delete/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.delete(id: Long)
 POST        /"""+table.objName+"""/save              controllers"""+submodulePackageString+"""."""+table.className+"""Controller.save()
 POST        /"""+table.objName+"""/update/:id        controllers"""+submodulePackageString+"""."""+table.className+"""Controller.update(id: Long)
 GET         /"""+table.objName+"""/options             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.options()
-GET         /"""+table.objName+"""/:page/:pageLength controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int)
-GET         /"""+table.objName+"""/:page             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20)
+GET         /"""+table.objName+"""/:page/:pageLength/:sortColumn/:sortOrder controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int, sortColumn: String, sortOrder: String)
+GET         /"""+table.objName+"""/:page/:pageLength controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int, sortColumn: String = "id", sortOrder: String = "desc")
+GET         /"""+table.objName+"""/:page             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20, sortColumn: String = "id", sortOrder: String = "desc")
 """
   }
 
