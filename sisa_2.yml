@@ -4,3 +4,8 @@ aerodromo:
   designador_oaci: {type: varchar, size: 7, required: true}
   latitud: {type: varchar, size: 255}
   longitud: {type: varchar, size: 255}
+  aerodromo_estado_id: {type: integer, foreignTable: aerodromo_estado, required: false, foreignReference: id, onDelete: set null, displayField: estado}
+
+aerodromo_estado:
+  id: ~
+  estado: {type: varchar, size: 255, required: true}

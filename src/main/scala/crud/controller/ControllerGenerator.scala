@@ -6,7 +6,7 @@ import via56.slickGenerator.Column
 import via56.slickGenerator.SubClass
 import via56.slickGenerator.Table
 
-case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String)(implicit langHash: Map[String, String]) extends CodeGenerator{
+case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String, tables: List[Table])(implicit langHash: Map[String, String]) extends CodeGenerator{
   val isMany = tablesOneToMany.size>0
   def generate: String = {
     val objectSignature = """object """+table.className+"""Controller extends Controller with Autorizacion {"""
@@ -48,9 +48,24 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
   def index(): String = {
 
     """
-/*"""+routes+"""*/
-  def index(page: Int = 1, pageLength: Int = 20) = conUsuarioDB{ user =>  implicit request =>
-    val pagination = """+table.queryName+""".paginate("""+table.queryName+s""".${langHash("allQuery")},pageLength,page)
+/*"""+routes+s"""*/
+
+  def getQuery[A](implicit request: DBSessionRequest[A]) = {
+    if(!request.queryString.isEmpty){
+      ${table.className}FilterForm.filterForm.bindFromRequest.fold(
+        formWithErrors => {
+          ${table.queryName}.${langHash("allQuery")}
+        }, formData => {
+          ${table.queryName}.filter(formData)
+        })
+    } else{
+      ${table.queryName}.${langHash("allQuery")}
+    }
+  }
+
+
+  def index(page: Int = 1, pageLength: Int = 20, sortColumn: String = "", sortOrder: String = "") = conUsuarioDB{ user =>  implicit request =>
+    val pagination = """+table.queryName+""".paginate(getQuery,pageLength,page,sortColumn,sortOrder)
     Ok(Json.toJson(Json.obj("results" -> pagination.results, "count" -> pagination.count, "page" -> pagination.page, "pageLength" -> pagination.pageLength)))
   }"""
   }
@@ -58,6 +73,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 
     """
 /*"""+routes+"""*/
+
   def index(page: Int = 1, pageLength: Int = 20) = conUsuarioDB{ user =>  implicit request =>
     val pagination = """+table.queryName+""".paginate("""+table.queryName+s""".${langHash("allQuery")},pageLength,page)
     Ok(views.html"""+submodulePackageString+"""."""+table.viewsPackage+""".index(pagination.results, pagination.count, page, pageLength))
@@ -176,14 +192,15 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 
   def routes = {
     """
-GET         /"""+table.objName+"""/                  controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20)
+GET         /"""+table.objName+"""/                  controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int = 1, pageLength: Int = 20, sortColumn: String = "id", sortOrder: String = "desc")
 GET         /"""+table.objName+"""/show/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.show(id: Long)
 GET         /"""+table.objName+"""/delete/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.delete(id: Long)
 POST        /"""+table.objName+"""/save              controllers"""+submodulePackageString+"""."""+table.className+"""Controller.save()
 POST        /"""+table.objName+"""/update/:id        controllers"""+submodulePackageString+"""."""+table.className+"""Controller.update(id: Long)
 GET         /"""+table.objName+"""/options             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.options()
-GET         /"""+table.objName+"""/:page/:pageLength controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int)
-GET         /"""+table.objName+"""/:page             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20)
+GET         /"""+table.objName+"""/:page/:pageLength/:sortColumn/:sortOrder controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int, sortColumn: String, sortOrder: String)
+GET         /"""+table.objName+"""/:page/:pageLength controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int, sortColumn: String = "id", sortOrder: String = "desc")
+GET         /"""+table.objName+"""/:page             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20, sortColumn: String = "id", sortOrder: String = "desc")
 """
   }
 
@@ -194,7 +211,7 @@ GET         /"""+table.objName+"""/:page             controllers"""+submodulePac
   }
 
   def options() = {
-    val result = table.foreignKeys.map{fk => s""""${fk.table}s" -> ${fk.table}s"""}.mkString(", ")
+    val result = table.foreignKeys.map{fk => s""""${fk.tableName}s" -> ${fk.table}s"""}.mkString(", ")
     s"""  def options() = conUsuarioDB{ user =>  implicit request =>
 ${fksJson}
     Ok(Json.obj(${result}))

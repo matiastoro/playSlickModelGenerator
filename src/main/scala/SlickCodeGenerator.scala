@@ -181,7 +181,6 @@ object parser {
     if (currentContent.size != content.size && (buildType == "all" || buildType == "model")) {
       //println("Building Model("+table.viewsPackage+"): "+path + "/app/models/" + fileName + ".scala")
       Files.write(Paths.get(path + "/app/models/" + fileName + ".scala"), content.getBytes(StandardCharsets.UTF_8))
-      Files.write(Paths.get(path + "/app/models/" + fileName + "Repository.scala"), mg.generateRepository.getBytes(StandardCharsets.UTF_8))
     }
 
 
