@@ -645,7 +645,7 @@ trait ${className}${langHash("Query")}{
           val fk = c.foreignKey.get
           if(fk.displayField.isDefined){
             val repoName = if(fk.table == table.yamlName) "" else (fk.table+"Repo.")
-            List(s"""    "${c.name}" -> {(q,s) => q.join(${repoName}all).on(_.${c.name} === _.id).sortBy(_._2.${underscoreToCamel(fk.displayField.getOrElse(fk.tableName))})(s).map{_._1}}""") //TODO: foreignkey
+            List(s"""    "${c.name}" -> {(q,s) => q.leftJoin(${repoName}all).on(_.${c.name} === _.id).sortBy(_._2.${underscoreToCamel(fk.displayField.getOrElse(fk.tableName))})(s).map{_._1}}""") //TODO: foreignkey
           }
           else
             List(s"""    //displayField for field ${fk.tableName} is not defined in YML""")
