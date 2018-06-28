@@ -82,6 +82,7 @@ import play.api.libs.json._*/
 
           case "Double" => List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse(0.0)"""}else{""}} === y)""")
           case "Int" => List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse(0)"""}else{""}} === y)""")
+          case "Boolean" => List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse(false)"""}else{""}} === y)""")
           case _ =>
             List(c.tpe+" not implemented")
         }
