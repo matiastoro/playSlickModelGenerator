@@ -177,6 +177,8 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
       "DateTime" //"LocalDate"
     else if("""oneToMany.*""".r.findFirstIn(s).isDefined)
       "OneToMany"
+    else if("""attachment""".r.findFirstIn(s).isDefined)
+      "Attachment"
     else
       throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'")
 
@@ -212,6 +214,8 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
       "DATE"
     else if("""oneToMany.*""".r.findFirstIn(s).isDefined)
       "OneToMany"
+    else if("""attachment""".r.findFirstIn(s).isDefined)
+      "TEXT"
     else
       throw new Exception("No encontre el tipo '"+s+"' para '"+col+"'")
 
@@ -347,10 +351,17 @@ object Columns{
 }
 
 case class Column(override val name: String, rawName: String, tpe: String, sqlTpe: String, optional: Boolean, foreignKey: Option[ForeignKey] = None, synthetic: Boolean = false, display: DisplayType = DisplayType.None, defaultString: Option[String] = None, options: Map[String, String] = Map(), subClass: Option[SubClass] = None, primaryString: Boolean = false) extends AbstractColumn(name){
-  lazy val tpeWithOption = if(optional) "Option["+tpe+"]" else tpe
+  def tpeWithOption = {
+    val ty = if(tpe == "Attachment") "String" else tpe
+    if(optional) "Option["+ty+"]" else ty
+  }
+
+  def tpeFixed = {
+    if(tpe == "Attachment") "String" else tpe
+  }
 
 
-  lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(if(sqlTpe == "DATE") "Date" else tpe, "text"))
+  lazy val formMappingTpe = specialMappings.get((name, tpe)).getOrElse(formMappings.getOrElse(if(sqlTpe == "DATE") "Date" else tpeFixed, "text"))
   lazy val formMapping: String = if(optional) "optional("+formMappingTpe+")" else formMappingTpe
 
   lazy val isId: Boolean = name.toLowerCase == "id"
@@ -404,7 +415,9 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
     }
   }
 
-  val ref = (name: String) => s"""ref={(input) => this._inputs["${name}"] = input}"""
+  def ref(name: String, refName: String = "ref") = {
+    s"""${refName}={(input) => this._inputs["${name}"] = input}"""
+  }
 
   def inputDefaultReact(prefix: String, forFilter: Boolean = false) = {
     val inputName = prefix+name
@@ -433,10 +446,15 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
     }
   }
 
-
+  def inputAttachmentReact(control: String, prefix: String, extra: Option[String] = None, forFilter: Boolean = false) = {
+    val inputName = prefix + name
+    s"""<${control} multiple instantUpload downloadUrl={this.downloadUrl} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
+  }
 
   def formHelperReact(prefix: String = "", hidden: Boolean = false, forFilter: Boolean = false)(implicit inline: Boolean = false): String = {
     val inputName = prefix + name
+
+
     if(hidden) s"""<HiddenField ${ref(prefix+name)} name="${prefix+name}" defaultValue={this.getAttr(obj, "${inputName}", "")} readOnly={readOnly} />"""
     else{
       tpe match {
@@ -450,6 +468,7 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
         case "DateTime" => inputDateReact("DateTime", prefix, None, forFilter)
         case "Date" => inputDateReact("DatePicker", prefix, None, forFilter)
         case "LocalDate" => inputDateReact("DatePicker", prefix, None, forFilter)
+        case "Attachment" => inputAttachmentReact("FileUpload", prefix, None, forFilter)
         case _ => inputDefaultReact(prefix)
       }
     }

@@ -7,7 +7,7 @@ import scala.collection.immutable.ListMap
  */
 case class ModelGenerator(table: Table, tablesOneToMany: List[Table] = List(), tables: List[Table] = List())(implicit langHash: Map[String,String]) extends CodeGenerator {
 
-
+  def attachments = table.columns.filter{ case c: Column => c.tpe=="Attachment"; case _ => false}
   def imports(className: String) = s"""package models
 //import models.extensions.${className}Extension
 import extensions._
@@ -83,6 +83,7 @@ import play.api.libs.json._*/
           case "Double" => List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse(0.0)"""}else{""}} === y)""")
           case "Int" => List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse(0)"""}else{""}} === y)""")
           case "Boolean" => List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse(false)"""}else{""}} === y)""")
+          case "Attachment" => List()
           case _ =>
             List(c.tpe+" not implemented")
         }
@@ -127,6 +128,7 @@ ${filters}
       val head: String = """case class """+className+"""("""
       val cols = columns.collect{
         case c: Column =>
+
           c.name+": "+c.tpeWithOption+{
           c.default match{
             case Some(default) =>
@@ -435,19 +437,26 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 }"""
 
 
-
+    val attachmentsUpdate = if(attachments.length>0)
+      s"""
+         |    val attachments = _root_.util.FileUtil.moveJsonFiles(updatedObj.attachments, "neo_aerodrome/"+obj.id.getOrElse(0L))""".stripMargin else ""
+    val attachmentsInsert = if(attachments.length>0)
+      s"""
+      val attachments = _root_.util.FileUtil.moveJsonFiles(insertedObj.attachments, "neo_aerodrome/"+id)
+      repo.update(insertedObj.copy(attachments = attachments, id=Some(id)))""" else ""
     """
 case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
   def update(updatedObj: """+table.className+s""" = obj)(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
-"""+otmsUpdates+"""
+"""+otmsUpdates+s"""
+   ${attachmentsUpdate}
     """+s"""repo.${langHash("updateOrInsert")}(updatedObj)
   }
   def insert(insertedObj: """+table.className+s""")(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
-    repo.${langHash("insert")}(insertedObj).flatMap{ id=>
-  """+(if(otmsInserts.length>0){ s"""Future.sequence(${otmsInserts}).map{ x =>
+    repo.${langHash("insert")}(insertedObj).flatMap{ id=>${attachmentsInsert}
+  """+(if(otmsInserts.length>0){ s"""    Future.sequence(${otmsInserts}).map{ x =>
         id
       }
-    """} else {"""Future{id}"""}) + """
+    """} else {"""    Future{id}"""}) + """
     }
   }
 }
@@ -476,7 +485,7 @@ object """+table.className+s"""Form{
       case c => List(c)
     }
     val cols = colsWithDoubleDate.collect{
-      case c: Column => c.name+": Option["+c.tpe+"] = None"
+      case c: Column => c.name+": Option["+c.tpeFixed+"] = None"
       case c: SubClass => c.name+": "+s"${className}PartitionFilter.${c.className}Filter"
       case c: OneToMany => s"""${c.foreignTable}s: List[${c.className}Filter] = List()"""
     }
@@ -646,7 +655,7 @@ trait ${className}${langHash("Query")}{
           val fk = c.foreignKey.get
           if(fk.displayField.isDefined){
             val repoName = if(fk.table == table.yamlName) "" else (fk.table+"Repo.")
-            List(s"""    "${c.name}" -> {(q,s) => q.leftJoin(${repoName}all).on(_.${c.name} === _.id).sortBy(_._2.${underscoreToCamel(fk.displayField.getOrElse(fk.tableName))})(s).map{_._1}}""") //TODO: foreignkey
+            List(s"""    "${c.name}" -> {(q,s) => q.joinLeft(${repoName}all).on(_.${c.name} === _.id).sortBy(_._2.map{_.${underscoreToCamel(fk.displayField.getOrElse(fk.tableName))}})(s).map{_._1}}""") //TODO: foreignkey
           }
           else
             List(s"""    //displayField for field ${fk.tableName} is not defined in YML""")
@@ -770,7 +779,7 @@ class ${className}Repository @Inject() (dbConfigProvider: DatabaseConfigProvider
   // The second one brings the Slick DSL into scope, which lets you define the table and other queries.
   import dbConfig._
   import profile.api._
-  ${if(table.subClasses.length>0) s"""import models.${table.className}Partition._"""}
+  ${if(table.subClasses.length>0) s"""import models.${table.className}Partition._""" else ""}
 
 """ +"\n\n"+
     tableClass.split("\n").map{s => "  "+s}.mkString("\n") + sortMap+ "\n\n"+ dbTables + "\n\n"+getters+"\n\n"+filter+ "\n"+ //+toJson+"\n"+

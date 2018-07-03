@@ -159,7 +159,7 @@ neo_aerodrome:
   report_management:
     report_status_id: {type: integer, foreignTable: neo_report_status, required: false, foreignReference: id, onDelete: set null, displayField: report_status}
     report_version: {type: longvarchar, size: 255, required: false}
-  attachments: { type: longvarchar, required: false}
+  attachments: { type: attachment, required: false}
 
 
 
@@ -343,7 +343,7 @@ neo_flight_operation:
   report_management:
     report_status_id: {type: integer, foreignTable: neo_report_status, required: false, foreignReference: id, onDelete: set null, displayField: report_status}
     report_version: {type: longvarchar, size: 255, required: false}
-  attachments: { type: longvarchar, required: false}
+  attachments: { type: attachment, required: false}
 
 
 eccairs_ocurrence_category:

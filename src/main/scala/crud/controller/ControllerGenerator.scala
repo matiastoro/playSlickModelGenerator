@@ -9,6 +9,8 @@ import via56.slickGenerator.Table
 case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String, tables: List[Table])(implicit langHash: Map[String, String]) extends CodeGenerator{
   val isMany = tablesOneToMany.size>0
 
+  def attachments = table.columns.filter{ case c: Column => c.tpe=="Attachment"; case _ => false}
+
   def getOneToManyRepos(otm: OneToMany): List[(String, String)] = {
     //search for table
     val otms = tables.find(t => t.yamlName == otm.rawForeignTable).map{ t =>
@@ -42,9 +44,11 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
 
 
     val lMany = if(table.foreignKeys.length>0) l ++ List(options) else l
+
+    val lFile = if(attachments.length>0) lMany ++ List(downloads) else lMany
     //println(table.columns)
     //println("oneToMany", tablesOneToMany)
-    lMany.mkString("\n")+"\n}"
+    lFile.mkString("\n")+"\n}"
   }
 
   val imports =
@@ -287,8 +291,9 @@ GET         /"""+table.objName+"""/                  controllers"""+submodulePac
 GET         /"""+table.objName+"""/show/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.show(id: Long)
 GET         /"""+table.objName+"""/delete/:id          controllers"""+submodulePackageString+"""."""+table.className+"""Controller.delete(id: Long)
 POST        /"""+table.objName+"""/save              controllers"""+submodulePackageString+"""."""+table.className+"""Controller.save()
-POST        /"""+table.objName+"""/update/:id        controllers"""+submodulePackageString+"""."""+table.className+"""Controller.update(id: Long)
-GET         /"""+table.objName+"""/options             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.options()
+POST        /"""+table.objName+"""/update/:id        controllers"""+submodulePackageString+"""."""+table.className+s"""Controller.update(id: Long)
+${if(table.foreignKeys.length>0) """GET         /"""+table.objName+"""/options    controllers"""+submodulePackageString+"""."""+table.className+"""Controller.options()""" else ""}
+${if(attachments.length>0) """GET         /"""+table.objName+"""/download/:id/:file    controllers"""+submodulePackageString+"""."""+table.className+"""Controller.download(id: Long, file: String)""" else ""}
 GET         /"""+table.objName+"""/:page/:pageLength/:sortColumn/:sortOrder controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int, sortColumn: String, sortOrder: String)
 GET         /"""+table.objName+"""/:page/:pageLength controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int, sortColumn: String = "id", sortOrder: String = "desc")
 GET         /"""+table.objName+"""/:page             controllers"""+submodulePackageString+"""."""+table.className+"""Controller.index(page: Int, pageLength: Int = 20, sortColumn: String = "id", sortOrder: String = "desc")
@@ -305,6 +310,16 @@ GET         /"""+table.objName+"""/:page             controllers"""+submodulePac
     val result = table.foreignKeys.map{fk => s""""${fk.tableName}s" -> Json.toJson(${fk.tableName}s)"""}.mkString(", ")
     s"""  def options() = withUserAsync{ user =>  implicit request =>
 ${fksJson(s"""Ok(Json.obj(${result}))""")}
+  }"""
+  }
+
+  def downloads() = {
+    s"""  def download(id: Long, file: String) = withUserAsync { user => implicit request =>
+    repo.byId(id).map{ oobj =>
+      oobj.map{ obj =>
+        Ok.sendFile(new java.io.File("./"+file))
+      }.getOrElse(OrElse)
+    }
   }"""
   }
 
