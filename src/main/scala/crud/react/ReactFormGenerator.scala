@@ -36,6 +36,7 @@ export class ${table.className}FormInline extends GFormInline{
         const errors = this.props.errors
         const hide = this.props.hide || []
         const i = this.props.i
+        const prefix = this.props.prefix+"["+i+"]."
         const options = this.state.options
         return <div>
 ${inputs}
@@ -62,7 +63,7 @@ ${inputs}
 
     val imports = s"""import React from 'react';
 import TextField from '../gforms/GTextField';
-import SelectField from '../gforms/GSelectField';
+import SelectField from '../gforms/GAutocomplete';
 import Checkbox from '../gforms/GCheckbox';
 import DateTime from '../gforms/GDateTime';
 import DatePicker from '../gforms/GDatePicker';
@@ -99,6 +100,7 @@ export default class ${table.className}Form extends GForm{
         const readOnly = this.state.readOnly
         ${if(withOptions) "const hide = this.props.hide || []" else ""}
         const options = this.state.options
+        const prefix = ""
         return <div>
 ${inputs}
         </div>

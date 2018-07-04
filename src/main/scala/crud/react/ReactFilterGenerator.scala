@@ -59,7 +59,7 @@ ${inputs}
 
     val imports = s"""import React from 'react';
 import TextField from '../gforms/GTextField';
-import SelectField from '../gforms/GSelectField';
+import SelectField from '../gforms/GAutocomplete';
 import Checkbox from '../gforms/GCheckbox';
 import DateTime from '../gforms/GDateTime';
 import DatePicker from '../gforms/GDatePicker';
@@ -73,7 +73,7 @@ import { Row, Col } from 'react-flexbox-grid';
 //inputs de nested
 """
     val tab = (" "*12)
-    val inputs = generateInputs(table.columns).grouped(6).map{xs => {
+    val inputs = generateInputs(table.columns.collect{case c: Column if c.tpe!="Attachment" => c}).grouped(6).map{xs => {
       val row = xs.map{x => {
         tab+"    <Col xs={6} sm={2}>\n"+
           tab+"        "+x+"\n"+
@@ -99,6 +99,7 @@ export default class ${table.className}Filter extends GFilter{
         const obj = this.props.query?JSON.parse(this.props.query):{}
         const errors = {}
         const options = this.props.options
+        const prefix = ""
         const selectDefault = "-1"
         return <div>
 ${inputs}

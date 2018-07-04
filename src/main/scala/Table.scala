@@ -421,17 +421,17 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
 
   def inputDefaultReact(prefix: String, forFilter: Boolean = false) = {
     val inputName = prefix+name
-    s"""<TextField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")}/>"""
+    s"""<TextField ${ref(inputName, "innerRef")}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")}/>"""
   }
 
   def inputTextareaReact(prefix: String, forFilter: Boolean = false) = {
     val inputName = prefix+name
-    s"""<TextField ${ref(inputName)} multiLine rows={3} name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")}/>"""
+    s"""<TextField ${ref(inputName, "innerRef")} multiLine rows={3} name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")}/>"""
   }
 
   def inputReact(control: String, prefix: String, extra: Option[String] = None, forFilter: Boolean = false) = {
     val inputName = prefix + name
-    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
+    s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")} ${extra.getOrElse("")}/>"""
   }
 
   def inputDateReact(control: String, prefix: String, extra: Option[String] = None, forFilter: Boolean = false) = {
@@ -442,13 +442,13 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
       s"""<${control} ${ref(inputNameTo)}  name="${inputNameTo}" fullWidth defaultValue={this.getAttr(obj, "${inputNameTo}")} floatingLabelText="${label} hasta" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputNameTo}")} ${extra.getOrElse("")}/>"""
     } else{
       val inputName = prefix + name
-      s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
+      s"""<${control} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")} ${extra.getOrElse("")}/>"""
     }
   }
 
   def inputAttachmentReact(control: String, prefix: String, extra: Option[String] = None, forFilter: Boolean = false) = {
     val inputName = prefix + name
-    s"""<${control} multiple instantUpload downloadUrl={this.downloadUrl} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} ${extra.getOrElse("")}/>"""
+    s"""<${control} multiple instantUpload downloadUrl={this.downloadUrl} ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")} ${extra.getOrElse("")}/>"""
   }
 
   def formHelperReact(prefix: String = "", hidden: Boolean = false, forFilter: Boolean = false)(implicit inline: Boolean = false): String = {
@@ -504,7 +504,7 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
       //println("a ver cual options", name)
-      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions([${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}])} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} />"""
+      val select = s"""<SelectField ${ref(inputName, "innerRef")}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions([${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}])} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")} />"""
       //s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
       s"""${select}"""
 
@@ -516,10 +516,10 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
       val inputName = prefix+name
       //println("a ver cual", fk)
       //println("el FK NAME", this.name, fk, fk.toStringName)
-      val select =  if(inline)
-        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
-      else
-        s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, "${inputName}")} />"""
+      //val select =  if(inline)
+      //  s"""<SelectField ${ref(inputName, "innerRef")}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
+      //else
+      val select =  s"""<SelectField ${ref(inputName, "innerRef")}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")} />"""
       if(!forFilter) s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
       else select
     }.getOrElse(inputDefault(prefix))
