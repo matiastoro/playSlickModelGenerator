@@ -1,0 +1,5 @@
+cp outputSSPJ8/app/controllers/Neo* ~/Documents/Dev/ssp/SSPJ8/app/controllers/.
+cp outputSSPJ8/app/models/Neo* ~/Documents/Dev/ssp/SSPJ8/app/models/.
+cp outputSSPJ8/app/models/extensions/Neo* ~/Documents/Dev/ssp/SSPJ8/app/models/extensions/.
+cp -r outputSSPJ8/react/neo* ~/Documents/Dev/ssp/SSPJ8/node/src/app/components/.
+
