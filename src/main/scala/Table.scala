@@ -414,7 +414,7 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
     else{
       tpe match {
         case "Long" if foreignKey.isDefined => foreignKeyInputReact(prefix, foreignKey)
-        case "String" => if(options.isDefinedAt("longvarchar")) inputTextareaReact(prefix) else inputDefaultReact(prefix)
+        case "String" => if(options.isDefinedAt("longvarchar")) inputTextareaReact(prefix) else  if(options.nonEmpty) optionsInputReact(prefix) else inputDefaultReact(prefix)
         case "Text" => inputTextareaReact(prefix) //deprecated
         case "Int" => if(options.nonEmpty) optionsInputReact(prefix) else inputDefaultReact(prefix)
         case "Long" => inputDefaultReact(prefix)
@@ -457,8 +457,14 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
 
       //val options = fk.table+".map(o => o.id.getOrElse(\"0\").toString -> o.selectString)"
       val inputName = prefix+name
+
+      val multiple = tpe == "String"
       //println("a ver cual options", name)
-      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={[${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}]} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
+      val default = if(multiple)
+        s"""JSON.parse(this.getAttr(obj, "$inputName", "[]"))"""
+      else
+        s"""this.getAttr(obj, "$inputName", "")"""
+      val select = s"""<SelectField ${ref(inputName)}  name="${inputName}" ${if(multiple) """multiple={true}""" else ""} fullWidth defaultValue={$default} options={[${options.map(o => s"""{"value": "${o._1}", "label": "${o._2}"}""").mkString(", ")}]} floatingLabelText="${label}" readOnly={readOnly} required={${!optional}} errors={this.getAttr(errors, "${inputName}")} />"""
       //s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
       s"""${select}"""
 

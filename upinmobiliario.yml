@@ -13,29 +13,205 @@ comuna:
 
 
 propiedad:
-  _attributes:
-    table_name: propiedad
   id: ~
   tipo: { type: integer, options:[{key: 1, value: Venta}, {key: 2, value: Arriendo}, {key: 3, value: Inversión}] }
   comuna_id: {type: integer, foreignTable: comuna, required: true, foreignReference: id, onDelete: set null}
-  direccion: {type: varchar, size: 255, required: false}
-  telefono: {type: varchar, size: 255, required: false}
-  m2: {type: integer}
+  direccion: {type: varchar, size: 255}
+  telefono: {type: varchar, size: 255}
+  m2: {type: integer, required: false}
   tipo_propiedad: { type: integer, options:[{key: 1, value: Habitacional / Casa},{key: 2, value: Habitacional / Departamento},{key: 3, value: Habitacional / Parcela},{key: 4, value: Comercial / Oficina},{key: 5, value: Comercial / Local},{key: 6, value: Comercial / Galpon},{key: 7, value: Comercial / Bodega},{key: 8, value: Comercial / Estacionamiento},{key: 9, value: Terreno / Para Proyecto},{key: 10, value: Terreno / Rural}] }
-  valor_moneda: {type: integer}
-  valor_uf: {type: integer}
-  visitas: {type: long}
-  dormitorios: {type: integer}
-  banios: {type: integer}
-  ufm2: {type: double}
-  email_contacto: {type: varchar, size: 255, required: false}
-  latitud: {type: double}
-  longitud: {type: double}
+  valor_moneda: {type: integer, required: false}
+  valor_uf: {type: integer, required: false}
+  visitas: {type: long, default: 0}
+  dormitorios: {type: integer, required: false}
+  banios: {type: integer, required: false}
+  adjudicado: {type: boolean, required: true, default: false}
+  email_contacto: {type: varchar, size: 255}
+  latitud: {type: double, required: false}
+  longitud: {type: double, required: false}
   descripcion: {type: longvarchar}
-  inversion_rentabilidad_proyectada: {type: varchar}
-  inversion_tipo: {type: varchar}
-  inversion_minima: {type: varchar}
-  inversion_ruta_dossier: {type: varchar}
-  inversion_estado_proyecto: {type: varchar}
+  inversion:
+    inversion_rentabilidad_proyectada: {type: varchar}
+    inversion_tipo: {type: varchar}
+    inversion_minima: {type: varchar}
+    inversion_ruta_dossier: {type: varchar}
+    inversion_estado_proyecto: {type: varchar}
+  imagenes: { type: oneToMany, foreignTable: propiedad_imagen}
+  active: {type: boolean, required: true, default: true, hidden: true}
+  patrocinado:
+    patrocinado: {type: boolean, required: true, default: false}
+    imagen_patrocinado: {type: varchar}
+    orden: {type: integer, required: false}
 
 
+propiedad_imagen:
+  id: ~
+  propiedad_id: {type: integer, foreignTable: propiedad, required: true, foreignReference: id, onDelete: cascade}
+  path: {type: varchar}
+
+
+propiedad_contacto:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  propiedad_id:  {type: integer, foreignTable: propiedad, required: true, foreignReference: id, onDelete: set null}
+  nombre: {type: varchar, size: 255, required: true}
+  email: {type: varchar, size: 255, required: true}
+  telefono: {type: varchar, size: 255, required: true}
+  comentario: {type: longvarchar, required: true}
+  financiamiento: { type: integer, options:[{key: 1, value: Propio Completo},{key: 2, value: Pie más opción de crédito},{key: 3, value: Solo Crédito},{key: 4, value: Solo Subsidio},{key: 5, value: Busco otra opción}] }
+  nivel_urgencia: { type: integer, options:[{key: 1, value: Contáctenme hoy},{key: 2, value: Dentro de 2 horas},{key: 3, value: Dentro de 24 horas}] }
+
+
+
+contacto:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  nombre: {type: varchar, size: 255, required: true}
+  email: {type: varchar, size: 255, required: true}
+  telefono: {type: varchar, size: 255, required: true}
+  asunto: { type: integer, options:[{key: 1, value: Consulta},{key: 2, value: Pedir Reunión Urgente},{key: 3, value: Felicitaciones},{key: 4, value: Reclamos},{key: 5, value: Sugerencias},{key: 6, value: Alianza Estratégica},{key: 7, value: Otros}] }
+  mensaje: {type: longvarchar, required: true}
+
+
+noticia:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  texto: {type: varchar, size: 255, required: true}
+  mostrar: {type: boolean, required: true, default: true}
+  url: {type: varchar, size: 255, required: true}
+
+silla1_contacto:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  contacto:
+    nombre: {type: varchar, size: 255, required: true}
+    email: {type: varchar, size: 255, required: true}
+    telefono: {type: varchar, size: 255, required: true}
+    ciudad: {type: varchar, size: 255, required: true}
+    comuna: {type: varchar, size: 255, required: true}
+    pagina_web: {type: varchar, size: 255, required: false}
+  datos_proyecto:
+    proyecto_tipo: { type: varchar, multiple: true, options:[{key: 1, value: Necesito construir una casa unifamiliar tipo subsidio},{key: 2, value: Necesito construir una casa unifamiliar NO tipo subsidio},{key: 3, value: Necesito construir una casa tipo pre-fabricada estandar medio-bajo},{key: 4, value: Necesito construir una casa tipo pre-fabricada estandar medio-alto},{key: 5, value: Necesito construir una casa segunda vivienda en parcela o playa},{key: 6, value: Necesito participar de proyectos para obtener departamento tipo subsidio},{key: 7, value: Necesito participar de proyectos para obtener departamento NO tipo subsidio},{key: 8, value: Necesito construir un local comercial},{key: 9, value: Necesito construir un proyecto para obtener un local comercial},{key: 10, value: Necesito construir un proyecto para obtener una oficina},{key: 11, value: Necesito construir un proyecto institucional}] }
+    otro_proyecto_tipo: {type: boolean, required: true, default: false}
+    otro_proyecto_tipo_definicion: {type: varchar, size: 255, required: false}
+    ubicacion_proyecto: {type: varchar, size: 255, required: true}
+    proyecto_comuna: {type: varchar, size: 255, required: true}
+    proyecto_ciudad: {type: varchar, size: 255, required: true}
+    financiamiento_tipo: { type: integer, options:[{key: 1, value: Tengo financiamiento propio completo},{key: 2, value: Tengo pie mas opción de crédito},{key: 3, value: Tengo solo opción de financiamiento por crédito},{key: 4, value: Tengo opción de subsidio},{key: 5, value: Busco otra opción de financiamiento}] }
+    respuesta_tipo: { type: integer, options:[{key: 1, value: Iniciar coordinación},{key: 2, value: Contacto telefónico},{key: 3, value: Recibir alternativas conforme a esta información}] }
+    comentarios: { type: longvarchar, required: true}
+    rango_valor: { type: integer, options:[{key: 1, value: De 500 a 1.000 UF},{key: 2, value: De 1.001 a 2.000 UF},{key: 3, value: De 2.001 a 5.000 UF},{key: 4, value: De 5.001 a 10.000 UF},{key: 5, value: De 10.001 a 20.000 UF},{key: 6, value: De 20.001 a 50.000 UF},{key: 7, value: De 50.001 UF o más}] }
+    tipo_participacion: { type: integer, options:[{key: 1, value: Comprando el producto},{key: 2, value: Arrendando el producto}] }
+    archivo: {type: varchar, required: false}
+
+silla2_contacto:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  contacto:
+    nombre: {type: varchar, size: 255, required: true}
+    email: {type: varchar, size: 255, required: true}
+    telefono: {type: varchar, size: 255, required: true}
+    ciudad: {type: varchar, size: 255, required: true}
+    comuna: {type: varchar, size: 255, required: true}
+    pagina_web: {type: varchar, size: 255, required: false}
+  datos_proveedor:
+    proveedor_tipo: { type: varchar, multiple: true, options:[{key: 1, value: Proyectos Arquitectura}, {key: 2, value: Proyectos Cálculo Estructural}, {key: 3, value: Proyectos Ingeniería Sanitaria}, {key: 4, value: Proyectos Ingeniería Eléctrica}, {key: 5, value: Proyectos Ingeniería/Impacto Vial}, {key: 6, value: Desarrollo Publicitario Inmobiliario}, {key: 7, value: BIM}, {key: 8, value: Renderizado y Animacion Virtual de Proyectos}, {key: 9, value: Inspección Técnica de Obra}, {key: 10, value: Estudio Mecánica de Suelo}, {key: 11, value: Levantamientos Topográficos}, {key: 12, value: Proyectos Corrientes Débiles/Datos}, {key: 13, value: Proyectos de Paisajismo}, {key: 14, value: Proyectos Urbanismo}] }
+    proyecto_preferencia: { type: varchar, multiple: true, options:[{key: 1, value: Proyectos de Vivienda},{key: 2, value: Proyectos de Vivienda en Altura},{key: 3, value: Proyectos de Locales Comerciales},{key: 4, value: Proyectos de Centros Comerciales},{key: 5, value: Proyectos Edificios de Oficina hasta Media Altura},{key: 6, value: Proyectos Edificios de oficina Gran Altura},{key: 7, value: Proyectos Institucionales},{key: 8, value: Proyectos de Habilitación},{key: 9, value: Proyectos de Estacionamientos},{key: 10, value: Proyectos de Bodegajes},{key: 11, value: Proyectos de Loteos},{key: 12, value: Proyectos Hospitalarios},{key: 13, value: Proyectos de Ornamentación }] }
+    otro_proyecto_preferencia: {type: boolean, required: true, default: false}
+    otro_proyecto_preferencia_definicion: {type: varchar, size: 255, required: false}
+    comentarios: { type: longvarchar, required: false}
+    archivo: {type: varchar, required: false}
+
+
+silla3_contacto:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  contacto:
+    nombre: {type: varchar, size: 255, required: true}
+    email: {type: varchar, size: 255, required: true}
+    telefono: {type: varchar, size: 255, required: true}
+    ciudad: {type: varchar, size: 255, required: true}
+    comuna: {type: varchar, size: 255, required: true}
+    pagina_web: {type: varchar, size: 255, required: false}
+  datos_terreno:
+    proveedor_tipo: { type: integer, options:[{key: 1, value: Dueño}, {key: 2, value: Corredor}] }
+    tengo_terreno: { type: integer, options:[{key: 1, value: Si}, {key: 2, value: No}] }
+    contactenme_nuevos_proyectos: {type: boolean, required: true, default: false}
+    direccion_terreno: {type: varchar, required: true}
+    rol: {type: varchar, required: true}
+    condicion_terreno: { type: integer, options:[{key: 1, value: Venta}, {key: 2, value: Aporte}] }
+    m2_terreno: {type: varchar, required: true}
+    valor_terreno_uf: {type: integer, required: true}
+    comentarios: { type: longvarchar, required: false}
+    archivo: {type: varchar, required: false}
+
+
+
+silla4_contacto:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  contacto:
+    nombre: {type: varchar, size: 255, required: true}
+    email: {type: varchar, size: 255, required: true}
+    telefono: {type: varchar, size: 255, required: true}
+    ciudad: {type: varchar, size: 255, required: true}
+    comuna: {type: varchar, size: 255, required: true}
+    pagina_web: {type: varchar, size: 255, required: false}
+  datos_proyecto:
+    ubicacion_proyecto: {type: varchar, size: 255, required: true}
+    proyecto_comuna: {type: varchar, size: 255, required: true}
+    proyecto_ciudad: {type: varchar, size: 255, required: true}
+    proyecto_tipo: { type: varchar, multiple: true, options:[{key: 1, value: Proyecto del tipo casa unifamiliar tipo subsidio},{key: 2, value: Proyecto del tipo casa unifamiliar NO del tipo subsidio},{key: 3, value: Proyecto del tipo tipo pre fabricada estandar medio-bajo},{key: 4, value: Proyecto del tipo tipo pre fabricada estandar medio-alto},{key: 5, value: Proyecto del tipo casa segunda vivienda en parcela o playa},{key: 6, value: Proyecto del tipo departamento tipo subsidio},{key: 7, value: Proyecto del tipo departamento NO tipo subsidio},{key: 8, value: Proyecto del tipo local comercial},{key: 9, value: Proyecto del tipo centro comercial/strip center},{key: 10, value: Proyecto del tipo edificio ificina pequeño/mediano},{key: 11, value: Proyecto del tipo edificio oficina grande},{key: 12, value: Proyecto del tipo estacionamiento},{key: 13, value: Proyecto del tipo institucional}]}
+    financiamiento_tipo: { type: integer, options:[{key: 1, value: Tengo financiamiento propio completo},{key: 2, value: Tengo pie mas opción de crédito},{key: 3, value: Tengo solo opción de financiamiento por crédito},{key: 4, value: Tengo opción de subsidio},{key: 5, value: Busco otra opción de financiamiento}] }
+    rango_valor: { type: integer, options:[{key: 1, value: De 500 a 1.000 UF},{key: 2, value: De 1.001 a 2.000 UF},{key: 3, value: De 2.001 a 5.000 UF},{key: 4, value: De 5.001 a 10.000 UF},{key: 5, value: De 10.001 a 20.000 UF},{key: 6, value: De 20.001 a 50.000 UF},{key: 7, value: De 50.001 UF o más}] }
+    financiamiento_proposito: { type: integer, options:[{key: 1, value: Financiar el producto para que se construya y poder venderlo},{key: 2, value: Financiar el producto para dejarlo en renta propia},{key: 3, value: Financiar el producto para dejarlo en renta tipo ACA}] }
+    respuesta_tipo: { type: integer, options:[{key: 1, value: Iniciar coordinación},{key: 2, value: Contacto telefónico},{key: 3, value: Recibir alternativas conforme a esta información}] }
+    comentarios: { type: longvarchar, required: false}
+    archivo: {type: varchar, required: false}
+
+
+
+silla5_contacto:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  contacto:
+    nombre: {type: varchar, size: 255, required: true}
+    email: {type: varchar, size: 255, required: true}
+    telefono: {type: varchar, size: 255, required: true}
+    ciudad: {type: varchar, size: 255, required: true}
+    comuna: {type: varchar, size: 255, required: true}
+    pagina_web: {type: varchar, size: 255, required: false}
+  datos_proveedor:
+    proveedor_tipo: { type: varchar, multiple: true, options:[{key: 1, value: Empresa constructora},{key: 2, value: Empresa instalaciones sanitarias},{key: 3, value: Empresa instalaciones eléctricas},{key: 4, value: Empresa contratista},{key: 5, value: Empresa instalación corrientes débiles y datos},{key: 6, value: Empresa instalación mecanismos de protección contra incendios},{key: 7, value: Empresa instalación de terminaciones pavimentos/revestimientos},{key: 8, value: Empresa productos gráficos exterior e interiores},{key: 9, value: Empresa fabricación e instalación mobiliario},{key: 10, value: Empresa fabricación e instalación de vidrios y ventanas},{key: 11, value: Empresa fabricación e instalación de estructuras metálicas},{key: 12, value: Empresa fabricación e instalación de productos pre-fabricados para la construcción},{key: 13, value: Empresa fabricación e instalación de productos en madera},{key: 14, value: Empresa fabricación e instalación de ascensores/elevadores/montacarga},{key: 15, value: Empresa movimiento de tierra y/o retiro de escombros},{key: 16, value: Empresa servicios de demolición},{key: 17, value: Empresa servicios terminaciones pinturas},{key: 18, value: Empresa provisión y colocación productos ignifugos},{key: 19, value: Empresa provisión e instalación jardinería y riego exterior},{key: 20, value: Empresa provisión y/o instalación de pavimentos asfálticos},{key: 21, value: Empresa proveedora de materiales para la construcción}]}
+    otro_proveedor_tipo: {type: boolean, required: true, default: false}
+    otro_proveedor_tipo_definicion: {type: varchar, size: 255, required: false}
+    proyecto_preferencia: { type: varchar, multiple: true, options:[{key: 1, value: Proyectos de vivienda},{key: 2, value: Proyectos de vivienda en altura},{key: 3, value: Proyectos de locales comerciales},{key: 4, value: Proyectos de centros comerciales},{key: 5, value: Proyectos edificios de oficina hasta media altura},{key: 6, value: Proyectos edificios de oficina gran altura},{key: 7, value: Proyectos institucionales},{key: 8, value: Proyectos de Habilitación},{key: 9, value: Proyectos de estacionamientos},{key: 10, value: Proyectos de bodegajes},{key: 11, value: Proyectos de loteos},{key: 12, value: Proyectos hospitalarios},{key: 13, value: Proyectos de ornamentación},{key: 14, value: Proyectos Urbanos},{key: 14, value: Proyectos Viales},{key: 14, value: Proyectos estructuras prefabricadas}]}
+    comentarios: { type: longvarchar, required: false}
+    archivo: {type: varchar, required: false}
+
+silla6_contacto:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  contacto:
+    nombre: {type: varchar, size: 255, required: true}
+    email: {type: varchar, size: 255, required: true}
+    telefono: {type: varchar, size: 255, required: true}
+    ciudad: {type: varchar, size: 255, required: true}
+    comuna: {type: varchar, size: 255, required: true}
+    pagina_web: {type: varchar, size: 255, required: false}
+  datos_proveedor:
+    evaluador_tipo: { type: integer, options:[{key: 1, value: Análisis técnico de proyectos},{key: 2, value: Análisis legal de proyectos},{key: 3, value: Análisis comercial de proyectos},{key: 4, value: Empresa inmobiliaria con las 3 especialidades}] }
+    anios_experiencia: { type: integer, options:[{key: 1, value: Menos de 3 años},{key: 2, value: Menos de 10 años},{key: 3, value: Más de 10 años}] }
+    ultimo_proyecto: { type: longvarchar, required: false}
+    zona: { type: integer, options:[{key: 1, value: Zona norte de Chile},{key: 2, value: Zona centro de Chile},{key: 3, value: Zona sur de Chile},{key: 4, value: Solo región metropolitana},{key: 5, value: Todas las zonas}] }
+    comentarios: { type: longvarchar, required: false}
+    archivo: {type: varchar, required: false}
