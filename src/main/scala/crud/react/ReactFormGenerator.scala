@@ -4,7 +4,7 @@ package via56.slickGenerator.crud.react
 import via56.slickGenerator._
 import via56.slickGenerator.Table
 
-case class ReactFormGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String) extends CodeGenerator{
+case class ReactFormGenerator(table: Table, tablesOneToMany: List[Table] = List(), submodulePackageString: String, tables: List[Table] = List()) extends CodeGenerator{
 
   def attachments = table.columns.filter{ case c: Column => c.tpe=="Attachment"; case _ => false}
 
@@ -36,7 +36,7 @@ export class ${table.className}FormInline extends GFormInline{
         const errors = this.props.errors
         const hide = this.props.hide || []
         const i = this.props.i
-        const prefix = this.props.prefix+"["+i+"]."
+        const prefix = this.props.prefix+(this.props.single?".":"["+i+"].")
         const options = this.state.options
         return <div>
 ${inputs}
@@ -46,6 +46,20 @@ ${inputs}
 }
     """
   }
+
+  def getFkInlinesImports(columns: List[AbstractColumn]): List[String] = {
+    val groupTab = (" "*10)
+    val tab = (" "*12)
+
+    columns.flatMap{ col => col match{
+      case c: Column if c.foreignKey.isDefined && c.foreignKey.get.inline =>
+        List(s"""import {${c.foreignKey.get.className}FormInline} from '../${c.foreignKey.get.tableName}/${c.foreignKey.get.className}Form'""")
+      case s: SubClass => getFkInlinesImports(s.cols)
+      case _ => List()
+    }}
+  }
+
+
 
   def generate: String = {
 
@@ -61,6 +75,11 @@ ${inputs}
       ""
     }
 
+    val fkInlinesImports = getFkInlinesImports(table.columns).mkString("\n")
+
+    //val inline = tablesOneToMany.length>0 || tables.exists(t => t.columns.exists(c => ))
+    val inline = true
+
     val imports = s"""import React from 'react';
 import TextField from '../gforms/GTextField';
 import SelectField from '../gforms/GAutocomplete';
@@ -70,15 +89,16 @@ import DatePicker from '../gforms/GDatePicker';
 import HiddenField from '../gforms/GHiddenField';
 import GForm from '../gforms/GForm';
 ${if(attachments.length>0) "import FileUpload from '../gforms/FileUpload'" else ""}
-${if(tablesOneToMany.length>0) "import {GFormInline} from '../gforms/GForm';" else ""}
+${if(inline) "import {GFormInline} from '../gforms/GForm';" else ""}
 ${oneToManiesImports}
+${fkInlinesImports}
 //inputs de nested
 """
     val inputs = generateInputs(table.columns)
     val inputsInline = generateInputs(table.columns)(true)
 
 
-    val oneToMany = if(tablesOneToMany.length>0) generateOneToMany(inputsInline) else ""
+    val oneToMany = if(inline) generateOneToMany(inputsInline) else ""
     val withOptions = table.foreignColumns.length>0
     val result =
       s"""$imports

@@ -4,3 +4,6 @@ Profile*
 user/
 profile*
 eccairs*
+company
+sms_indicator
+sms_indicator_category

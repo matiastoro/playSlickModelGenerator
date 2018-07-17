@@ -133,7 +133,7 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
     for{
       foreignTable <- ps.get("foreignTable")
       foreignReference <- ps.get("foreignReference")
-    } yield ForeignKey(foreignTable, foreignReference, onDelete = ps.get("onDelete"), displayField = ps.get("displayField"))
+    } yield ForeignKey(foreignTable, foreignReference, onDelete = ps.get("onDelete"), displayField = ps.get("displayField"), inline = ps.getOrElse("inline", "") == "true")
   }
 
   val columns: List[AbstractColumn] = getColumns(args.filterNot(pair => pair._1 == "_attributes")) //omit _attributes, its not a column
@@ -257,7 +257,17 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
       case _ => List()
     }.flatten
   }
+
+  def getInlines(cols: List[AbstractColumn]): List[Column] = {
+    cols.map{
+      case c: Column if c.foreignKey.isDefined && c.foreignKey.get.inline => List(c)
+      case s: SubClass => getInlines(s.cols)
+      case _ => List()
+    }.flatten
+  }
+
   lazy val oneToManies = getOneToManies(columns)
+  lazy val inlines = getInlines(columns)
   lazy val hasOneToMany = oneToManies.size>0
 
 }
@@ -519,14 +529,27 @@ case class Column(override val name: String, rawName: String, tpe: String, sqlTp
       //val select =  if(inline)
       //  s"""<SelectField ${ref(inputName, "innerRef")}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, this.props.prefix+"["+i+"].${inputName}", "")} />"""
       //else
-      val select =  s"""<SelectField ${ref(inputName, "innerRef")}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")} />"""
-      if(!forFilter) s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
-      else select
+      if(fk.inline){
+
+
+        s"""<${fk.className}FormInline i={0} ${ref(inputName)}  prefix={"${fkInlineName}"} obj={obj.${fkInlineName} ||  {}} readOnly={readOnly} errors={errors} single />"""
+      }else{
+        val select =  s"""<SelectField ${ref(inputName, "innerRef")}  name="${inputName}" fullWidth defaultValue={this.getAttr(obj, "${inputName}", "")} options={this.getOptions(options.${fk.tableName}s.map(o => {return {"value": o.id, "label": o.${fk.toStringName}, "parentId": o.${fk.tableName}Id}}))} floatingLabelText="${label}" readOnly={readOnly} ${if(!forFilter){ s"""required={${!optional}}"""} else ""} errors={this.getAttr(errors, prefix+"${inputName}")} />"""
+        if(!forFilter) s"""{hide.includes("${prefix+name}")?${formHelperReact(prefix, hidden = true)}:${select}}"""
+        else select
+      }
     }.getOrElse(inputDefault(prefix))
   }
 
+  val fkInlineName = {
+    val tokens = rawName.split("_")
+    underscoreToCamel((if (tokens.last == "id")
+      tokens.dropRight(1)
+    else tokens).mkString("_"))
+  }
+
 }
-case class ForeignKey(table: String, reference: String, onDelete: Option[String], displayField: Option[String])(implicit lang:String) extends CodeGenerator{
+case class ForeignKey(table: String, reference: String, onDelete: Option[String], displayField: Option[String], inline: Boolean)(implicit lang:String) extends CodeGenerator{
   val tableName = underscoreToCamel(table)
   val className = underscoreToCamel(table).capitalize
   val queryName = className+{if(lang=="es") "Consulta" else "Query"}

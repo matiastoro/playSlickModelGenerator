@@ -186,23 +186,34 @@ ${rows}
   }
 
   def objectResponse = {
-    val others = if(table.oneToManies.length>0){
+    val others = if(table.oneToManies.length>0 || table.inlines.length>0){
       val otmsLists = table.oneToManies.map{otm =>
         s"""         ("${otm.lstName}" -> Json.toJson(${otm.lstName}))"""
-      }.mkString("+\n")
+      }
 
       val otmsListsFor = table.oneToManies.map{otm =>
         s"""          ${otm.lstName} <- ${otm.foreignTable}Repo.by${table.className}Id(obj.id)"""
       }.mkString("\n")
 
+      val inlinesLists = table.inlines.map{inline =>
+        s"""         ("${inline.fkInlineName}" -> Json.toJson(${inline.fkInlineName}))"""
+      }
+
+      val inlinesListsFor = table.inlines.map{inline =>
+        s"""          ${inline.fkInlineName} <- ${inline.foreignKey.get.table}Repo.byId(obj.${inline.name})"""
+      }.mkString("\n")
+
+
+
       val forStmt = (b: String) => s"""for{
+${inlinesListsFor}
 ${otmsListsFor}
        } yield {
           ${b}
        }
        """
 
-      (forStmt, s"(Json.toJson(obj).as[JsObject] + \n ${otmsLists})")
+      (forStmt, s"(Json.toJson(obj).as[JsObject] + \n ${(inlinesLists ++ otmsLists).mkString("+\n")})")
     } else
       ((b: String) => s"Future{Json.toJson(obj).as[JsObject]}","")
 
@@ -226,13 +237,14 @@ ${otmsListsFor}
 
   def update = {
     val updateObj = if(table.hasOneToMany) "obj."+table.objName else "obj"
-    val createdAt = if(table.createdAt) ", createdAt = "+table.objName+".createdAt" else ""
+    val createdAt = if(table.createdAt) ", createdAt = obj.createdAt" else ""
+    val inlines = if(table.inlines.length>0) ", "+(table.inlines.map{x => s"""${x.name} = obj.${x.name}"""}.mkString(", ")) else ""
     /*val maniesObj = table.oneToManies.map{ otm =>
 """          formData."""+otm.name+"""s.map{ fData =>
             fData.update(fData.obj.copy("""+table.tableName+"""Id = id))
           }"""
     }.mkString("\n")*/
-    """
+    s"""
   def update(id: Long) = withUserAsync{ user =>  implicit request =>
     repo.byId(id).flatMap { oobj =>
       oobj.map { obj =>
@@ -240,7 +252,7 @@ ${otmsListsFor}
           formWithErrors => {
             Future{Ok(Json.obj("errors" -> formWithErrors.errorsAsJson))}
           }, formData => {
-            formData.update(formData.obj.copy(id = obj.id)).flatMap { _ =>
+            formData.update(formData.obj.copy(id = obj.id${createdAt}${inlines})).flatMap { _ =>
               objectResponse(id)
             }
           }

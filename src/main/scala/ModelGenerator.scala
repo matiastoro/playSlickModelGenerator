@@ -60,7 +60,9 @@ import play.api.libs.json._*/
 
 
     columns.flatMap{ col => col match{
-      case c: Column if !c.synthetic && c.display != DisplayType.Hidden =>
+      case c: Column if c.foreignKey.isDefined && c.foreignKey.get.inline =>
+        List(s""".oneToManyFilterfilter(List(formData.${prefix}${c.fkInlineName}))((x,o) => ${c.foreignKey.get.table}Repo.filter(o).filter(y => y.id=== x.${c.name}).exists)""")
+      case c: Column  =>
 
         c.tpe match {
           case "String" | "Text" =>  List(s""".filteredBy(formData.${prefix}${c.name})((x,y) => x.${c.name}${if(c.optional){""".getOrElse("")"""}else{""}}.toUpperCase like ('%'+y.toUpperCase+'%'))""")
@@ -306,8 +308,11 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
       }
     } else columns
 
+
     val list = columnsWithDate.collect{
-      case c : Column if !c.synthetic && c.display != DisplayType.Hidden => margin+"\""+c.name+"\" -> "+{
+      case c : Column if c.foreignKey.isDefined && c.foreignKey.get.inline =>
+        margin+"\""+c.fkInlineName+s"""" -> models.${c.foreignKey.get.className}${if(filterForm) "Filter" else ""}Form.${if(filterForm) "filterForm" else "form"}.mapping"""
+      case c : Column if (filterForm || (!c.synthetic && c.display != DisplayType.Hidden)) => margin+"\""+c.name+"\" -> "+{
         if(filterForm)
           s"optional(${c.formMappingTpe})"
         else
@@ -323,14 +328,17 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
         else
           margin+"\""+o.name+"s\" -> list(models."+o.className+"Form.form.mapping)"
     }
+
+
     val hasOneToMany = lvl <= 1 //&& table.hasOneToMany
 
 
 
     val optionalList = columnsWithDate.collect{
+      case c: Column if c.foreignKey.isDefined && c.foreignKey.get.inline => if(filterForm) s"""${c.fkInlineName}""" else "0L"
       case c: Column if c.synthetic && !filterForm => "Some(new DateTime())"
       case c: Column if c.display != DisplayType.Hidden => if(!isColumnOneToManyMap(c) || filterForm) c.name else c.name+".getOrElse(0)"
-      case c: Column if c.display == DisplayType.Hidden =>
+      case c: Column if (!filterForm && c.display == DisplayType.Hidden) =>
         if(c.optional && !filterForm)
           "Some("+c.defaultValue+")"
         else
@@ -344,14 +352,16 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
     }.mkString(", ")
 
     val nonSynthList = columnsWithDate.collect{
-      case c: Column if !c.synthetic && c.display != DisplayType.Hidden => c.name
+      case c: Column if c.foreignKey.isDefined && c.foreignKey.get.inline => c.fkInlineName
+      case c: Column if (filterForm || (!c.synthetic && c.display != DisplayType.Hidden)) => c.name
       case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1, filterForm).isDefined) => s.name
       case c: OneToMany => c.name+"s"
     }.mkString(",")
 
     val prefix = if(hasOneToMany && !filterForm) "obj." else ""
     val optionalListObj = columnsWithDate.collect{
-      case c: Column if (!c.synthetic && c.display != DisplayType.Hidden)   => if(!isColumnOneToManyMap(c) ||  filterForm) "formData."+prefix+c.name else "Some(formData."+prefix+c.name+")"
+      case c: Column if c.foreignKey.isDefined && c.foreignKey.get.inline => "formData."+c.fkInlineName
+      case c: Column if (filterForm || (!c.synthetic && c.display != DisplayType.Hidden))  => if(!isColumnOneToManyMap(c) ||  filterForm) "formData."+prefix+c.name else "Some(formData."+prefix+c.name+")"
       case s @ SubClass(name, cols) if(getFields(cols, s.className, lvl+1, filterForm).isDefined) => "formData."+prefix+s.name
       case o: OneToMany => "formData."+o.name+"s"
     }.mkString(", ")
@@ -361,7 +371,7 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 
     val embeddedStart = if(hasOneToMany && !filterForm) table.className+"""FormData(""" else ""
 
-    val embeddedEnd = if(hasOneToMany && !filterForm) (if(table.hasOneToMany) ", " else "")+table.oneToManies.map{otm => otm.name+"s"}.mkString(", ")+")" else ""
+    val embeddedEnd = if(hasOneToMany && !filterForm) (if(table.hasOneToMany) ", " else "")+(table.inlines.map{i => i.fkInlineName}++table.oneToManies.map{otm => otm.name+"s"}).mkString(", ")+")" else ""
 
     val optionalMapping = List(margin_1+(if(advancedForm) "" else "/*")+"""(("""+nonSynthList+""") => {""",
       margin_1+"  "+embeddedStart+classNameStr+"""("""+optionalList+""")"""+embeddedEnd,
@@ -393,12 +403,27 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
     (List((otm.foreignTable, otm.className)) ++ otms).toSet.toList
   }
 
+  def getInlineRepos(c: Column): List[(String, String)] = {
+    //search for table
+    val otms = tables.find(t => t.yamlName == c.foreignKey.get.table).map{ t =>
+      if(t.inlines.length>0){
+        t.inlines.flatMap { otm =>
+          getInlineRepos(otm)
+        }
+      } else List()
+    }.getOrElse(List())
+    //println("para ", otm, "encontre, ",otms)
+    (List((c.foreignKey.get.tableName
+      , c.foreignKey.get.className)) ++ otms).toSet.toList
+  }
+
   /*def hasOneToManies(otm: OneToMany): Boolean = {
 
   }*/
 
   def formData(): String = {
     val otms: String = if(table.oneToManies.size>0) ", "+table.oneToManies.map{otm => otm.foreignTable+"s: List["+otm.className+"FormData]"}.mkString(", ") else ""
+    val inlines: String = if(table.inlines.size>0) ", "+table.inlines.map{i => i.fkInlineName+": "+i.foreignKey.get.className+"FormData"}.mkString(", ") else ""
     val otmsUpdates = table.oneToManies.map{otm =>
       "    //Delete elements that are not part of the form but they do exists in the database.\n"+
       """    """+otm.foreignTable+"""Repo.by"""+table.className+"""Id(obj.id).map{ l =>  l.filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.foreignTable+"""Repo.delete(_)}}"""+"\n"+
@@ -406,24 +431,39 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
     }.mkString("\n")
     val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.tableName+"""Id = id))}""" }.mkString("++")
 
+
+
     val otmsRepos = if(table.oneToManies.length>0){
       ", "+table.oneToManies.flatMap { otm =>
         getOneToManyRepos(otm).map(p => p._1+"Repo: "+p._2+"Repository")
       }.mkString(", ")
     } else ""
 
+    val inlineRepos = if(table.inlines.length>0){
+      ", "+table.inlines.flatMap { otm =>
+        getInlineRepos(otm).map(p => p._1+"Repo: "+p._2+"Repository")
+      }.mkString(", ")
+    } else ""
 
-    val alternativeConstructor = if(table.oneToManies.size>0){
+
+
+
+    val alternativeConstructor = if(table.oneToManies.size>0 || table.inlines.size>0){
       val otmsLists = table.oneToManies.map{otm =>
         """      """+otm.foreignTable+"""s <- """+otm.foreignTable+"""Repo.by"""+table.className+"""Id(obj.id).flatMap(l => Future.sequence(l.map("""+otm.className+"""FormData.fapply(_))))"""
       }.mkString("\n")
-      val otmsArgs = table.oneToManies.map{otm => otm.foreignTable+"s.toList"}.mkString(", ")
+      val inlinesLists = table.inlines.map{i =>
+        """      """+i.fkInlineName+""" <- """+i.foreignKey.get.tableName+s"""Repo.byId(obj.${i.name}).flatMap(x => ${i.foreignKey.get.className}FormData.fapply(x.getOrElse(${i.foreignKey.get.className}())))"""
+      }.mkString("\n")
+      val args = (table.inlines.map{i => i.fkInlineName} ++ table.oneToManies.map{otm => otm.foreignTable+"s.toList"}).mkString(", ")
+
 """object """+table.className+"""FormData{
-  def fapply(obj: """+table.className+s""")(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
+  def fapply(obj: """+table.className+s""")(implicit repo: ${table.className}Repository${inlineRepos}${otmsRepos}, ec: ExecutionContext) = {
     for{
+"""+inlinesLists+"""
 """+otmsLists+"""
     } yield{
-      new """+table.className+"""FormData(obj, """+otmsArgs+""")
+      new """+table.className+s"""FormData(obj, """+args+""")
     }
   }
 }"""
@@ -436,6 +476,13 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
   }
 }"""
 
+    val inlineTypedArgs = table.inlines.map{c => c.name+ ": Long"}.mkString(", ")
+    val inlineArgs = table.inlines.map{c => c.name}.mkString(", ")
+    val inlineInserts = table.inlines.map{ c =>
+      s"""${c.name} <- ${c.fkInlineName}.insert(${c.fkInlineName}.obj)"""
+    }.map{"      "+_}.mkString("\n")
+
+    val copyInlines = if(table.inlines.size>0) s""".copy(${table.inlines.map{i => s"""${i.name} = ${i.name}"""}.mkString(", ")})""" else ""
 
     val attachmentsUpdate = if(attachments.length>0)
       s"""
@@ -445,18 +492,25 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
       val attachments = _root_.util.FileUtil.moveJsonFiles(insertedObj.attachments, "neo_aerodrome/"+id)
       repo.update(insertedObj.copy(attachments = attachments, id=Some(id)))""" else ""
     """
-case class """+table.className+"""FormData(obj: """+table.className+otms+"""){
-  def update(updatedObj: """+table.className+s""" = obj)(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
+case class """+table.className+"""FormData(obj: """+table.className+inlines+otms+"""){
+  def update(updatedObj: """+table.className+s""" = obj)(implicit repo: ${table.className}Repository${inlineRepos}${otmsRepos}, ec: ExecutionContext) = {
 """+otmsUpdates+s"""
    ${attachmentsUpdate}
     """+s"""repo.${langHash("updateOrInsert")}(updatedObj)
   }
-  def insert(insertedObj: """+table.className+s""")(implicit repo: ${table.className}Repository${otmsRepos}, ec: ExecutionContext) = {
-    repo.${langHash("insert")}(insertedObj).flatMap{ id=>${attachmentsInsert}
-  """+(if(otmsInserts.length>0){ s"""    Future.sequence(${otmsInserts}).map{ x =>
-        id
+  def insert(insertedObj: """+table.className+s""")(implicit repo: ${table.className}Repository${inlineRepos}${otmsRepos}, ec: ExecutionContext) = {
+    def fid = (${inlineTypedArgs}) => { repo.${langHash("insert")}(insertedObj${copyInlines}).flatMap{ id=>${attachmentsInsert}
+  """+(if(otmsInserts.length>0){ s"""      Future.sequence(${otmsInserts}).map{ x =>
+          id
+        }
+    """} else {"""      Future{id}"""}) + s"""
       }
-    """} else {"""    Future{id}"""}) + """
+    }
+    for{
+${inlineInserts}
+      id <- fid(${inlineArgs})
+    } yield {
+      id
     }
   }
 }
@@ -485,6 +539,7 @@ object """+table.className+s"""Form{
       case c => List(c)
     }
     val cols = colsWithDoubleDate.collect{
+      case c: Column if c.foreignKey.isDefined && c.foreignKey.get.inline => c.fkInlineName+s""": ${c.foreignKey.get.className}Filter = ${c.foreignKey.get.className}Filter()"""
       case c: Column => c.name+": Option["+c.tpeFixed+"] = None"
       case c: SubClass => c.name+": "+s"${className}PartitionFilter.${c.className}Filter"
       case c: OneToMany => s"""${c.foreignTable}s: List[${c.className}Filter] = List()"""

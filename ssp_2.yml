@@ -120,16 +120,7 @@ neo_aerodrome:
   id: ~
   reporting_entity_id: {type: integer, foreignTable: reporting_entity, required: true, foreignReference: id, onDelete: cascade}
   reporting_entity_name: {type: varchar, size: 255, required: true}
-  general_information:
-    when: {type: timestamp, required: true}
-    when_local: {type: timestamp, required: false}
-    where_state_area_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: cascade}
-    where_location_name: {type: varchar, size: 255, required: true}
-    where_latitude_occ: {type: varchar, size: 255, required: false}
-    where_longitude_occ: {type: varchar, size: 255, required: false}
-    what_headline: {type: varchar, size: 255, required: true}
-    what_narrative_languaje: {type: varchar, size: 255, required: true}
-    what_narrative: {type: longvarchar, required: true}
+  general_information_id: {type: integer, foreignTable: neo_general_information, required: true, foreignReference: id, onDelete: cascade, inline: true}
   aerodrome_description:
     aerodrome_id:  {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: cascade, displayField: icaoCode}
     aerodrome_location_id: {type: integer, foreignTable: aerodrome_location, required: true, foreignReference: id, onDelete: set null, displayField: location}
@@ -280,27 +271,32 @@ neo_flight_operation_event_type_phase:
   neo_event_type_id: {type: integer, foreignTable: neo_event_type, required: true, foreignReference: id, onDelete: cascade, displayField: event_type}
   phase_id: {type: integer, foreignTable: phase, required: true, foreignReference: id, onDelete: cascade, displayField: phase}
 
+neo_general_information:
+  id: ~
+  when: {type: timestamp, required: true}
+  when_local: {type: timestamp, required: false}
+  where_state_area_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: cascade}
+  where_location_name: {type: varchar, size: 255, required: true}
+  where_latitude_occ: {type: varchar, size: 255, required: false}
+  where_longitude_occ: {type: varchar, size: 255, required: false}
+  what_headline: {type: varchar, size: 255, required: true}
+  what_narrative_languaje: {type: varchar, size: 255, required: true}
+  what_narrative: {type: longvarchar, required: true}
+
+neo_aircraft_identification:
+  id: ~
+  state_of_registry_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: set null}
+  registration: {type: varchar, size: 255, required: true}
+  manufacturer_model_id: {type: integer, foreignTable: aircraft_manufacturer_model, required: true, foreignReference: id, onDelete: set null, displayField: manufacturer_model}
+  serial_number: {type: varchar, size: 255, required: true}
+  year_built: {type: integer, required: false}
 
 neo_flight_operation:
   id: ~
   reporting_entity_id: {type: integer, foreignTable: reporting_entity, required: true, foreignReference: id, onDelete: cascade}
   reporting_entity_name: {type: varchar, size: 255, required: true}
-  general_information:
-    when: {type: timestamp, required: true}
-    when_local: {type: timestamp, required: false}
-    where_state_area_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: cascade}
-    where_location_name: {type: varchar, size: 255, required: true}
-    where_latitude_occ: {type: varchar, size: 255, required: false}
-    where_longitude_occ: {type: varchar, size: 255, required: false}
-    what_headline: {type: varchar, size: 255, required: true}
-    what_narrative_languaje: {type: varchar, size: 255, required: true}
-    what_narrative: {type: longvarchar, required: true}
-  aircraft_identification:
-    state_of_registry_id: {type: integer, foreignTable: state_area, required: true, foreignReference: id, onDelete: set null}
-    registration: {type: varchar, size: 255, required: true}
-    manufacturer_model_id: {type: integer, foreignTable: aircraft_manufacturer_model, required: true, foreignReference: id, onDelete: set null, displayField: manufacturer_model}
-    serial_number: {type: varchar, size: 255, required: true}
-    year_built: {type: integer, required: false}
+  general_information_id: {type: integer, foreignTable: neo_general_information, required: true, foreignReference: id, onDelete: cascade, inline: true}
+  aircraft_identification_id: {type: integer, foreignTable: neo_aircraft_identification, required: true, foreignReference: id, onDelete: cascade, inline: true}
   aircraft_description:
     category_id: {type: integer, foreignTable: aircraft_category, required: true, foreignReference: id, onDelete: set null, displayField: category}
     mass_group_id: {type: integer, foreignTable: aircraft_mass_group, required: true, foreignReference: id, onDelete: set null, displayField: mass_group}
@@ -374,3 +370,54 @@ eccairs:
   operator_type_id: {type: integer, foreignTable: operator_type, required: false, foreignReference: id, onDelete: set null}
   operator_id: {type: integer, foreignTable: operator, required: false, foreignReference: id, onDelete: set null}
   weather_condition_id: {type: integer, foreignTable: weather_condition, required: false, foreignReference: id, onDelete: set null}
+
+
+company:
+  id: ~
+  company: {type: varchar, size: 255, required: true}
+  oscar_id: {type: varchar, size: 255, required: false}
+  state: {type: integer, required: false}
+  service_provider_id: {type: integer, foreignTable: service_provider, required: true, foreignReference: id, onDelete: set null, displayField: service_provider}
+
+service_provider:
+  id: ~
+  service_provider: {type: varchar, size: 255, required: true}
+
+sms_indicator_category:
+  id: ~
+  category: {type: varchar, size: 255, required: true}
+  service_provider_id: {type: integer, foreignTable: service_provider, required: true, foreignReference: id, onDelete: set null, displayField: service_provider}
+
+sms_indicator_severity:
+  id: ~
+  severity: {type: varchar, size: 255, required: true}
+  meaning: {type: longvarchar, required: true}
+
+sms_indicator_goal:
+  id: ~
+  year: {type: integer, required: true}
+  numerator: {type: double, required: false}
+  denominator: {type: double, required: false}
+  average: {type: double, required: false}
+  indicator_id: {type: integer, foreignTable: sms_indicator, required: true, foreignReference: id, onDelete: set null, displayField: indicator}
+  company_id: {type: integer, foreignTable: company, required: true, foreignReference: id, onDelete: set null, displayField: company}
+  indicator_severity_id: {type: integer, foreignTable: sms_indicator_severity, required: false, foreignReference: id, onDelete: set null, displayField: severity}
+  sd: {type: double, required: false}
+
+sms_indicator:
+  id: ~
+  indicator: {type: varchar, size: 255, required: true}
+  numerator_description: {type: longvarchar, required: true}
+  denominator_description: {type: longvarchar, required: true}
+  indicator_category_id: {type: integer, foreignTable: sms_indicator_category, required: false, foreignReference: id, onDelete: set null, displayField: category}
+
+sms_indicator_log:
+  id: ~
+  year: {type: integer, required: true}
+  month: {type: integer, required: true}
+  numerator: {type: double, required: true}
+  denominator: {type: double, required: true}
+  indicator_id: {type: integer, foreignTable: sms_indicator, required: true, foreignReference: id, onDelete: set null, displayField: indicator}
+  company_id: {type: integer, foreignTable: company, required: true, foreignReference: id, onDelete: set null, displayField: company}
+  created_at: ~
+  updated_at: ~

@@ -1,0 +1,10 @@
+sms_alarm:
+  id: ~
+  year: {type: integer, required: true}
+  category: {type: integer, required: true}
+  state: {type: integer, required: true}
+  indicator_id: {type: integer, foreignTable: sms_indicator, required: true, foreignReference: id, onDelete: set null, displayField: indicator}
+  company_id: {type: integer, foreignTable: company, required: true, foreignReference: id, onDelete: set null, displayField: company}
+  close_date: {type: date, required: false}
+  created_at: ~
+  updated_at: ~
