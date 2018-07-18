@@ -11,22 +11,44 @@ case class ControllerGenerator(table: Table, tablesOneToMany: List[Table] = List
 
   def attachments = table.columns.filter{ case c: Column => c.tpe=="Attachment"; case _ => false}
 
+
+
   def getOneToManyRepos(otm: OneToMany): List[(String, String)] = {
     //search for table
     val otms = tables.find(t => t.yamlName == otm.rawForeignTable).map{ t =>
-      if(t.oneToManies.length>0){
+      val r = if(t.oneToManies.length>0){
         t.oneToManies.flatMap { otm =>
           getOneToManyRepos(otm)
         }
       } else List()
+
+      r ++ t.inlines.flatMap(c => getInlineRepos(c))
     }.getOrElse(List())
     //println("para ", otm, "encontre, ",otms)
     (List((otm.foreignTable, otm.className)) ++ otms).toSet.toList
   }
 
+  def getInlineRepos(c: Column): List[(String, String)] = {
+    //search for table
+    val otms = tables.find(t => t.yamlName == c.foreignKey.get.table).map{ t =>
+      val r = if(t.inlines.length>0){
+        t.inlines.flatMap { otm =>
+          getInlineRepos(otm)
+        }
+
+      } else List()
+
+      r ++ t.oneToManies.flatMap(c => getOneToManyRepos(c))
+    }.getOrElse(List())
+    //println("para ", otm, "encontre, ",otms)
+    (List((c.foreignKey.get.tableName
+      , c.foreignKey.get.className)) ++ otms).toSet.toList
+  }
+
 
   def generate: String = {
-    val rels = (table.foreignKeys.map{fk => (fk.table, fk.className)} ++
+    val rels = (table.foreignKeys.map{fk => (fk.tableName, fk.className)} ++
+      table.inlines.flatMap(c => getInlineRepos(c)) ++
     table.oneToManies.flatMap{otm => getOneToManyRepos(otm)}).toSet
     val frels = rels.filter(r => r._2 != table.className)
 
@@ -142,7 +164,7 @@ import play.api.i18n.Messages"""+(if(isMany) "\nimport play.api.data.Field" else
 
   def fksJson(body: String) = {
     val rows = table.foreignKeys.map{fk =>
-      val fkTable = if(fk.table == table.yamlName) "repo" else (fk.table+"Repo")
+      val fkTable = if(fk.table == table.yamlName) "repo" else (fk.tableName+"Repo")
     "      "+fk.tableName+"s <- "+fkTable+s".${langHash("getAll")}"
   }.mkString("\n")
     if(table.foreignKeys.length>0){
@@ -200,7 +222,7 @@ ${rows}
       }
 
       val inlinesListsFor = table.inlines.map{inline =>
-        s"""          ${inline.fkInlineName} <- ${inline.foreignKey.get.table}Repo.byId(obj.${inline.name})"""
+        s"""          ${inline.fkInlineName} <- ${inline.foreignKey.get.tableName}Repo.byId(obj.${inline.name})"""
       }.mkString("\n")
 
 
