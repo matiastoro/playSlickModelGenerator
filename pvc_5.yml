@@ -1,0 +1,38 @@
+departamento:
+  id:
+  departamento: {type: varchar, size: 255}
+  departamento_id: {type: integer, foreignTable: departamento, foreignReference: id onDelete: cascade}
+
+
+programa:
+  id: ~
+  programa: {type: varchar, size:255, required: true}
+  acronimo: {type: varchar, size:255, required: true}
+  departamento_id: {type: integer, foreignTable: departamento, foreignReference: id, required: false}
+
+
+
+actividad:
+  id:
+  actividad:        { type: varchar, size: 255 }
+  estado:           { type: integer }
+  orden:            { type: integer }
+  numero_inspectores: { type: integer }
+  programada:       { type: boolean }
+  bloque_horario_id: {type: integer, required: false}
+  duracion: {type: integer, required: false}
+  tipo_actividad_id: { type: integer, required: false}
+  mes: {type: integer, required: false}
+  anio: {type: integer, required: false}
+  observaciones: {type: varchar(255), required: false}
+  inspecciones: { type: oneToMany, foreignTable: inspeccion}
+
+
+inspeccion:
+  id: ~
+  inspeccion:       { type: varchar, size: 255, required: true }
+  fecha_inicio:     { type: datetime, required: false}
+  fecha_termino:    { type: datetime, required: false}
+  programa_id:      { type: integer, required: false, foreignTable: programa, foreignReference: id, onDelete: cascade}
+  actividad_id:     { type: integer, required: false, foreignTable: actividad, foreignReference: id, onDelete: cascade}
+  estado:           { type: integer, required: true}
