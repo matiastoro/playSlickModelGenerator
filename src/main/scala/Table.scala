@@ -65,6 +65,14 @@ case class Table(yamlName: String, args: ListMap[String, Any])(implicit langHash
 
   }
 
+  def backRef(otm: OneToMany, tables: List[Table]) = {
+    tables.find(t => t.yamlName == otm.rawForeignTable).headOption.flatMap{ t =>
+      t.columns.collect{
+        case c: Column if c.foreignKey.isDefined && c.foreignKey.get.table == yamlName => c.name
+      }.headOption
+    }.getOrElse(className+"Id")
+  }
+
   def getColumns(columnsMap: ListMap[String, Any])(implicit lang:String): List[AbstractColumn] = {
     columnsMap.map{
       case (col, props) =>

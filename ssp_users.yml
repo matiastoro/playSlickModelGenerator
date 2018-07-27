@@ -1,0 +1,22 @@
+profile:
+  id: ~
+  profile: {type: varchar, size: 255}
+
+user_company:
+  id: ~
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+  company_id: {type: integer, foreignTable: company, required: true, foreignReference: id, onDelete: cascade}
+
+user:
+  id: ~
+  username: {type: varchar, size: 255}
+  password: {type: varchar, size: 255}
+  name: {type: varchar, size: 255}
+  email: {type: varchar, size: 255}
+  profiles: { type: oneToMany, foreignTable: profile_user}
+  companies: {type: oneToMany, foreignTable: user_company}
+
+profile_user:
+  id: ~
+  profile_id: {type: integer, foreignTable: profile, required: true, foreignReference: id, onDelete: cascade}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}

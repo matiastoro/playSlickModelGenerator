@@ -1,5 +1,6 @@
 sms_alarm:
   id: ~
+  triggered_at: {type: integer, required: true}
   year: {type: integer, required: true}
   category: {type: integer, required: true}
   state: {type: integer, required: true}

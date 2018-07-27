@@ -27,7 +27,7 @@ departamento_usuario:
 tipo_inspector:
   id: ~ 
   tipo: {type: varchar, size:255}
-usuario_tipo_inspector:
+usuario_tdpo_inspector:
   id: ~
   usuario_id: {type: integer, foreignTable: usuario, required: true, foreignReference: id, onDelete: cascade}
   tipo_inspector_id: {type: integer, foreignTable: tipo_inspector, required: true, foreignReference: id, onDelete: cascade} 

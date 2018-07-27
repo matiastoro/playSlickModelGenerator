@@ -1,0 +1,41 @@
+mgvso_sta_hallazgo:
+  id: ~
+  target_id: {type: integer, required: true}
+  data: {type: longvarchar}
+
+mgvso_sta_actividad:
+  id: ~
+  target_id: {type: integer, required: true}
+  data: {type: longvarchar}
+
+mgvso_sta_inspeccion:
+  id: ~
+  target_id: {type: integer, required: true}
+  data: {type: longvarchar}
+
+mgvso_tdi_archivo:
+  id: ~
+  tdi_id: {type: long, foreignTable: mgvso_tdi, required: true, foreignReference: id, onDelete: cascade, displayField: tarea}
+  descripcion: {type: varchar, size: 255, required: true}
+  archivo: {type: varchar, size: 255, required: true}
+
+mgvso_tdi:
+  id: ~
+  creador_id: {type: long, required: true}
+  tarea: {type: varchar, size: 255, required: true}
+  tipo: {type: integer, required: true}
+  estado: {type: integer, required: true}
+  fecha_creacion: {type: datetime, required: true}
+  cuando: {type: datetime, required: false}
+  donde: {type: varchar, size: 255, required: false}
+  motivo: {type: varchar, size: 255, required: false}
+  objetivos_pre: {type: varchar, size: 255, required: false}
+  objetivos_post: {type: varchar, size: 255, required: false}
+  respuesta: {type: varchar, size: 255, required: false}
+  fecha_respuesta: {type: datetime, required: false}
+  hallazgo_id: {type: long, required: true},
+  departamento_id: {type: long, required: false}
+  responsable_id: {type: long, required: false}
+  plazo_resolucion: {type: datetime, required: false}
+  archivos: { type: oneToMany, foreignTable: mgvso_tdi_archivo}
+

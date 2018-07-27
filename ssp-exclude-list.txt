@@ -1,8 +1,4 @@
-User*
 Eccairs*
-Profile*
-user/
-profile*
 eccairs*
 company
 sms_indicator

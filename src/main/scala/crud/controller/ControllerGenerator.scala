@@ -192,7 +192,8 @@ ${rows}
       }
 
       val otmsListsFor = table.oneToManies.map{otm =>
-        s"""          ${otm.lstName} <- ${otm.foreignTable}Repo.by${table.className}Id(obj.id)"""
+
+        s"""          ${otm.lstName} <- ${otm.foreignTable}Repo.by${table.backRef(otm, tables).capitalize}(obj.id)"""
       }.mkString("\n")
 
       val inlinesLists = table.inlines.map{inline =>

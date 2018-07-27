@@ -426,10 +426,10 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
     val inlines: String = if(table.inlines.size>0) ", "+table.inlines.map{i => i.fkInlineName+": "+i.foreignKey.get.className+"FormData"}.mkString(", ") else ""
     val otmsUpdates = table.oneToManies.map{otm =>
       "    //Delete elements that are not part of the form but they do exists in the database.\n"+
-      """    """+otm.foreignTable+"""Repo.by"""+table.className+"""Id(obj.id).map{ l =>  l.filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.foreignTable+"""Repo.delete(_)}}"""+"\n"+
-      """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.tableName+"""Id = obj.id.get))}"""
+      """    """+otm.foreignTable+"""Repo.by"""+table.backRef(otm, tables).capitalize+"""(obj.id).map{ l =>  l.filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.foreignTable+"""Repo.delete(_)}}"""+"\n"+
+      """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.backRef(otm, tables)+""" = obj.id.get))}"""
     }.mkString("\n")
-    val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.tableName+"""Id = id))}""" }.mkString("++")
+    val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.backRef(otm, tables)+""" = id))}""" }.mkString("++")
 
 
 
@@ -450,7 +450,7 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 
     val alternativeConstructor = if(table.oneToManies.size>0 || table.inlines.size>0){
       val otmsLists = table.oneToManies.map{otm =>
-        """      """+otm.foreignTable+"""s <- """+otm.foreignTable+"""Repo.by"""+table.className+"""Id(obj.id).flatMap(l => Future.sequence(l.map("""+otm.className+"""FormData.fapply(_))))"""
+        """      """+otm.foreignTable+"""s <- """+otm.foreignTable+"""Repo.by"""+table.backRef(otm, tables).capitalize+"""(obj.id).flatMap(l => Future.sequence(l.map("""+otm.className+"""FormData.fapply(_))))"""
       }.mkString("\n")
       val inlinesLists = table.inlines.map{i =>
         """      """+i.fkInlineName+""" <- """+i.foreignKey.get.tableName+s"""Repo.byId(obj.${i.name}).flatMap(x => ${i.foreignKey.get.className}FormData.fapply(x.getOrElse(${i.foreignKey.get.className}())))"""
@@ -482,8 +482,9 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
       s"""${c.name} <- ${c.fkInlineName}.insert(${c.fkInlineName}.obj)"""
     }.map{"      "+_}.mkString("\n")
 
-    val copyInlines = if(table.inlines.size>0) s""".copy(${table.inlines.map{i => s"""${i.name} = ${i.name}"""}.mkString(", ")})""" else ""
 
+    val copyInlines = if(table.inlines.size>0) s""".copy(${table.inlines.map{i => s"""${i.name} = ${i.name}"""}.mkString(", ")})""" else ""
+    println(copyInlines)
     val attachmentsUpdate = if(attachments.length>0)
       s"""
          |    val attachments = _root_.util.FileUtil.moveJsonFiles(updatedObj.attachments, "neo_aerodrome/"+obj.id.getOrElse(0L))""".stripMargin else ""

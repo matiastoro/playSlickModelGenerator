@@ -1,0 +1,31 @@
+sarsev_form:
+  id: ~
+  sarsev_id: {type: long, required: true}
+  code: {type: varchar, required: true}
+  event_at: {type: datetime, required: false}
+  description: {type: longvarchar, required: false}
+  state_id: {type: long, foreignTable: sarsev_state, required: false, foreignReference: id, onDelete: cascade, displayField: state}
+  created_at: {type: datetime, required: false}
+  closed_at: {type: datetime, required: false}
+  user: {type: varchar, required: false}
+  events: { type: oneToMany, foreignTable: sarsev_event}
+
+sarsev_event:
+  id: ~
+  sarsev_id: {type: long, required: true}
+  tpe_id: {type: long, foreignTable: sarsev_tpe, required: true, foreignReference: id, onDelete: cascade, displayField: tpe}
+  form_id: {type: long, foreignTable: sarsev_form, required: true, foreignReference: id, onDelete: cascade, displayField: code}
+  user: {type: varchar, required: false}
+  state_id: {type: long, foreignTable: sarsev_state, required: true, foreignReference: id, onDelete: cascade, displayField: state}
+  text: {type: longvarchar, required: true}
+  created_at: {type: datetime, required: true}
+
+
+sarsev_state:
+  id: ~
+  state: {type: varchar, size: 255, required: true}
+
+
+sarsev_tpe:
+  id: ~
+  tpe: {type: varchar, size: 255, required: true}
