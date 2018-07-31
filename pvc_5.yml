@@ -1,5 +1,11 @@
+usuario:
+  id: ~
+  nombre: {type: varchar, size: 255}
+  email: {type: varchar, size: 255}
+
+
 departamento:
-  id:
+  id: ~
   departamento: {type: varchar, size: 255}
   departamento_id: {type: integer, foreignTable: departamento, foreignReference: id onDelete: cascade}
 
@@ -36,3 +42,29 @@ inspeccion:
   programa_id:      { type: integer, required: false, foreignTable: programa, foreignReference: id, onDelete: cascade}
   actividad_id:     { type: integer, required: false, foreignTable: actividad, foreignReference: id, onDelete: cascade}
   estado:           { type: integer, required: true}
+
+
+hallazgo_clasificacion:
+  id: ~
+  hallazgo_clasificacion: {type: varchar, size: 255, required: true}
+
+hallazgo_hallazgo_clasificacion:
+  id: ~
+  hallazgo_clasificacion_id: { type: integer, required: true, foreignTable: hallazgo_clasificacion, foreignReference: id, onDelete: cascade}
+  hallazgo_id: { type: integer, required: true, foreignTable: hallazgo, foreignReference: id, onDelete: cascade}
+
+hallazgo:
+  id: ~
+  hallazgo: {type: varchar, size: 255}
+  fecha_deteccion: {type: datetime, required: true}
+  fecha_cierre: {type: datetime, required: false}
+  estado: {type: integer, required: true}
+  gravedad: {type: integer, required: false}
+  fecha_respuesta: {type: datetime, required: false}
+  usuario_id: {type: integer, required: false, foreignTable: usuario, foreignReference: id, onDelete: cascade, displayField: nombre}
+  inspecion_id:  {type: integer, required: false, foreignTable: programa, foreignReference: id, onDelete: cascade}
+  cartilla_pregunta_id: {type: integer, required: false, foreignTable: cartilla_pregunta, foreignReference: id, onDelete: cascade}
+  clasificaciones: {type: oneToMany, foreignTable: hallazgo_hallazgo_clasificacion}
+
+
+
