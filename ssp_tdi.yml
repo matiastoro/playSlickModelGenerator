@@ -1,0 +1,5 @@
+
+mgvso_sta_tdi:
+  id: ~
+  target_id: {type: integer, required: true}
+  data: {type: longvarchar}

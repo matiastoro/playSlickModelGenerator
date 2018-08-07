@@ -92,7 +92,6 @@ ocurrence_category:
 
 party_informed:
   id: ~
-  code: {type: varchar, size: 20, required: true}
   party_informed: {type: varchar, size: 255, required: true}
 
 neo_aerodrome_ocurrence_category:
@@ -361,13 +360,20 @@ neo_report_history:
 
 neo_contact_details:
   id: ~
-  organization: {type: varchar, size: 255, required: true}
+  company_id: {type: integer, foreignTable: company, required: true, foreignReference: id, onDelete: set null, displayField: company}
   name: {type: varchar, size: 255, required: true}
   telephone: {type: varchar, size: 255, required: true}
   email: {type: varchar, size: 255, required: true}
 
+user:
+  id: ~
+  username: {type: varchar, size: 255}
+  password: {type: varchar, size: 255}
+  name: {type: varchar, size: 255}
+  email: {type: varchar, size: 255}
 neo_flight_operation:
   id: ~
+  user_id: {type: integer, foreignTable: user, required: false, foreignReference: id, onDelete: cascade}
   reporting_entity_id: {type: integer, foreignTable: reporting_entity, required: true, foreignReference: id, onDelete: cascade}
   reporting_entity_name: {type: varchar, size: 255, required: true}
   general_information_id: {type: integer, foreignTable: neo_general_information, required: true, foreignReference: id, onDelete: cascade, inline: true}
