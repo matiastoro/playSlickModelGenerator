@@ -215,3 +215,21 @@ silla6_contacto:
     zona: { type: integer, options:[{key: 1, value: Zona norte de Chile},{key: 2, value: Zona centro de Chile},{key: 3, value: Zona sur de Chile},{key: 4, value: Solo región metropolitana},{key: 5, value: Todas las zonas}] }
     comentarios: { type: longvarchar, required: false}
     archivo: {type: varchar, required: false}
+
+contacto_gestion_inmobiliaria:
+  id: ~
+  created_at: ~
+  updated_at: ~
+  contacto:
+    nombre: {type: varchar, size: 255, required: true}
+    email: {type: varchar, size: 255, required: true}
+    telefono: {type: varchar, size: 255, required: true}
+    ciudad: {type: varchar, size: 255, required: true}
+    comuna: {type: varchar, size: 255, required: true}
+    pagina_web: {type: varchar, size: 255, required: false}
+  datos_gestion:
+    perfil_tipo: { type: varchar, multiple: true, options:[{key: 1, value: Corredor de Propiedades para Venta y Arriendo},{key: 2, value: Corredor de Propiedades solo Venta},{key: 3, value: Corredor de Propiedades solo Arriendo},{key: 4, value: Corredor de Propiedades solo tipo Comerciales},{key: 5, value: Corredor de Propiedades solo tipo Terrenos},{key: 6, value: Corredor de Propiedades solo tipo Galpón/Bodegas},{key: 7, value: Administración de Propiedades},{key: 8, value: Captador de Propiedades}] }
+    contacto_tipo: { type: varchar, multiple: true, options:[{key: 1, value: Contacto vía email},{key: 2, value: Contacto telefónico},{key: 3, value: Recibir alternativas conforme a mi perfil}] }
+    zona: { type: integer, multiple: true, options:[{key: 1, value: Zona norte de Chile},{key: 2, value: Zona centro de Chile},{key: 3, value: Zona sur de Chile},{key: 4, value: Solo región metropolitana},{key: 5, value: Todas las zonas}] }
+    descripcion_curricular: { type: longvarchar, required: false}
+    archivo: {type: varchar, required: false}
