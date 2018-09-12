@@ -40,6 +40,7 @@ propiedad:
   active: {type: boolean, required: true, default: true, hidden: true}
   patrocinado:
     patrocinado: {type: boolean, required: true, default: false}
+    resultado_busqueda: {type: boolean, required: true, default: true}
     imagen_patrocinado: {type: varchar}
     orden: {type: integer, required: false}
 
