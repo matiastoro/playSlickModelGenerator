@@ -141,7 +141,7 @@ ${filters}
           }
           //if(c.default.isDefined) " = "+ c.default.get else ""
         }+" /*"+c.display.toString()+"*/"
-        case c: SubClass => c.name+": "+s"${className}Partition.${c.className}"
+        case c: SubClass => c.name+": "+s"${className}Partition.${c.className} = ${className}Partition.${c.className}()"
       }
 
 
@@ -393,11 +393,13 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
   def getOneToManyRepos(otm: OneToMany): List[(String, String)] = {
     //search for table
     val otms = tables.find(t => t.yamlName == otm.rawForeignTable).map{ t =>
-      if(t.oneToManies.length>0){
+      val r = if(t.oneToManies.length>0){
         t.oneToManies.flatMap { otm =>
           getOneToManyRepos(otm)
         }
       } else List()
+
+      r ++ t.inlines.flatMap(c => getInlineRepos(c))
     }.getOrElse(List())
     //println("para ", otm, "encontre, ",otms)
     (List((otm.foreignTable, otm.className)) ++ otms).toSet.toList
@@ -406,11 +408,14 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
   def getInlineRepos(c: Column): List[(String, String)] = {
     //search for table
     val otms = tables.find(t => t.yamlName == c.foreignKey.get.table).map{ t =>
-      if(t.inlines.length>0){
+      val r = if(t.inlines.length>0){
         t.inlines.flatMap { otm =>
           getInlineRepos(otm)
         }
+
       } else List()
+
+      r ++ t.oneToManies.flatMap(c => getOneToManyRepos(c))
     }.getOrElse(List())
     //println("para ", otm, "encontre, ",otms)
     (List((c.foreignKey.get.tableName
@@ -542,7 +547,7 @@ object """+table.className+s"""Form{
     val cols = colsWithDoubleDate.collect{
       case c: Column if c.foreignKey.isDefined && c.foreignKey.get.inline => c.fkInlineName+s""": ${c.foreignKey.get.className}Filter = ${c.foreignKey.get.className}Filter()"""
       case c: Column => c.name+": Option["+c.tpeFixed+"] = None"
-      case c: SubClass => c.name+": "+s"${className}PartitionFilter.${c.className}Filter"
+      case c: SubClass => c.name+": "+s"${className}PartitionFilter.${c.className}Filter = ${className}PartitionFilter.${c.className}Filter()"
       case c: OneToMany => s"""${c.foreignTable}s: List[${c.className}Filter] = List()"""
     }
 
