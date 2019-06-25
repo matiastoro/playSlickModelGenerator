@@ -1,0 +1,21 @@
+neo_chile_flight_operation:
+  id: ~
+  when: {type: timestamp, required: true}
+  departure_id: {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: set null, displayField: icaoCode}
+  arrival_id: {type: integer, foreignTable: aerodrome, required: true, foreignReference: id, onDelete: set null, displayField: icaoCode}
+  aircraft_type: {type: varchar, size: 255, required: true}
+  registry: {type: varchar, size: 255, required: true}
+  company_id: {type: integer, foreignTable: company, required: true, foreignReference: id, onDelete: set null, displayField: company}
+  callsign: {type: varchar, size: 255, required: true}
+  pilot: {type: varchar, size: 255, required: true}
+  dan152: {type: integer, foreignTable: neo_chile_dan_152, required: true, foreignReference: id, onDelete: set null, displayField: number}
+  what: {type: longvarchar, required: true}
+  created_at: ~
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: set null, displayField: username}
+
+
+neo_chile_dan_152:
+  id: ~
+  number: {type: integer}
+  name: {type: varchar, size: 255}
+  description: {type: longvarchar}
