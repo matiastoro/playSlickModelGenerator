@@ -1,0 +1,153 @@
+fpl:
+  id:                      ~
+  aircraft_identification: {type: varchar, size: 255}
+  number:                  {type: integer}
+  flight_rules:            {type: varchar, size: 1}
+  fpl:                     {type:  varchar, size: 255 , required: true}
+  type_of_flight:          {type: varchar, size: 1}
+  aircraft:                {type: varchar, size: 6}
+  wake_turbulence:         {type: varchar, size: 1}
+  radiocomm_equipment:     {type: varchar, size: 26}
+  departure_aerodrome:     {type: varchar, size: 4}
+  time_etd:                {type: date, required: false}
+  time_eta:                {type: date, required: false}
+  level:                   {type: varchar, size: 7}
+  route:                   {type: varchar, size: 255}
+  destination_aerodrome:   {type: varchar, size: 4}
+  alternative_aerodrome:   {type: varchar, size: 4}
+  cruising_speed:          {type: varchar, size: 5}
+  endurance:               {type: varchar, size: 255}
+  other_information:       {type: varchar, size: 255}
+
+
+country:
+  id:                 ~
+  country:            { type:  varchar, size: 100 , required: true}
+  image:              { type: varchar, size: 255}
+  url_aip:            { type: varchar, size: 255}
+
+fir:
+  id:                 ~
+  fir:                { type:  varchar, size: 255 , required: true}
+  name:               { type: varchar(255) }
+
+aerodrome_type:
+  id:                 ~
+  aerodrome_type:     { type:  varchar, size: 255, required: true }
+
+operation:
+  id: ~
+  fpl_id:              {type: integer, foreignTable: fpl, foreignReference: id, onDelete: cascade, displayField: fpl}
+  operation_number:    {type: integer}
+  operationType:       {type: varchar(1)}
+  callsign:            {type: varchar(20)}
+  company:             {type: varchar(4)}
+  number:              {type: varchar(8)}
+  activity:            {type: varchar(3)}
+  nacionality:         {type: varchar(1)}
+  r_n:                 {type: varchar(1)}
+  registry:            {type: varchar(20)}
+  aircraft:            {type: varchar(10)}
+  estimated_time:      {type: varchar(4)}
+  time:                {type: varchar(4)}
+  aerodrome:           {type: varchar(4)}
+  aerodrome2:          {type: varchar(4)}
+  state:               {type: integer}
+  created_at: ~
+  updated_at: ~
+
+point:
+  id:                  ~
+  latitude:            {type: double}
+  longitude:           {type: double}
+  altitude:            {type: double}
+  point:               {type: varchar, size: 255, required: true}
+  zone_id:             {type: integer, foreignTable: zone, foreignReference: id, onDelete: set null, displayField: zone }
+  frecuency:           {type: double}
+  elevation:           {type: integer}
+  updated_at: ~
+
+msg_aftn_r:
+  id:                 ~
+  ci:                 {type: varchar(3)}
+  csn:                {type: varchar(4)}
+  time:               {type: varchar(6)}
+  header:             {type: longvarchar}
+  text:               {type: longvarchar}
+  state:              {type: integer}
+  created_at:         ~
+
+msg_aftn_s:
+  id:                 ~
+  ci:                 {type: varchar(3)}
+  csn:                {type: varchar(4)}
+  time:               {type: varchar(6)}
+  priority:           {type: varchar(2)}
+  destination:        {type: longvarchar}
+  source_time:        {type: varchar(6)}
+  header:             {type: longvarchar}
+  text:               {type: longvarchar}
+  state:              {type: integer}
+  created_at:         ~
+
+airway:
+  id: ~
+  airway:            {type: varchar, size:255, required: true}
+  min_fl:            {type: integer, required: false}
+  max_fl:            {type: integer, required: false}
+  updated_at: ~
+  points: { type: oneToMany, foreignTable: airway_point}
+
+zone:
+  id: ~
+  zone:      {type: varchar, size:255, required: true}
+
+airway_point:
+  id:                 ~
+  point_id:           { type: integer, foreignTable: point, foreignReference: id, primaryKey: true, onDelete: cascade,displayField: point }
+  airway_id:          { type: integer, foreignTable: airway, foreignReference: id, primaryKey: true, onDelete: cascade,displayField: airway }
+  point_type_id:      { type: integer, foreignTable: point_type, foreignReference: id, onDelete: cascade, displayField: point_type  }
+  number:             { type: integer}
+
+point_type:
+  id:                 ~
+  point_type:             {type: varchar, size: 255, required: true}
+
+aerodrome:
+  id:                 ~
+  designator_icao:    { type: varchar,  size: 4}
+  designator_iata:    { type: varchar,  size: 4}
+  aerodrome:          { type: varchar, size: 255, required: true}
+  latitude:           { type:  double }
+  longitude:          { type:  double }
+  aftn_address:       { type:  longvarchar}
+  elevation:          { type:  varchar(255) }
+  length:             { type:  varchar, size:255 }
+  public:             { type:  boolean }
+  aerodrome_type_id:  { type: integer, foreignTable: aerodrome_type, foreignReference: id, primaryKey: true, onDelete: cascade , displayField: aerodrome_type}
+  fir_id:             { type: integer, foreignTable: fir, foreignReference: id, primaryKey: true, onDelete: cascade ,  displayField: fir}
+  country_id:         { type: integer, foreignTable: country, foreignReference: id, primaryKey: true, onDelete: cascade , displayField: country}
+  departure_aftn_address:        { type:  longvarchar}
+  destination_aftn_address:      { type:  longvarchar}
+  alternative_aftn_directions:   { type:  longvarchar}
+  service_ats:                   { type: boolean}
+  close:                         { type: boolean}
+  state:                         { type: integer}
+  updated_at:                    ~
+
+user:
+  id: ~
+  username: {type: varchar, size: 255}
+  password: {type: varchar, size: 255}
+  name: {type: varchar, size: 255}
+  email: {type: varchar, size: 255}
+
+profile:
+  id: ~
+  profile: {type: varchar, size: 255}
+
+profile_user:
+  id: ~
+  profile_id: {type: integer, foreignTable: profile, required: true, foreignReference: id, onDelete: cascade}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: cascade}
+
