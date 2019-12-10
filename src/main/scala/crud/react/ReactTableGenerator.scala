@@ -22,7 +22,6 @@ case class ReactTableGenerator(table: Table, tablesOneToMany: List[Table] = List
   def generate: String = {
     val imports = s"""import React from 'react';
 import GTable from '../gforms/GTable'
-import {grey400, darkBlack, lightBlack} from 'material-ui/styles/colors';
 import ${table.className}Filter from './${table.className}Filter'
 
 //inputs de nested
