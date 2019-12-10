@@ -390,32 +390,32 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 
   }
 
-  def getOneToManyRepos(otm: OneToMany): List[(String, String)] = {
+  def getOneToManyRepos(otm: OneToMany, acc: List[String] = List()): List[(String, String)] = {
     //search for table
     val otms = tables.find(t => t.yamlName == otm.rawForeignTable).map{ t =>
-      val r = if(t.oneToManies.length>0){
-        t.oneToManies.flatMap { otm =>
-          getOneToManyRepos(otm)
+      val r = if(acc.indexOf(otm.foreignTable)<0 && t.oneToManies.length>0){
+        t.oneToManies.flatMap { otm2 =>
+          getOneToManyRepos(otm2, otm.foreignTable :: acc)
         }
       } else List()
 
-      r ++ t.inlines.flatMap(c => getInlineRepos(c))
+      r ++ t.inlines.flatMap(c => getInlineRepos(c, otm.foreignTable :: acc))
     }.getOrElse(List())
     //println("para ", otm, "encontre, ",otms)
     (List((otm.foreignTable, otm.className)) ++ otms).toSet.toList
   }
 
-  def getInlineRepos(c: Column): List[(String, String)] = {
+  def getInlineRepos(c: Column, acc: List[String] = List()): List[(String, String)] = {
     //search for table
     val otms = tables.find(t => t.yamlName == c.foreignKey.get.table).map{ t =>
-      val r = if(t.inlines.length>0){
+      val r = if(acc.indexOf(c.foreignKey.get.tableName)<0 && t.inlines.length>0){
         t.inlines.flatMap { otm =>
-          getInlineRepos(otm)
+          getInlineRepos(otm, c.foreignKey.get.tableName :: acc)
         }
 
       } else List()
 
-      r ++ t.oneToManies.flatMap(c => getOneToManyRepos(c))
+      r ++ t.oneToManies.flatMap(c2 => getOneToManyRepos(c2, c.foreignKey.get.tableName :: acc))
     }.getOrElse(List())
     //println("para ", otm, "encontre, ",otms)
     (List((c.foreignKey.get.tableName

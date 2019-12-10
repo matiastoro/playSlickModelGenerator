@@ -20,7 +20,6 @@ case class ReactListGenerator(table: Table, tablesOneToMany: List[Table] = List(
   def generate: String = {
     val imports = s"""import React from 'react';
 import GList from '../gforms/GList'
-import {grey400, darkBlack, lightBlack} from 'material-ui/styles/colors';
 import ${table.className}Filter from './${table.className}Filter'
 
 //inputs de nested

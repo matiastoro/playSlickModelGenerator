@@ -1,0 +1,214 @@
+criterio_impacto:
+  id: ~
+  criterio_impacto: {type: varchar, size: 255, required: true}
+
+
+criterio_probabilidad:
+  id: ~
+  criterio_probabilidad: {type: varchar, size: 255, required: true}
+
+
+criterio_probabilidad_valor:
+  id: ~
+  criterio_probabilidad_id: {type: integer, foreignTable: criterio_probabilidad, required: true, foreignReference: id, onDelete: cascade, displayField: criterio_probabilidad}
+  valor: {type: varchar, size: 255, required: true}
+
+
+criterio_impacto_nivel_impacto:
+  id: ~
+  criterio_impacto_id: {type: integer, foreignTable: criterio_impacto, required: true, foreignReference: id, onDelete: cascade, displayField: criterio_impacto}
+  impacto: {type: integer, required: true}
+  glosa: {type: longvarchar, required: true}
+
+
+empresa:
+  id: ~
+  empresa: {type: varchar, size: 255, required: true}
+  codigo: {type: varchar, size: 255, required: true}
+  descripcion: {type: longvarchar, required: false}
+  tipo: {type: integer}
+  ubicacion: {type: longvarchar, required: false}
+
+matriz:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  impacto: {type: integer, required: true}
+  probabilidad: {type: integer, required: true}
+  tipo: {type: integer, required: true}
+
+matriz_celda:
+  id: ~
+  matriz_id: {type: integer, foreignTable: matriz, required: true, foreignReference: id, onDelete: cascade, displayField: id}
+  impacto: {type: integer, required: true}
+  probabilidad: {type: integer, required: true}
+  valor: {type: integer, required: true}
+  color: {type: integer, required: true}
+
+instalacion:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  codigo: {type: varchar, size: 255, required: true}
+  instalacion: {type: varchar, size: 255, required: true}
+  ubicacion: {type: longvarchar, required: false}
+
+
+proceso_ubicacion_tipo:
+  id: ~
+  tipo: {type: varchar, size: 255, required: true}
+
+
+proceso:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  codigo: {type: varchar, size: 255, required: true}
+  proceso: {type: varchar, size: 255, required: true}
+  descripcion: {type: longvarchar, required: false}
+  inicio_id: {type: integer, foreignTable: proceso, required: true, foreignReference: id, onDelete: cascade, displayField: proceso}
+  fin_id: {type: integer, foreignTable: proceso, required: true, foreignReference: id, onDelete: cascade, displayField: proceso}
+  tipo: {type: integer, required: true}
+  proceso_ubicacion_tipo_id: {type: integer, foreignTable: proceso_ubicacion_tipo, required: true, foreignReference: id, onDelete: cascade, displayField: tipo}
+  instalacion_id: {type: integer, foreignTable: instalacion, required: false, foreignReference: id, onDelete: cascade, displayField: instalacion}
+  gerencia_id: {type: integer, foreignTable: gerencia, required: true, foreignReference: id, onDelete: cascade, displayField: gerencia}
+  proceso_id: {type: integer, foreignTable: proceso, required: false, foreignReference: id, onDelete: cascade, displayField: proceso}
+  estado: {type: integer, required: true}
+
+
+gerencia:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  gerencia: {type: varchar, size: 255, required: true}
+
+
+
+sesion:
+  id: ~
+  sesion: {type: varchar, size: 255, required: true}
+  fecha: {type: datetime, required: true}
+
+efecto:
+  id: ~
+  efecto: {type: varchar, size: 255, required: true}
+
+objetivo_estrategico:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  codigo: {type: varchar, size: 255, required: true}
+  descripcion: {type: longvarchar, required: false}
+  gerencia_id: {type: integer, foreignTable: gerencia, required: true, foreignReference: id, onDelete: cascade, displayField: gerencia}
+  efecto_id: {type: integer, foreignTable: gerencia, required: true, foreignReference: id, onDelete: cascade, displayField: gerencia}
+
+riesgo_estrategico_tipo:
+  id: ~
+  tipo: {type: varchar, size: 255, required: true}
+
+riesgo_estrategico:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  codigo: {type: varchar, size: 255, required: true}
+  riesgo_estrategico: {type: varchar, size: 255, required: true}
+  descripcion: {type: longvarchar, required: false}
+  efecto_fin: {type: double, required: false}
+  efecto_rep: {type: double, required: false}
+  riesgo_estrategico_tipo_id: {type: integer, foreignTable: riesgo_estrategico_tipo, required: true, foreignReference: id, onDelete: cascade, displayField: tipo}
+  gerencia_id: {type: integer, foreignTable: gerencia, required: true, foreignReference: id, onDelete: cascade, displayField: gerencia}
+  objetivos_estrategicos: {type: oneToMany, foreignTable: riesgo_estrategico_objetivo_estrategico}
+
+riesgo_estrategico_objetivo_estrategico:
+  id: ~
+  riesgo_estrategico_id: {type: integer, foreignTable: riesgo_estrategico, required: true, foreignReference: id, onDelete: cascade, displayField: codigo}
+  objetivo_estrategico_id: {type: integer, foreignTable: objetivo_estrategico, required: true, foreignReference: id, onDelete: cascade, displayField: codigo}
+
+
+driver_tipo_analisis:
+  id: ~
+  tipo_analisis: {type: varchar, size: 255, required: true}
+
+driver:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  riesgo_estrategico_id: {type: integer, foreignTable: riesgo_estrategico, required: true, foreignReference: id, onDelete: cascade, displayField: riesgo_estrategico}
+  driver: {type: varchar, size: 255, required: true}
+  peso: {type: double, required: false}
+  driver_tipo_analisis_id: {type: integer, foreignTable: driver_tipo_analisis, required: true, foreignReference: id, onDelete: cascade, displayField: tipo_analisis}
+
+driver_nivel:
+  id: ~
+  driver_id: {type: integer, foreignTable: driver, required: true, foreignReference: id, onDelete: cascade, displayField: driver}
+  definicion: {type: longvarchar, required: true}
+  valor: {type: integer, required: true}
+
+
+respuesta_driver_nivel:
+  id: ~
+  riesgo_estrategico_id: {type: integer, foreignTable: riesgo_estrategico, required: true, foreignReference: id, onDelete: cascade, displayField: riesgo_estrategico}
+  driver_nivel_id: {type: integer, foreignTable: driver_nivel, required: true, foreignReference: id, onDelete: cascade, displayField: definicion}
+  sesion_id: {type: integer, foreignTable: sesion, required: true, foreignReference: id, onDelete: cascade, displayField: sesion}
+
+
+
+riesgo_operacional:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  codigo: {type: varchar, size: 255, required: true}
+  riesgo_operacional: {type: varchar, size: 255, required: true}
+  descripcion: {type: longvarchar, required: false}
+  riesgo_operacional_tipo_id: {type: integer, foreignTable: riesgo_operacional_tipo, required: true, foreignReference: id, onDelete: cascade, displayField: tipo}
+  proceso_id: {type: integer, foreignTable: proceso, required: true, foreignReference: id, onDelete: cascade, displayField: proceso}
+  total: {type: integer, required: false}
+  riesgos_estrategicos: {type: oneToMany, foreignTable: riesgo_operacional_riesgo_estrategico}
+
+riesgo_operacional_riesgo_estrategico:
+  id: ~
+  riesgo_operacional_id: {type: integer, foreignTable: riesgo_operacional, required: true, foreignReference: id, onDelete: cascade, displayField: codigo}
+  riesgo_estrategico_id: {type: integer, foreignTable: riesgo_estrategico, required: true, foreignReference: id, onDelete: cascade, displayField: riesgo_estrategico}
+
+
+riesgo_operacional_tipo:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  tipo: {type: varchar, size: 255, required: true}
+
+evaluacion_riesgo:
+  id: ~
+  riesgo_operacional_id: {type: integer, foreignTable: riesgo_operacional, required: true, foreignReference: id, onDelete: cascade, displayField: codigo}
+  fecha: {type: datetime, required: true}
+  criterio_impacto_id:  {type: integer, foreignTable: criterio_impacto, required: true, foreignReference: id, onDelete: cascade, displayField: criterio_impacto}
+  impacto: {type: integer, required: true}
+  criterio_probabilidad_valor1_id: {type: integer, foreignTable: criterio_probabilidad_valor, required: true, foreignReference: id, onDelete: cascade, displayField: valor}
+  criterio_probabilidad_valor2_id: {type: integer, foreignTable: criterio_probabilidad_valor, required: true, foreignReference: id, onDelete: cascade, displayField: valor}
+  criterio_probabilidad_valor3_id: {type: integer, foreignTable: criterio_probabilidad_valor, required: true, foreignReference: id, onDelete: cascade, displayField: valor}
+  criterio_probabilidad_valor4_id: {type: integer, foreignTable: criterio_probabilidad_valor, required: true, foreignReference: id, onDelete: cascade, displayField: valor}
+  valor_impacto: {type: integer, required: false}
+  valor_probabilidad: {type: integer, required: false}
+
+
+control:
+  id: ~
+  empresa_id: {type: integer, foreignTable: empresa, required: true, foreignReference: id, onDelete: cascade, displayField: empresa}
+  codigo: {type: varchar, size: 255, required: true}
+  descripcion: {type: longvarchar, required: false}
+  gerencia_id: {type: integer, foreignTable: gerencia, required: true, foreignReference: id, onDelete: cascade, displayField: gerencia}
+  control_tipo_id: {type: integer, foreignTable: control_tipo, required: true, foreignReference: id, onDelete: cascade, displayField: tipo}
+  existente: {type: boolean, required: true}
+  efectivo: {type: boolean, required: true}
+  documentado: {type: boolean, required: true}
+  capacitado: {type: boolean, required: true}
+  afecta_a: {type: integer}
+
+control_tipo:
+  id: ~
+  tipo: {type: varchar, size: 255, required: true}
+
+evaluacion_riesgo_control:
+  id: ~
+  evaluacion_riesgo_id: {type: integer, foreignTable: evaluacion_riesgo, required: true, foreignReference: id, onDelete: cascade, displayField: id}
+  control_id: {type: integer, foreignTable: control, required: true, foreignReference: id, onDelete: cascade, displayField: codigo}
+  mitiga: {type: double, required: false}
+  porcentaje_impacto: {type: double, required: false}
+  porcentaje_probabilidad: {type: double, required: false}
+
+
+
+
+
+

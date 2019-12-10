@@ -1,0 +1,65 @@
+type_of_expenditure:
+  id: ~
+  type_of_expenditure: {type: varchar, size: 255, required: true}
+  type_of_expenditure_id: {type: integer, foreignTable: type_of_expenditure, required: false, foreignReference: id, onDelete: cascade, displayField: type_of_expenditure}
+
+cost_center:
+  id: ~
+  cost_center: {type: varchar, size: 255, required: true}
+  cost_center_id: {type: integer, foreignTable: cost_center, required: false, foreignReference: id, onDelete: set null, displayField: cost_center}
+  cost_center_type_id: {type: integer, foreignTable: cost_center_type, required: true, foreignReference: id, onDelete: cascade, displayField: tpe}
+  ccenters: { type: oneToMany, foreignTable: cost_center_cost_center}
+  acriterias: { type: oneToMany, foreignTable: cost_center_assignment_criteria}
+
+cost_center_type:
+  id: ~
+  tpe: {type: varchar, size: 255, required: true}
+
+expenditure:
+  id: ~
+  date: {type: datetime, required: true}
+  ammount: {type: integer, required: true}
+  cost_center_id: {type: integer, foreignTable: cost_center, required: true, foreignReference: id, onDelete: set null, displayField: cost_center}
+  type_of_expenditure_id: {type: integer, foreignTable: type_of_expenditure, required: false, foreignReference: id, onDelete: set null, displayField: type_of_expenditure}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: set null, displayField: name}
+  created_at: ~
+  updated_at: ~
+
+
+cost_center_cost_center:
+  id: ~
+  cost_center_id: {type: integer, foreignTable: cost_center, required: true, foreignReference: id, onDelete: cascade, displayField: cost_center}
+  cost_center_to_id: {type: integer, foreignTable: cost_center, required: true, foreignReference: id, onDelete: cascade, displayField: cost_center}
+  percentage: {type: double, required: true}
+  cost_center_relation_type_id: {type: integer, foreignTable: cost_center_relation_type, required: true, foreignReference: id, onDelete: cascade, displayField: tpe}
+  assignment_criteria_id: {type: integer, foreignTable: assignment_criteria, required: true, foreignReference: id, onDelete: set null, displayField: assignment_criteria}
+
+
+cost_center_relation_type:
+  id: ~
+  tpe: {type: varchar, size: 255, required: true}
+
+cost_center_assignment_criteria:
+  id: ~
+  cost_center_id: {type: integer, foreignTable: cost_center, required: true, foreignReference: id, onDelete: cascade, displayField: cost_center}
+  assignment_criteria_id: {type: integer, foreignTable: assignment_criteria, required: true, foreignReference: id, onDelete: cascade, displayField: assignment_criteria}
+  value: {type: double, required: true}
+
+assignment_criteria:
+  id: ~
+  assignment_criteria: {type: varchar, size: 255, required: true}
+
+
+service:
+  id: ~
+  service: {type: varchar, size: 255, required: true}
+  service_id: {type: integer, foreignTable: service, required: false, foreignReference: id, onDelete: cascade, displayField: service}
+
+
+production_formula:
+  id: ~
+  cost_center_id: {type: integer, foreignTable: cost_center, required: true, foreignReference: id, onDelete: cascade, displayField: cost_center}
+  service_id: {type: integer, foreignTable: service, required: true, foreignReference: id, onDelete: cascade, displayField: service}
+  type_of_expenditure_id: {type: integer, foreignTable: type_of_expenditure, required: true, foreignReference: id, onDelete: cascade, displayField: type_of_expenditure}
+  percentage: {type: double, required: true}
+
