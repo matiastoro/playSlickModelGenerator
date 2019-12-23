@@ -22,9 +22,24 @@ expenditure:
   cost_center_id: {type: integer, foreignTable: cost_center, required: true, foreignReference: id, onDelete: set null, displayField: cost_center}
   type_of_expenditure_id: {type: integer, foreignTable: type_of_expenditure, required: false, foreignReference: id, onDelete: set null, displayField: type_of_expenditure}
   user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: set null, displayField: name}
+  expenditure_bag_id: {type: integer, foreignTable: expenditure_bag, required: false, foreignReference: id, onDelete: set null, displayField: bag}
   created_at: ~
   updated_at: ~
 
+expenditure_bag:
+  id: ~
+  bag: {type: varchar, size: 255, required: false}
+  file: {type: attachment, required: false}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: set null, displayField: name}
+  created_at: ~
+  updated_at: ~
+
+system_log:
+  id: ~
+  tpe: {type: integer, required: true}
+  action: {type: longvarchar, required: true}
+  user_id: {type: integer, foreignTable: user, required: true, foreignReference: id, onDelete: set null, displayField: name}
+  created_at: ~
 
 cost_center_cost_center:
   id: ~

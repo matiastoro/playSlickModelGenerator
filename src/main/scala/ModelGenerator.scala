@@ -490,19 +490,23 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
 
     val copyInlines = if(table.inlines.size>0) s""".copy(${table.inlines.map{i => s"""${i.name} = ${i.name}"""}.mkString(", ")})""" else ""
     println(copyInlines)
-    val attachmentsUpdate = if(attachments.length>0)
+    val attachmentsUpdate = attachments.map{ attachment =>
       s"""
-         |    val attachments = _root_.util.FileUtil.moveJsonFiles(updatedObj.attachments, "neo_aerodrome/"+obj.id.getOrElse(0L))""".stripMargin else ""
-    val attachmentsInsert = if(attachments.length>0)
+         |    val ${attachment.name} = _root_.util.FileUtil.moveJsonFiles(updatedObj.${attachment.name}, "${table.yamlName}/"+obj.id.getOrElse(0L))""".stripMargin
+    }.mkString("\n")
+    val attachmentsCopies =  attachments.map{ attachment => s"${attachment.name} = ${attachment.name}"}.mkString(",")
+
+    val attachmentsInsert = attachments.map{ attachment =>
       s"""
-      val attachments = _root_.util.FileUtil.moveJsonFiles(insertedObj.attachments, "neo_aerodrome/"+id)
-      repo.update(insertedObj.copy(attachments = attachments, id=Some(id)))""" else ""
+      val ${attachment.name} = _root_.util.FileUtil.moveJsonFiles(insertedObj.${attachment.name}, "${table.yamlName}/"+id)
+      repo.update(insertedObj.copy(${attachmentsCopies}, id=Some(id)))"""
+    }.mkString("\n")
     """
 case class """+table.className+"""FormData(obj: """+table.className+inlines+otms+"""){
   def update(updatedObj: """+table.className+s""" = obj)(implicit repo: ${table.className}Repository${inlineRepos}${otmsRepos}, ec: ExecutionContext) = {
 """+otmsUpdates+s"""
    ${attachmentsUpdate}
-    """+s"""repo.${langHash("updateOrInsert")}(updatedObj)
+    """+s"""repo.${langHash("updateOrInsert")}(updatedObj${if(attachments.length>0) s".copy(${attachmentsCopies})" else ""})
   }
   def insert(insertedObj: """+table.className+s""")(implicit repo: ${table.className}Repository${inlineRepos}${otmsRepos}, ec: ExecutionContext) = {
     def fid = (${inlineTypedArgs}) => { repo.${langHash("insert")}(insertedObj${copyInlines}).flatMap{ id=>${attachmentsInsert}
