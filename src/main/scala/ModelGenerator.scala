@@ -431,8 +431,8 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
     val inlines: String = if(table.inlines.size>0) ", "+table.inlines.map{i => i.fkInlineName+": "+i.foreignKey.get.className+"FormData"}.mkString(", ") else ""
     val otmsUpdates = table.oneToManies.map{otm =>
       "    //Delete elements that are not part of the form but they do exists in the database.\n"+
-      """    """+otm.foreignTable+"""Repo.by"""+table.backRef(otm, tables).capitalize+"""(obj.id).map{ l =>  l.filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.foreignTable+"""Repo.delete(_)}}"""+"\n"+
-      """    """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.backRef(otm, tables)+""" = obj.id.get))}"""
+      """    def otmDeletion_"""+otm.foreignTable+"""= """+otm.foreignTable+"""Repo.by"""+table.backRef(otm, tables).capitalize+"""(obj.id).flatMap{ l =>  Future.sequence(l.filterNot{o => """+otm.foreignTable+"""s.exists(_.obj.id == o.id)}.map{"""+otm.foreignTable+"""Repo.delete(_)})}"""+"\n"+
+      """    def otmCreation_"""+otm.foreignTable+"""= Future.sequence( """+otm.foreignTable+"""s.map{o => o.update(o.obj.copy("""+table.backRef(otm, tables)+""" = obj.id.get))})"""
     }.mkString("\n")
     val otmsInserts = table.oneToManies.map{otm => """    """+otm.foreignTable+"""s.map{o => o.insert(o.obj.copy("""+table.backRef(otm, tables)+""" = id))}""" }.mkString("++")
 
@@ -497,12 +497,28 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
       s"""
       val attachments = _root_.util.FileUtil.moveJsonFiles(insertedObj.attachments, "neo_aerodrome/"+id)
       repo.update(insertedObj.copy(attachments = attachments, id=Some(id)))""" else ""
+
+
+
+
+    val returnSegment = if(otmsUpdates.size>0) {table.oneToManies.foldLeft("for{ " + "\n") {(acc, otm) => acc +
+      "        _ <- otmDeletion_" + otm.foreignTable + "\n" + "        _ <- otmCreation_" + otm.foreignTable + "\n"}}+
+    s"""        r <- repo.${langHash("updateOrInsert")}(updatedObj)
+   } yield{
+      r
+   }
+    """ else s"""repo.${langHash("updateOrInsert")}(updatedObj)"""
+
+
+
+
     """
 case class """+table.className+"""FormData(obj: """+table.className+inlines+otms+"""){
   def update(updatedObj: """+table.className+s""" = obj)(implicit repo: ${table.className}Repository${inlineRepos}${otmsRepos}, ec: ExecutionContext) = {
 """+otmsUpdates+s"""
    ${attachmentsUpdate}
-    """+s"""repo.${langHash("updateOrInsert")}(updatedObj)
+
+   ${returnSegment}
   }
   def insert(insertedObj: """+table.className+s""")(implicit repo: ${table.className}Repository${inlineRepos}${otmsRepos}, ec: ExecutionContext) = {
     def fid = (${inlineTypedArgs}) => { repo.${langHash("insert")}(insertedObj${copyInlines}).flatMap{ id=>${attachmentsInsert}

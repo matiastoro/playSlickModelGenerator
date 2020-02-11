@@ -315,7 +315,7 @@ case class OneToMany(foreignTable: String, rawForeignTable: String)(implicit lan
     ref.map{table =>
       val label = rawForeignTable.split("_").map(_.capitalize).mkString(" ")
       val description = (if(lang=="es") "Lista de " else "List of ")+label+"s"
-      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${description}" prefix="${objName}s" readOnly={readOnly} objs={obj.${objName}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id?obj.id:-1},nobj)} ref={(input) => refFunc(input)} readOnly={readOnly} hide={["${table.objName}Id"]} errors={errors} prefix="${objName}s"/>}/>"""
+      s"""            <GNestedForms ref={(i) => this._inputs["${objName}s"] = i} description="${description}" prefix={prefix+"${objName}s"} readOnly={readOnly} objs={obj.${objName}s} renderNested={(nobj, k, refFunc) => <${className}FormInline i={k} obj={Object.assign({${table.objName}Id: obj.id?obj.id:-1},nobj)} ref={(input) => refFunc(input)} readOnly={readOnly} hide={["${table.objName}Id"]} errors={errors} prefix={prefix+"${objName}s"}/>}/>"""
     }.getOrElse{
 
     """          <div id=""""+objName+"""sDiv_@frm(""""+objName+"""s").id">
