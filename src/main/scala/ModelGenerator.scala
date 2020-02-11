@@ -501,14 +501,14 @@ class """+className+s"""${langHash("Query")}Base extends BaseDAO["""+className+"
        val ${attachment.name} = _root_.util.FileUtil.moveJsonFiles(insertedObj.${attachment.name}, "${table.yamlName}/"+id)
       repo.update(insertedObj.copy(${attachmentsCopies}, id=Some(id)))"""
     }.mkString("\n")
-    
+
     val returnSegment = if(otmsUpdates.size>0) {table.oneToManies.foldLeft("for{ " + "\n") {(acc, otm) => acc +
       "        _ <- otmDeletion_" + otm.foreignTable + "\n" + "        _ <- otmCreation_" + otm.foreignTable + "\n"}}+
-    s"""        r <- repo.${langHash("updateOrInsert")}(updatedObj)
+    s"""        r <- repo.${langHash("updateOrInsert")}(updatedObj${if(attachments.length>0) s".copy(${attachmentsCopies})" else ""})
    } yield{
       r
    }
-    """ else s"""repo.${langHash("updateOrInsert")}(updatedObj)"""
+    """ else s"""repo.${langHash("updateOrInsert")}(updatedObj${if(attachments.length>0) s".copy(${attachmentsCopies})" else ""})"""
 
     """
 case class """+table.className+"""FormData(obj: """+table.className+inlines+otms+"""){
@@ -516,12 +516,10 @@ case class """+table.className+"""FormData(obj: """+table.className+inlines+otms
 """+otmsUpdates+s"""
    ${attachmentsUpdate}
 
-
    ${returnSegment}
 
-    """+s"""repo.${langHash("updateOrInsert")}(updatedObj${if(attachments.length>0) s".copy(${attachmentsCopies})" else ""})
-
   }
+
   def insert(insertedObj: """+table.className+s""")(implicit repo: ${table.className}Repository${inlineRepos}${otmsRepos}, ec: ExecutionContext) = {
     def fid = (${inlineTypedArgs}) => { repo.${langHash("insert")}(insertedObj${copyInlines}).flatMap{ id=>${attachmentsInsert}
   """+(if(otmsInserts.length>0){ s"""      Future.sequence(${otmsInserts}).map{ x =>
