@@ -51,7 +51,7 @@ object ParseJSON extends SlickCodeGenerator {
 import scala.io.Source
 object parser {
   def main(args: Array[String]){
-    //println("USAGE: run (model|controller|view|config|all) filename [destination_folder] [submodule_name]")
+    println("USAGE: run (model|controller|view|config|all) filename [destination_folder] [submodule_name]")
 
     val buildType = args(0)
     val reader = Source.fromFile(args(1)).getLines.mkString("\n")
@@ -75,7 +75,9 @@ object parser {
     val pathControllers = Paths.get(path+"/app/controllers")
     //val pathViews       = Paths.get(path+"/app/views/"+submoduleName)
     val pathReact       = Paths.get(path+"/react/"+submoduleName)
+    println(YAMLParser.parse(reader))
     YAMLParser.parse(reader).map{result =>
+      println("file parsed, generating folders")
       Files.createDirectories(path)
       Files.createDirectories(pathExtensions)
       Files.createDirectories(pathControllers)

@@ -25,7 +25,7 @@ object YAMLParser extends RegexParsers {
 
   val closeBracket = """ *]""".r;
 
-  def leadingSpaces(numLeadingSpaces:Int):Parser[Int] = ("^[ ]{" + numLeadingSpaces + ",}".r) ^^ { _.length }
+  def leadingSpaces(numLeadingSpaces:Int):Parser[Int] = (("^[ ]{" + numLeadingSpaces + ",}").r) ^^ { _.length }
 
   //a mapping is either a indented map or an inline map (represented as a Scala ListMap)
   def mappings(numLeadingSpaces:Int):Parser[ListMap[String, Any]] =

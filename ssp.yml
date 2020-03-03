@@ -1,3 +1,4 @@
+
 profile:
   id: ~
   profile: {type: varchar, size: 255}
