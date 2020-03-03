@@ -7,25 +7,25 @@ import collection.immutable.ListMap
 object YAMLParser extends RegexParsers {
   override def skipWhitespace = false
 
-  val mapSeparator = ": *\r?\n?"r
+  val mapSeparator = ": *\r?\n?".r
 
-  val seqIndicator = "- *\r?\n?"r
+  val seqIndicator = "- *\r?\n?".r
 
-  val mappingKey = """[^-:\r\n\}\{\[]+"""r
+  val mappingKey = """[^-:\r\n\}\{\[]+""".r
 
-  val newLine = " *\r*\n+"r
+  val newLine = " *\r*\n+".r
 
-  val inlineSeparator = " *, *"r
+  val inlineSeparator = " *, *".r
 
-  val openBrace = """\{ *"""r;
+  val openBrace = """\{ *""".r;
 
-  val closeBrace = """ *\}"""r;
+  val closeBrace = """ *\}""".r;
 
-  val openBracket = """\[ *"""r;
+  val openBracket = """\[ *""".r;
 
-  val closeBracket = """ *]"""r;
+  val closeBracket = """ *]""".r;
 
-  def leadingSpaces(numLeadingSpaces:Int):Parser[Int] = ("^[ ]{" + numLeadingSpaces + ",}"r) ^^ { _.length }
+  def leadingSpaces(numLeadingSpaces:Int):Parser[Int] = ("^[ ]{" + numLeadingSpaces + ",}".r) ^^ { _.length }
 
   //a mapping is either a indented map or an inline map (represented as a Scala ListMap)
   def mappings(numLeadingSpaces:Int):Parser[ListMap[String, Any]] =
